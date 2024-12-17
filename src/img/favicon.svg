@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="48"
+   height="48"
+   viewBox="0 0 12.7 12.7"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04, custom)"
+   sodipodi:docname="favicon.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     units="px"
+     inkscape:zoom="6.2074635"
+     inkscape:cx="48.087274"
+     inkscape:cy="40.596292"
+     inkscape:window-width="1920"
+     inkscape:window-height="1057"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <rect
+       x="74.748726"
+       y="434.31589"
+       width="35.441211"
+       height="24.808834"
+       id="rect1640" />
+  </defs>
+  <g
+     inkscape:label="Ebene 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <text
+       xml:space="preserve"
+       transform="matrix(0.39595262,0,0,0.39595262,-29.481353,-170.35187)"
+       id="text1638"
+       style="font-weight:bold;font-size:21.3333px;line-height:1.25;font-family:Rubik;-inkscape-font-specification:'Rubik Bold';white-space:pre;shape-inside:url(#rect1640);fill:#4e964b;fill-opacity:1"><tspan
+         x="74.748047"
+         y="454.24605"
+         id="tspan7901"><tspan
+           style="font-family:'Agency FB';-inkscape-font-specification:'Agency FB Bold'"
+           id="tspan7899">MRZ</tspan></tspan></text>
+  </g>
+</svg>
