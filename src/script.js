@@ -16,6 +16,7 @@ navLinks.forEach((navLink) => {
       divs.forEach((div) => {
         div.classList.add("d-none");
       });
+
       div.classList.remove("d-none");
     }
   });
@@ -31,6 +32,49 @@ document.addEventListener("DOMContentLoaded", function () {
     divs.forEach((div) => {
       div.classList.add("d-none");
     });
+
+    if (id == "kunst") {
+      // load artworks
+      fetch("src/artworks.json")
+        .then((response) => response.json())
+        .then((data) => {
+          loadArtworks(data);
+
+          // add event listener to the new cards
+          let artCards = document.querySelectorAll(".artCard");
+
+          artCards.forEach((artCard) => {
+            artCard.addEventListener("click", function () {
+              let dialog = document.getElementById("artwork-modal");
+
+              // get the year, title, size and medium of the artwork
+              let year = artCard.getAttribute("year");
+              let title = artCard.getAttribute("title");
+              let size = artCard.getAttribute("size");
+              let medium = artCard.getAttribute("medium");
+              let availability = artCard.getAttribute("available"); // boolean
+
+              // set the text of the dialog
+              document.getElementById("artwork-title").innerHTML = '"' + title + '"';
+              document.getElementById("artwork-year").innerHTML = year;
+              document.getElementById("artwork-size").innerHTML = size;
+              document.getElementById("artwork-medium").innerHTML = medium;
+
+              var highResPath = "src/img/artManuel/highRes/" + artCard.id + ".jpg";
+              dialog.querySelector("img").src;
+            });
+          });
+
+        });
+
+      document.getElementById("sort-button").classList.add("btn-outline-success");
+
+    } else {
+      div.classList.remove("d-none");
+
+
+      
+    }
     div.classList.remove("d-none");
   }
 });
@@ -47,7 +91,6 @@ let artCards = document.querySelectorAll(".artCard");
 
 
 artCards.forEach((artCard) => {
-  console.log(artCard.id);
   artCard.querySelector("img").src =
     "src/img/artManuel/lowRes/" + artCard.id + "-min.jpg";
 
@@ -87,7 +130,6 @@ artCards.forEach((artCard) => {
        `
   }
 
-  console.log(htmlCard);
 
   // set the innerHTML of the dialog
   cardBody.innerHTML = htmlCard;
@@ -108,7 +150,6 @@ artCards.forEach((artCard) => {
     document.getElementById("artwork-size").innerHTML = size;
     document.getElementById("artwork-medium").innerHTML = medium;
 
-    console.log(year);
     var highResPath = "src/img/artManuel/highRes/" + artCard.id + ".jpg";
     dialog.querySelector("img").src = highResPath;
 
@@ -142,7 +183,7 @@ function loadArtworks(data) {
 
     let html = "";
 
-    if (artwork.available) {
+    if (artwork.available == "True") {
       html = `
     <div class="col-md-4 col-sm-6 col-12" style="margin-bottom: 20px;">
       <div class="card artCard" id="${artwork.id}" year="${artwork.year}" title="${artwork.title}" size="${artwork.size}" medium="${artwork.medium}" available="${artwork.available}">
@@ -156,6 +197,8 @@ function loadArtworks(data) {
       </div>
     </div>
     `;
+
+    console.log(artwork.title + " is available");
     } else {
       html = `
       <div class="col-md-4 col-sm-6 col-12" style="margin-bottom: 20px;">
