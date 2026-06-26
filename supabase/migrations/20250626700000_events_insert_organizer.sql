@@ -1,4 +1,4 @@
--- Ensure event organizer_id always matches the authenticated user on insert.
+-- Set organizer_id from auth.uid() on insert (client must send valid JWT).
 
 CREATE OR REPLACE FUNCTION public.events_set_organizer_id()
 RETURNS trigger

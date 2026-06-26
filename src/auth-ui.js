@@ -108,13 +108,18 @@ async function initAuthUI(options = {}) {
     container.querySelector(`[data-google="${loginContainerId}"]`)?.addEventListener("click", async () => {
       const msg = document.getElementById(msgId);
       storeAuthReturnTo();
-      const { error } = await client.auth.signInWithOAuth({
+      const { data, error } = await client.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: oauthReturnUrl(),
+          skipBrowserRedirect: true,
         },
       });
       if (error && msg) showStatus(msg, error.message, "error");
+      else if (data?.url) {
+        persistPkceVerifierToCookie();
+        window.location.assign(data.url);
+      }
     });
 
     container.querySelector(`[data-toggle-discreet="${loginContainerId}"]`)?.addEventListener("click", () => {

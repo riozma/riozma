@@ -162,22 +162,37 @@ async function waitForAuthSession(client, timeoutMs = 5000) {
   });
 }
 
-async function requireAuthUser(client) {
+async function ensureWriteSession(client) {
   if (!client) throw new Error("Supabase nicht konfiguriert.");
 
-  const session = await waitForAuthSession(client, 3000);
-  if (session?.user?.id) return session.user;
-
-  const { data: { session: cached } } = await client.auth.getSession();
-  if (cached?.refresh_token) {
-    const { data: refreshData } = await client.auth.refreshSession();
-    if (refreshData.session?.user?.id) return refreshData.session.user;
+  let { data: { session } } = await client.auth.getSession();
+  if (!session?.refresh_token) {
+    const { data: { user }, error } = await client.auth.getUser();
+    if (error || !user?.id) throw new Error("Bitte erneut anmelden.");
+    ({ data: { session } } = await client.auth.getSession());
   }
 
-  const { data: { user }, error: userError } = await client.auth.getUser();
-  if (user?.id) return user;
+  const expiresAtMs = session?.expires_at ? session.expires_at * 1000 : 0;
+  const tokenStale = !session?.access_token || expiresAtMs < Date.now() + 60_000;
+  if (tokenStale && session?.refresh_token) {
+    const { data: refreshed, error } = await client.auth.refreshSession(session);
+    if (error || !refreshed.session?.access_token) {
+      throw new Error("Sitzung abgelaufen – bitte erneut anmelden.");
+    }
+    session = refreshed.session;
+  }
 
-  throw new Error(userError?.message || "Bitte erneut anmelden.");
+  const { data: { user: verified }, error: verifyError } = await client.auth.getUser();
+  if (verifyError || !verified?.id) {
+    throw new Error("Anmeldung ungültig – bitte erneut anmelden.");
+  }
+
+  return { session, user: verified };
+}
+
+async function requireAuthUser(client) {
+  const { user } = await ensureWriteSession(client);
+  return user;
 }
 
 function redirectToTrouvoLogin(returnPath) {
@@ -250,7 +265,6 @@ function getSupabase() {
       detectSessionInUrl: false,
       persistSession: true,
       autoRefreshToken: true,
-      storage: createAuthStorage(),
     },
   });
   return supabaseClient;

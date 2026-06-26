@@ -390,7 +390,7 @@ async function saveEvent(publish, triggerBtn) {
     successLabel: publish ? "✓ Veröffentlicht" : "✓ Gespeichert",
     successMessage: publish ? "Veranstaltung veröffentlicht!" : "Veranstaltung gespeichert.",
     run: async () => {
-      const user = await requireAuthUser(client);
+      const { user } = await ensureWriteSession(client);
       session = { user };
 
       const payload = {
@@ -425,9 +425,10 @@ async function saveEvent(publish, triggerBtn) {
         const { error } = await client.from("events").update(updatePayload).eq("id", eventId);
         if (error) throw new Error(formatDbError(error.message));
       } else {
-        payload.organizer_id = user.id;
-        payload.is_published = publish;
-        const { data, error } = await client.from("events").insert(payload).select("id, slug, is_published, organizer_id").single();
+        const insertPayload = { ...payload };
+        delete insertPayload.organizer_id;
+        insertPayload.is_published = publish;
+        const { data, error } = await client.from("events").insert(insertPayload).select("id, slug, is_published, organizer_id").single();
         if (error) throw new Error(formatDbError(error.message));
         savedId = data.id;
         eventId = data.id;
