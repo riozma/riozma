@@ -1599,6 +1599,15 @@ main { min-width: 0; margin: 0 auto; }
   font-weight: 700;
 }
 
+.form-label-required-inline {
+  color: #9b2c2c;
+  font-weight: 700;
+}
+
+.form-required-hint {
+  margin: -0.25rem 0 0.75rem;
+}
+
 #edit-content .form-control.is-invalid,
 #edit-content .form-select.is-invalid {
   border-color: #dc3545;
