@@ -107,10 +107,11 @@ async function initAuthUI(options = {}) {
 
     container.querySelector(`[data-google="${loginContainerId}"]`)?.addEventListener("click", async () => {
       const msg = document.getElementById(msgId);
+      storeAuthReturnTo();
       const { data, error } = await client.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: authRedirectUrl(),
+          redirectTo: oauthCallbackUrl(),
           skipBrowserRedirect: false,
         },
       });
@@ -175,7 +176,15 @@ async function initAuthUI(options = {}) {
 
   if (!globalAuthBound) {
     globalAuthBound = true;
-    client.auth.onAuthStateChange((_event, session) => {
+    client.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        const returnTo = sessionStorage.getItem("auth_return_to");
+        if (returnTo && returnTo !== window.location.pathname + window.location.search && !isAuthCallbackPage()) {
+          sessionStorage.removeItem("auth_return_to");
+          window.location.replace(returnTo);
+          return;
+        }
+      }
       renderAll(session);
     });
   }

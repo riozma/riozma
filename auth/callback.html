@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anmeldung – riozma</title>
+  <link rel="icon" href="/src/img/favicon.svg">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body class="site-body">
+  <main class="landing-main" style="text-align:center;padding:4rem 1rem;">
+    <p id="auth-callback-status">Anmeldung wird abgeschlossen…</p>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/src/supabase-config.js"></script>
+  <script src="/src/supabase-client.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const status = document.getElementById("auth-callback-status");
+      const client = getSupabase();
+      if (!client) {
+        status.textContent = "Supabase nicht konfiguriert.";
+        return;
+      }
+
+      const result = await completeAuthFromUrl(client);
+      if (result.error) {
+        status.textContent = result.error;
+        return;
+      }
+
+      const { data: { session } } = await client.auth.getSession();
+      const returnTo = sessionStorage.getItem("auth_return_to") || "/trouvo/";
+
+      if (!session) {
+        status.textContent = "Anmeldung fehlgeschlagen. Weiterleitung…";
+        setTimeout(() => window.location.replace(returnTo), 2000);
+        return;
+      }
+
+      sessionStorage.removeItem("auth_return_to");
+      window.location.replace(returnTo);
+    });
+  </script>
+</body>
+</html>

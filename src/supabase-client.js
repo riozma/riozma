@@ -21,6 +21,28 @@ function forceHttpsOnProduction() {
 
 forceHttpsOnProduction();
 
+function isAuthCallbackPage() {
+  return window.location.pathname.endsWith("/auth/callback.html");
+}
+
+function redirectOAuthCodeToCallback() {
+  if (!window.location.search.includes("code=") && !window.location.search.includes("error=")) return;
+  if (isAuthCallbackPage()) return;
+  window.location.replace(siteUrl(`/auth/callback.html${window.location.search}`));
+}
+
+function storeAuthReturnTo() {
+  sessionStorage.setItem("auth_return_to", `${window.location.pathname}${window.location.search}`);
+}
+
+function oauthCallbackUrl() {
+  return siteUrl("/auth/callback.html");
+}
+
+function authRedirectUrl() {
+  return oauthCallbackUrl();
+}
+
 function siteOrigin() {
   if (isLocalDevHost()) return window.location.origin;
   if (isProductionHost()) return `https://${window.location.hostname}`;
@@ -31,10 +53,6 @@ function siteOrigin() {
 function siteUrl(path = "/") {
   const normalized = path.startsWith("/") ? path : `/${path}`;
   return `${siteOrigin()}${normalized}`;
-}
-
-function authRedirectUrl() {
-  return `${window.location.origin}${window.location.pathname}${window.location.search}`;
 }
 
 async function completeAuthFromUrl(client) {
@@ -63,6 +81,8 @@ async function completeAuthFromUrl(client) {
 
   return { error: null };
 }
+
+redirectOAuthCodeToCallback();
 
 function getSupabase() {
   if (supabaseClient) return supabaseClient;
