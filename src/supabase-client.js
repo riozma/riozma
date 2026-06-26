@@ -1,5 +1,30 @@
 let supabaseClient = null;
 
+const PRODUCTION_SITE_URL = "https://riozma.ch";
+
+function isLocalDevHost() {
+  const host = window.location.hostname;
+  return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
+}
+
+function siteOrigin() {
+  if (isLocalDevHost()) return window.location.origin;
+  const configured = (window.SITE_URL || PRODUCTION_SITE_URL).replace(/\/$/, "");
+  return configured;
+}
+
+function siteUrl(path = "/") {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${siteOrigin()}${normalized}`;
+}
+
+function authRedirectUrl() {
+  if (isLocalDevHost()) {
+    return `${window.location.origin}${window.location.pathname}${window.location.search}`;
+  }
+  return siteUrl(`${window.location.pathname}${window.location.search}`);
+}
+
 function getSupabase() {
   if (supabaseClient) return supabaseClient;
   if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {

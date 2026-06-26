@@ -87,7 +87,7 @@ async function loadEvents() {
 }
 
 function renderEventCard(event, regCount) {
-  const guestLink = `${window.location.origin}/trouvo/e/?slug=${encodeURIComponent(event.slug)}`;
+  const guestLink = siteUrl(`/trouvo/e/?slug=${encodeURIComponent(event.slug)}`);
   const dateStr = formatEventDate(event);
   const status = event.is_published
     ? `<span class="badge bg-success">Live</span>`

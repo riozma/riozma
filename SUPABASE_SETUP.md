@@ -18,12 +18,16 @@ Config: `src/supabase-config.js`
 
 **Live-URL:** `https://riozma.ch/...`
 
-### Supabase Auth (Dashboard)
+### Supabase Auth (Dashboard) — wichtig
 
 Unter **Authentication → URL Configuration**:
 
-- **Site URL:** `https://riozma.ch`
-- **Redirect URLs:** `https://riozma.ch/**`
+- **Site URL:** `https://riozma.ch` (nicht `localhost`!)
+- **Redirect URLs:**
+  - `https://riozma.ch/**`
+  - optional für lokale Entwicklung: `http://localhost:8080/**`
+
+**Alte localhost-Einträge entfernen**, sonst leitet Login nach OAuth auf `localhost` weiter.
 
 ### Als Veranstalter
 1. Unter `/trouvo/` anmelden (Google oder E-Mail)

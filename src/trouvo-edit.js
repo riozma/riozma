@@ -464,7 +464,7 @@ async function saveEvent(publish, triggerBtn) {
 
 function updateGuestLink(slug, published) {
   const box = document.getElementById("guest-link-box");
-  const url = `${window.location.origin}/trouvo/e/?slug=${encodeURIComponent(slug)}`;
+  const url = siteUrl(`/trouvo/e/?slug=${encodeURIComponent(slug)}`);
   document.getElementById("guest-link-url").textContent = url;
   box.classList.toggle("d-none", !published);
 }

@@ -1,6 +1,17 @@
 const authInstances = new Map();
 let globalAuthBound = false;
 
+function recoverAuthFromWrongHost() {
+  const hash = window.location.hash;
+  if (!hash || !hash.includes("access_token")) return;
+  const host = window.location.hostname;
+  if (host !== "localhost" && host !== "127.0.0.1") return;
+  const production = (window.SITE_URL || "https://riozma.ch").replace(/\/$/, "");
+  window.location.replace(`${production}${window.location.pathname}${window.location.search}${hash}`);
+}
+
+recoverAuthFromWrongHost();
+
 async function initAuthUI(options = {}) {
   const {
     onAuthChange,
@@ -96,7 +107,7 @@ async function initAuthUI(options = {}) {
       const msg = document.getElementById(msgId);
       const { error } = await client.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: window.location.href.split("#")[0] },
+        options: { redirectTo: authRedirectUrl() },
       });
       if (error && msg) showStatus(msg, error.message, "error");
     });
@@ -132,7 +143,11 @@ async function initAuthUI(options = {}) {
       const email = document.getElementById(`auth-email-${loginContainerId}`).value.trim();
       const password = document.getElementById(`auth-password-${loginContainerId}`).value;
       const msg = document.getElementById(msgId);
-      const { error } = await client.auth.signUp({ email, password });
+      const { error } = await client.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: authRedirectUrl() },
+      });
       if (error) showStatus(msg, error.message, "error");
       else showStatus(msg, "Konto erstellt. Bitte E-Mail bestätigen, falls aktiviert.", "success");
     });
