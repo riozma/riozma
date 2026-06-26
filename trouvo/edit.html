@@ -25,7 +25,6 @@
       <div class="trouvo-edit-header">
         <h1 class="section-heading" id="edit-title">Neue Veranstaltung</h1>
       </div>
-      <p id="edit-message" class="admin-message"></p>
       <div id="guest-link-box" class="guest-link-box d-none">
         <strong>Gast-Link:</strong>
         <code id="guest-link-url"></code>
@@ -36,7 +35,7 @@
         <h2>Grundlagen</h2>
         <div class="row g-3">
           <div class="col-md-8">
-            <label class="form-label">Name</label>
+            <label class="form-label form-label-required" for="ev-name">Name</label>
             <input type="text" class="form-control" id="ev-name" required>
           </div>
           <div class="col-md-4">
@@ -57,11 +56,11 @@
             <div class="form-text">Wird Gästen angezeigt, falls sie ihre Anmeldung anpassen möchten.</div>
           </div>
           <div class="col-md-6">
-            <label class="form-label">Datum</label>
+            <label class="form-label form-label-required" for="ev-date">Datum</label>
             <input type="date" class="form-control" id="ev-date" required>
           </div>
           <div class="col-md-4">
-            <label class="form-label">Start</label>
+            <label class="form-label form-label-required" for="ev-start">Start</label>
             <input type="time" class="form-control" id="ev-start" value="19:00" required>
           </div>
           <div class="col-md-4">
@@ -164,9 +163,12 @@
       </section>
 
       <div class="edit-actions-bottom">
+        <div class="edit-actions-buttons">
         <button type="button" class="btn btn-primary" id="btn-save">Speichern</button>
         <button type="button" class="btn btn-success" id="btn-publish">Veröffentlichen</button>
         <button type="button" class="btn btn-outline-danger d-none" id="btn-delete-event">Veranstaltung löschen</button>
+        </div>
+        <p id="edit-message" class="admin-message edit-feedback-bottom" role="alert" aria-live="polite"></p>
       </div>
     </div>
   </main>

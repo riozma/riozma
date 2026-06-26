@@ -41,6 +41,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("ev-open-end").addEventListener("change", (e) => {
     document.getElementById("ev-end").disabled = e.target.checked;
   });
+
+  ["ev-name", "ev-date", "ev-start", "ev-photos-upload-url"].forEach((id) => {
+    document.getElementById(id)?.addEventListener("input", () => {
+      document.getElementById(id)?.classList.remove("is-invalid");
+    });
+  });
 });
 
 function bindUI() {
@@ -378,10 +384,7 @@ async function saveEvent(publish, triggerBtn) {
   const name = document.getElementById("ev-name").value.trim();
   const slug = document.getElementById("ev-slug").value.trim() || slugify(name);
   const startTime = document.getElementById("ev-start").value;
-  if (!name || !document.getElementById("ev-date").value || !startTime) {
-    showStatus(msg, "Name, Datum und Startzeit sind Pflicht.", "error");
-    return;
-  }
+  if (!validateEventForm(msg)) return;
 
   await withActionFeedback({
     button: btn,
@@ -415,7 +418,11 @@ async function saveEvent(publish, triggerBtn) {
       };
 
       if (payload.photos_upload_enabled && !payload.photos_upload_url) {
-        throw new Error("Für den Foto-Upload brauchst du einen Upload-Link.");
+        const uploadEl = document.getElementById("ev-photos-upload-url");
+        uploadEl?.classList.add("is-invalid");
+        const err = new Error("Für den Foto-Upload brauchst du einen Upload-Link.");
+        err.focusField = uploadEl;
+        throw err;
       }
       let savedId = eventId;
       if (eventId) {
@@ -425,10 +432,27 @@ async function saveEvent(publish, triggerBtn) {
         const { error } = await client.from("events").update(updatePayload).eq("id", eventId);
         if (error) throw new Error(formatDbError(error.message));
       } else {
-        const insertPayload = { ...payload };
-        delete insertPayload.organizer_id;
-        insertPayload.is_published = publish;
-        const { data, error } = await client.from("events").insert(insertPayload).select("id, slug, is_published, organizer_id").single();
+        const rpcPayload = {
+          slug,
+          name: payload.name,
+          description: payload.description,
+          location: payload.location,
+          organizer_phone: payload.organizer_phone || "",
+          event_date: payload.event_date,
+          start_time: payload.start_time,
+          end_time: payload.end_time || "",
+          open_end: payload.open_end,
+          attendee_visibility: payload.attendee_visibility,
+          show_attendee_list: payload.show_attendee_list,
+          photos_show_preview: payload.photos_show_preview,
+          photos_preview_text: payload.photos_preview_text || "",
+          photos_upload_enabled: payload.photos_upload_enabled,
+          photos_upload_url: payload.photos_upload_url || "",
+          photos_gallery_url: payload.photos_gallery_url || "",
+          photos_closes_at: payload.photos_closes_at || "",
+          is_published: publish,
+        };
+        const { data, error } = await client.rpc("create_trouvo_event", { p_payload: rpcPayload }).single();
         if (error) throw new Error(formatDbError(error.message));
         savedId = data.id;
         eventId = data.id;
@@ -445,17 +469,26 @@ async function saveEvent(publish, triggerBtn) {
       const ttRows = timetableItems.filter((t) => t.title).map((t, i) => ({
         event_id: savedId, start_time: t.start_time, title: t.title, description: t.description, sort_order: i,
       }));
-      if (ttRows.length) await client.from("event_timetable_items").insert(ttRows);
+      if (ttRows.length) {
+        const { error } = await client.from("event_timetable_items").insert(ttRows);
+        if (error) throw new Error(formatDbError(error.message));
+      }
 
       const fieldRows = regFields.filter((f) => f.label).map((f, i) => ({
         event_id: savedId, label: f.label, field_type: f.field_type, required: f.required, visible_to_others: f.visible_to_others, sort_order: i,
       }));
-      if (fieldRows.length) await client.from("event_registration_fields").insert(fieldRows);
+      if (fieldRows.length) {
+        const { error } = await client.from("event_registration_fields").insert(fieldRows);
+        if (error) throw new Error(formatDbError(error.message));
+      }
 
       const bringRows = bringItems.filter((b) => b.name).map((b, i) => ({
         event_id: savedId, name: b.name, quantity_mode: b.quantity_mode, quantity_value: b.quantity_value, visible_to_others: b.visible_to_others, sort_order: i,
       }));
-      if (bringRows.length) await client.from("event_bring_items").insert(bringRows);
+      if (bringRows.length) {
+        const { error } = await client.from("event_bring_items").insert(bringRows);
+        if (error) throw new Error(formatDbError(error.message));
+      }
 
       const { data: ev } = await client.from("events").select("slug, is_published").eq("id", savedId).single();
       return { slug: ev.slug, isPublished: ev.is_published, name, publish };
@@ -467,6 +500,37 @@ async function saveEvent(publish, triggerBtn) {
     },
     redirectTo: publish ? `/trouvo/e/?slug=${encodeURIComponent(slug)}` : null,
   });
+}
+
+function validateEventForm(msg) {
+  document.querySelectorAll("#edit-content .is-invalid").forEach((el) => el.classList.remove("is-invalid"));
+
+  const checks = [
+    { id: "ev-name", label: "Name" },
+    { id: "ev-date", label: "Datum" },
+    { id: "ev-start", label: "Startzeit" },
+  ];
+
+  for (const { id, label } of checks) {
+    const el = document.getElementById(id);
+    if (!el?.value.trim()) {
+      el?.classList.add("is-invalid");
+      showFormFeedback(msg, `${label} ist Pflicht.`, "error", el);
+      return false;
+    }
+  }
+
+  if (document.getElementById("ev-photos-upload-enabled").checked) {
+    const uploadEl = document.getElementById("ev-photos-upload-url");
+    if (!uploadEl?.value.trim()) {
+      uploadEl.classList.add("is-invalid");
+      showFormFeedback(msg, "Für den Foto-Upload brauchst du einen Upload-Link.", "error", uploadEl);
+      return false;
+    }
+  }
+
+  showStatus(msg, "", "info");
+  return true;
 }
 
 function updateGuestLink(slug, published) {

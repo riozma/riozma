@@ -5,7 +5,7 @@ function isSiteAdmin(session) {
   return email && email.toLowerCase() === SITE_ADMIN_EMAIL.toLowerCase();
 }
 
-function showStatus(el, text, type = "info") {
+function showStatus(el, text, type = "info", scrollTarget) {
   if (!el) return;
   el.classList.remove("status-success", "status-error", "status-info");
   if (!text) {
@@ -14,6 +14,33 @@ function showStatus(el, text, type = "info") {
   }
   el.classList.add(`status-${type}`);
   el.textContent = text;
+  scrollToFeedback(el, scrollTarget);
+}
+
+function scrollToFeedback(messageEl, focusEl) {
+  const fieldTarget = focusEl && focusEl !== messageEl ? focusEl : null;
+  if (!messageEl && !fieldTarget) return;
+  window.requestAnimationFrame(() => {
+    if (fieldTarget?.focus) {
+      try {
+        fieldTarget.focus({ preventScroll: true });
+      } catch (_) {
+        /* ignore */
+      }
+      fieldTarget.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (messageEl) {
+        setTimeout(() => {
+          messageEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }, 350);
+      }
+      return;
+    }
+    (messageEl || fieldTarget).scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+}
+
+function showFormFeedback(messageEl, text, type, focusEl) {
+  showStatus(messageEl, text, type, focusEl || messageEl);
 }
 
 function restoreButton(btn, snapshot) {
@@ -59,7 +86,7 @@ async function withActionFeedback({
       return false;
     }
 
-    if (messageEl && successMessage) showStatus(messageEl, successMessage, "success");
+    if (messageEl && successMessage) showStatus(messageEl, successMessage, "success", messageEl);
     if (button) flashButtonSuccess(button, snapshot, successLabel);
 
     if (onSuccess) await onSuccess(result);
@@ -74,7 +101,11 @@ async function withActionFeedback({
   } catch (err) {
     const msg = err?.message || errorMessage || "Etwas ist schiefgelaufen.";
     const friendly = typeof formatDbError === "function" ? formatDbError(msg) : msg;
-    if (messageEl) showStatus(messageEl, friendly, "error");
+    if (messageEl) showStatus(messageEl, friendly, "error", messageEl);
+    if (err?.focusField) {
+      err.focusField.classList.add("is-invalid");
+      scrollToFeedback(messageEl, err.focusField);
+    }
     if (button && snapshot) restoreButton(button, snapshot);
     return false;
   }

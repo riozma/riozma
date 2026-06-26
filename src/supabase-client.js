@@ -204,7 +204,7 @@ function redirectToTrouvoLogin(returnPath) {
 
 function formatDbError(message) {
   if (!message) return "Etwas ist schiefgelaufen.";
-  if (message.includes("row-level security")) {
+  if (message.includes("row-level security") || message.includes("Not authenticated")) {
     return "Keine Berechtigung – bitte abmelden und erneut anmelden.";
   }
   return message;

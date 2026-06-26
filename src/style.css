@@ -1575,11 +1575,34 @@ main { min-width: 0; margin: 0 auto; }
 
 .edit-actions-bottom {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 0.75rem;
   margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--color-border);
+}
+
+.edit-actions-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.edit-feedback-bottom {
+  width: 100%;
+  margin: 0;
+}
+
+.form-label-required::after {
+  content: " *";
+  color: #9b2c2c;
+  font-weight: 700;
+}
+
+#edit-content .form-control.is-invalid,
+#edit-content .form-select.is-invalid {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.15rem rgba(220, 53, 69, 0.15);
 }
 
 .registration-card {
