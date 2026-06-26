@@ -1,5 +1,15 @@
 let currentSession = null;
 
+function followAuthRedirect(session) {
+  if (!session) return false;
+  const params = new URLSearchParams(window.location.search);
+  const next = params.get("next") || sessionStorage.getItem("auth_return_to");
+  if (!next || !next.startsWith("/trouvo/") || next.startsWith("//")) return false;
+  sessionStorage.removeItem("auth_return_to");
+  window.location.replace(next);
+  return true;
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   const loginSection = document.getElementById("login-section");
   const dashboardSection = document.getElementById("dashboard-section");
@@ -10,6 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     onAuthChange: async (session) => {
       currentSession = session;
       if (session) {
+        if (followAuthRedirect(session)) return;
         loginSection.classList.add("d-none");
         dashboardSection.classList.remove("d-none");
         renderDashboardAuth(session);
@@ -83,6 +94,10 @@ async function loadEvents() {
 
   document.querySelectorAll("[data-delete-event]").forEach((btn) => {
     btn.addEventListener("click", () => deleteEventFromDashboard(btn.dataset.deleteEvent, btn));
+  });
+
+  document.getElementById("btn-new-event")?.addEventListener("click", () => {
+    sessionStorage.setItem("auth_return_to", "/trouvo/edit.html");
   });
 }
 

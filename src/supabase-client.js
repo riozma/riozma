@@ -127,20 +127,64 @@ function createAuthStorage() {
   };
 }
 
+async function waitForAuthSession(client, timeoutMs = 5000) {
+  if (!client) return null;
+
+  const { data: { session: initial } } = await client.auth.getSession();
+  if (initial?.user?.id) return initial;
+
+  return new Promise((resolve) => {
+    let finished = false;
+    let subscription = null;
+    const timer = setTimeout(() => finish(null), timeoutMs);
+
+    const finish = (session) => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timer);
+      subscription?.unsubscribe();
+      resolve(session?.user?.id ? session : null);
+    };
+
+    const { data } = client.auth.onAuthStateChange((event, session) => {
+      if (
+        session?.user?.id
+        && (event === "INITIAL_SESSION" || event === "SIGNED_IN" || event === "TOKEN_REFRESHED")
+      ) {
+        finish(session);
+      }
+    });
+    subscription = data.subscription;
+
+    client.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.id) finish(session);
+    });
+  });
+}
+
 async function requireAuthUser(client) {
   if (!client) throw new Error("Supabase nicht konfiguriert.");
 
-  const { data: { session: cached } } = await client.auth.getSession();
-  if (cached?.user?.id) return cached.user;
+  const session = await waitForAuthSession(client, 3000);
+  if (session?.user?.id) return session.user;
 
-  const { data: refreshData, error: refreshError } = await client.auth.refreshSession();
-  if (refreshData.session?.user?.id) return refreshData.session.user;
+  const { data: { session: cached } } = await client.auth.getSession();
+  if (cached?.refresh_token) {
+    const { data: refreshData } = await client.auth.refreshSession();
+    if (refreshData.session?.user?.id) return refreshData.session.user;
+  }
 
   const { data: { user }, error: userError } = await client.auth.getUser();
   if (user?.id) return user;
 
-  const message = refreshError?.message || userError?.message || "Bitte erneut anmelden.";
-  throw new Error(message);
+  throw new Error(userError?.message || "Bitte erneut anmelden.");
+}
+
+function redirectToTrouvoLogin(returnPath) {
+  const path = returnPath || `${window.location.pathname}${window.location.search}`;
+  sessionStorage.setItem("auth_return_to", path);
+  const next = encodeURIComponent(path);
+  window.location.replace(`/trouvo/?next=${next}`);
 }
 
 function formatDbError(message) {

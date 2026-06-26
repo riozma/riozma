@@ -12,13 +12,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   const client = getSupabase();
   if (!client) return;
 
-  try {
-    const user = await requireAuthUser(client);
-    session = { user };
-  } catch {
-    window.location.href = "/trouvo/";
+  await completeAuthFromUrl(client);
+
+  const authSession = await waitForAuthSession(client);
+  if (!authSession) {
+    redirectToTrouvoLogin("/trouvo/edit.html");
     return;
   }
+  session = authSession;
 
   const params = new URLSearchParams(window.location.search);
   eventId = params.get("id");
