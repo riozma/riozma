@@ -77,91 +77,76 @@
         </div>
       </section>
 
-      <section class="edit-section">
-        <div class="edit-section-head">
-          <h2>Zeitplan</h2>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-timetable">+ Eintrag</button>
+      <details class="edit-section edit-section-details" id="section-timetable">
+        <summary>Zeitplan</summary>
+        <div class="edit-section-body">
+          <div class="edit-section-head">
+            <p class="text-muted small mb-0">Optional – Ablauf mit Zeiten und Titeln.</p>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-timetable">+ Eintrag</button>
+          </div>
+          <div id="timetable-list" class="timetable-list"></div>
         </div>
-        <div id="timetable-list" class="timetable-list"></div>
-      </section>
+      </details>
 
-      <section class="edit-section">
-        <div class="edit-section-head">
-          <h2>Anmeldefelder</h2>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-field">+ Feld</button>
+      <details class="edit-section edit-section-details" id="section-fields">
+        <summary>Anmeldefelder</summary>
+        <div class="edit-section-body">
+          <div class="edit-section-head">
+            <p class="text-muted small mb-0">Name ist immer Pflicht. Zusätzliche Felder kannst du hier definieren.</p>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-field">+ Feld</button>
+          </div>
+          <div id="fields-list"></div>
         </div>
-        <p class="text-muted small">Name ist immer Pflicht. Zusätzliche Felder kannst du hier definieren.</p>
-        <div id="fields-list"></div>
-      </section>
+      </details>
 
-      <section class="edit-section">
-        <div class="edit-section-head">
-          <h2>Mitbringsel</h2>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-bring">+ Item</button>
+      <details class="edit-section edit-section-details" id="section-bring">
+        <summary>Mitbringsel</summary>
+        <div class="edit-section-body">
+          <div class="edit-section-head">
+            <p class="text-muted small mb-0">Optional – wer bringt was mit.</p>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-bring">+ Item</button>
+          </div>
+          <div id="bring-list"></div>
         </div>
-        <div id="bring-list"></div>
-      </section>
+      </details>
 
-      <section class="edit-section">
-        <h2>Sichtbarkeit der Anmeldungen</h2>
-        <p class="text-muted small">Was andere Gäste über Anmeldungen sehen dürfen (du als Veranstalter siehst immer alles).</p>
-        <select class="form-select" id="ev-attendee-visibility" style="max-width: 420px;">
-          <option value="none">Nichts – keine Anmeldungsinfo für Gäste</option>
-          <option value="count">Nur Anzahl – z.B. «5 angemeldet»</option>
-          <option value="full">Namen – wer ist angemeldet</option>
-        </select>
-      </section>
+      <details class="edit-section edit-section-details" id="section-visibility">
+        <summary>Sichtbarkeit der Anmeldungen</summary>
+        <div class="edit-section-body">
+          <p class="text-muted small">Was andere Gäste über Anmeldungen sehen dürfen (du als Veranstalter siehst immer alles).</p>
+          <select class="form-select" id="ev-attendee-visibility" style="max-width: 420px;">
+            <option value="none">Nichts – keine Anmeldungsinfo für Gäste</option>
+            <option value="count">Nur Anzahl – z.B. «5 angemeldet»</option>
+            <option value="full">Namen – wer ist angemeldet</option>
+          </select>
+        </div>
+      </details>
 
-      <section class="edit-section">
-        <h2>Event-Fotos (extern)</h2>
-        <p class="text-muted small">Gäste laden in voller Qualität über Google Drive, Dropbox o.&nbsp;ä. hoch – du fügst den geteilten Upload-Link ein. Speichert kein Speicher bei Trouvo.</p>
-        <div class="row g-3">
-          <div class="col-12">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="ev-photos-preview">
-              <label class="form-check-label" for="ev-photos-preview">Hinweis anzeigen: Fotos folgen nach dem Event</label>
+      <details class="edit-section edit-section-details" id="section-photos">
+        <summary>Event-Fotos</summary>
+        <div class="edit-section-body">
+          <p class="text-muted small">Optional – Link zu Google Drive, Dropbox o.&nbsp;ä., wo Gäste Fotos hochladen oder ansehen können.</p>
+          <label class="form-label" for="ev-photos-link">Link</label>
+          <input type="url" class="form-control" id="ev-photos-link" placeholder="https://…">
+        </div>
+      </details>
+
+      <details class="edit-section edit-section-details d-none" id="co-organizers-section">
+        <summary>Weitere Veranstalter</summary>
+        <div class="edit-section-body">
+          <p class="text-muted small">Personen mit Trouvo-Konto per E-Mail hinzufügen. Sie können die Veranstaltung bearbeiten, aber nicht löschen.</p>
+          <div class="row g-2 align-items-end mb-3">
+            <div class="col-md-8">
+              <label class="form-label" for="co-org-email">E-Mail</label>
+              <input type="email" class="form-control" id="co-org-email" placeholder="name@beispiel.ch">
+            </div>
+            <div class="col-md-4">
+              <button type="button" class="btn btn-outline-secondary w-100" id="btn-add-co-org">Hinzufügen</button>
             </div>
           </div>
-          <div class="col-12">
-            <label class="form-label" for="ev-photos-preview-text">Hinweistext (optional)</label>
-            <textarea class="form-control" id="ev-photos-preview-text" rows="2" placeholder="Nach dem Event könnt ihr hier eure Fotos teilen…"></textarea>
-          </div>
-          <div class="col-12">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="ev-photos-upload-enabled">
-              <label class="form-check-label" for="ev-photos-upload-enabled">Foto-Upload freigeschaltet (Link für Gäste sichtbar)</label>
-            </div>
-          </div>
-          <div class="col-12">
-            <label class="form-label" for="ev-photos-upload-url">Upload-Link</label>
-            <input type="url" class="form-control" id="ev-photos-upload-url" placeholder="https://… (Dropbox File Request, Google Drive Ordner mit Upload-Recht)">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label" for="ev-photos-gallery-url">Galerie-Link (optional)</label>
-            <input type="url" class="form-control" id="ev-photos-gallery-url" placeholder="Separater Link zum Ansehen/Herunterladen">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label" for="ev-photos-closes">Upload möglich bis (optional)</label>
-            <input type="date" class="form-control" id="ev-photos-closes">
-            <div class="form-text">Danach nur noch Galerie-Link, kein Upload-Button.</div>
-          </div>
+          <div id="co-organizers-list"></div>
         </div>
-      </section>
-
-      <section class="edit-section d-none" id="co-organizers-section">
-        <h2>Weitere Veranstalter</h2>
-        <p class="text-muted small">Personen mit Trouvo-Konto per E-Mail hinzufügen. Sie können die Veranstaltung bearbeiten, aber nicht löschen.</p>
-        <div class="row g-2 align-items-end mb-3">
-          <div class="col-md-8">
-            <label class="form-label" for="co-org-email">E-Mail</label>
-            <input type="email" class="form-control" id="co-org-email" placeholder="name@beispiel.ch">
-          </div>
-          <div class="col-md-4">
-            <button type="button" class="btn btn-outline-secondary w-100" id="btn-add-co-org">Hinzufügen</button>
-          </div>
-        </div>
-        <div id="co-organizers-list"></div>
-      </section>
+      </details>
 
       <div class="edit-actions-bottom">
         <div class="edit-actions-buttons">

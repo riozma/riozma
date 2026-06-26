@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("edit-loading").classList.add("d-none");
     document.getElementById("edit-content").classList.remove("d-none");
     renderAllLists();
+    applySectionOpenState();
   }
 
   document.getElementById("ev-name").addEventListener("input", (e) => {
@@ -42,7 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("ev-end").disabled = e.target.checked;
   });
 
-  ["ev-name", "ev-date", "ev-start", "ev-photos-upload-url"].forEach((id) => {
+  ["ev-name", "ev-date", "ev-start"].forEach((id) => {
     document.getElementById(id)?.addEventListener("input", () => {
       document.getElementById(id)?.classList.remove("is-invalid");
     });
@@ -57,16 +58,24 @@ function bindUI() {
   document.getElementById("btn-add-co-org").addEventListener("click", addCoOrganizer);
   document.getElementById("btn-add-timetable").addEventListener("click", () => {
     collectFromDOM();
-    timetableItems.push({ start_time: "18:00", title: "", description: "" });
+    const section = document.getElementById("section-timetable");
+    if (section) section.open = true;
+    timetableItems.push({
+      start_time: nextTimetableTime(),
+      title: "",
+      description: "",
+    });
     renderTimetable();
   });
   document.getElementById("btn-add-field").addEventListener("click", () => {
     collectFromDOM();
+    document.getElementById("section-fields").open = true;
     regFields.push({ label: "", field_type: "text", required: false, visible_to_others: false });
     renderFields();
   });
   document.getElementById("btn-add-bring").addEventListener("click", () => {
     collectFromDOM();
+    document.getElementById("section-bring").open = true;
     bringItems.push({ name: "", quantity_mode: "fixed", quantity_value: 1, visible_to_others: true });
     renderBring();
   });
@@ -103,12 +112,7 @@ async function loadEvent() {
   document.getElementById("ev-open-end").checked = event.open_end;
   document.getElementById("ev-end").disabled = event.open_end;
   document.getElementById("ev-attendee-visibility").value = getAttendeeVisibility(event);
-  document.getElementById("ev-photos-preview").checked = !!event.photos_show_preview;
-  document.getElementById("ev-photos-preview-text").value = event.photos_preview_text || "";
-  document.getElementById("ev-photos-upload-enabled").checked = !!event.photos_upload_enabled;
-  document.getElementById("ev-photos-upload-url").value = event.photos_upload_url || "";
-  document.getElementById("ev-photos-gallery-url").value = event.photos_gallery_url || "";
-  document.getElementById("ev-photos-closes").value = event.photos_closes_at || "";
+  document.getElementById("ev-photos-link").value = event.photos_upload_url || event.photos_gallery_url || "";
 
   const [tt, fields, bring] = await Promise.all([
     client.from("event_timetable_items").select("*").eq("event_id", eventId).order("sort_order"),
@@ -142,8 +146,10 @@ async function loadEvent() {
   document.getElementById("edit-loading").classList.add("d-none");
   document.getElementById("edit-content").classList.remove("d-none");
   renderAllLists();
+  applySectionOpenState();
   updateGuestLink(event.slug, event.is_published);
   if (isEventCreator) await loadCoOrganizers();
+  applySectionOpenState();
 }
 
 function updateCreatorUI() {
@@ -269,6 +275,52 @@ function renderAllLists() {
   renderTimetable();
   renderFields();
   renderBring();
+}
+
+function addMinutesToTime(timeStr, minutes) {
+  const [h, m] = (timeStr || "19:00").slice(0, 5).split(":").map(Number);
+  const total = h * 60 + m + minutes;
+  const nh = Math.floor((total % (24 * 60)) / 60);
+  const nm = total % 60;
+  return `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
+}
+
+function nextTimetableTime() {
+  const startTime = document.getElementById("ev-start")?.value || "19:00";
+  if (!timetableItems.length) return startTime;
+  const lastTime = timetableItems[timetableItems.length - 1]?.start_time || startTime;
+  return addMinutesToTime(lastTime, 30);
+}
+
+function sectionHasCoOrganizers() {
+  const list = document.getElementById("co-organizers-list");
+  return !!list?.querySelector(".co-organizer-row");
+}
+
+function applySectionOpenState() {
+  setSectionOpen("section-timetable", timetableItems.length > 0);
+  setSectionOpen("section-fields", regFields.length > 0);
+  setSectionOpen("section-bring", bringItems.length > 0);
+  setSectionOpen("section-visibility", document.getElementById("ev-attendee-visibility")?.value !== "none");
+  setSectionOpen("section-photos", !!document.getElementById("ev-photos-link")?.value.trim());
+  setSectionOpen("co-organizers-section", sectionHasCoOrganizers());
+}
+
+function setSectionOpen(id, open) {
+  const el = document.getElementById(id);
+  if (el?.tagName === "DETAILS") el.open = !!open;
+}
+
+function photosPayloadFromForm() {
+  const link = document.getElementById("ev-photos-link").value.trim();
+  return {
+    photos_upload_url: link || null,
+    photos_upload_enabled: !!link,
+    photos_show_preview: false,
+    photos_preview_text: null,
+    photos_gallery_url: null,
+    photos_closes_at: null,
+  };
 }
 
 function renderTimetable() {
@@ -408,22 +460,10 @@ async function saveEvent(publish, triggerBtn) {
         open_end: document.getElementById("ev-open-end").checked,
         attendee_visibility: document.getElementById("ev-attendee-visibility").value,
         show_attendee_list: document.getElementById("ev-attendee-visibility").value === "full",
-        photos_show_preview: document.getElementById("ev-photos-preview").checked,
-        photos_preview_text: document.getElementById("ev-photos-preview-text").value.trim() || null,
-        photos_upload_enabled: document.getElementById("ev-photos-upload-enabled").checked,
-        photos_upload_url: document.getElementById("ev-photos-upload-url").value.trim() || null,
-        photos_gallery_url: document.getElementById("ev-photos-gallery-url").value.trim() || null,
-        photos_closes_at: document.getElementById("ev-photos-closes").value || null,
+        ...photosPayloadFromForm(),
         is_published: publish ? true : undefined,
       };
 
-      if (payload.photos_upload_enabled && !payload.photos_upload_url) {
-        const uploadEl = document.getElementById("ev-photos-upload-url");
-        uploadEl?.classList.add("is-invalid");
-        const err = new Error("Für den Foto-Upload brauchst du einen Upload-Link.");
-        err.focusField = uploadEl;
-        throw err;
-      }
       let savedId = eventId;
       if (eventId) {
         const updatePayload = { ...payload };
@@ -444,12 +484,12 @@ async function saveEvent(publish, triggerBtn) {
           open_end: payload.open_end,
           attendee_visibility: payload.attendee_visibility,
           show_attendee_list: payload.show_attendee_list,
-          photos_show_preview: payload.photos_show_preview,
-          photos_preview_text: payload.photos_preview_text || "",
+          photos_show_preview: false,
+          photos_preview_text: "",
           photos_upload_enabled: payload.photos_upload_enabled,
           photos_upload_url: payload.photos_upload_url || "",
-          photos_gallery_url: payload.photos_gallery_url || "",
-          photos_closes_at: payload.photos_closes_at || "",
+          photos_gallery_url: "",
+          photos_closes_at: "",
           is_published: publish,
         };
         const { data, error } = await client.rpc("create_trouvo_event", { p_payload: rpcPayload }).single();
@@ -516,15 +556,6 @@ function validateEventForm(msg) {
     if (!el?.value.trim()) {
       el?.classList.add("is-invalid");
       showFormFeedback(msg, `${label} ist Pflicht.`, "error", el);
-      return false;
-    }
-  }
-
-  if (document.getElementById("ev-photos-upload-enabled").checked) {
-    const uploadEl = document.getElementById("ev-photos-upload-url");
-    if (!uploadEl?.value.trim()) {
-      uploadEl.classList.add("is-invalid");
-      showFormFeedback(msg, "Für den Foto-Upload brauchst du einen Upload-Link.", "error", uploadEl);
       return false;
     }
   }

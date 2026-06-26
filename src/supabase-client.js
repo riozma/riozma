@@ -366,71 +366,18 @@ function isEventPast(event) {
   return end < new Date();
 }
 
-function isPhotosUploadClosed(event) {
-  if (!event.photos_closes_at) return false;
-  const close = new Date(`${event.photos_closes_at}T23:59:59`);
-  return close < new Date();
-}
-
 function renderEventPhotosSection(event) {
-  const showPreview = event.photos_show_preview;
-  const uploadEnabled = event.photos_upload_enabled && event.photos_upload_url;
-  if (!showPreview && !uploadEnabled) return "";
+  const url = event.photos_upload_url?.trim() || event.photos_gallery_url?.trim();
+  if (!url) return "";
 
-  const past = isEventPast(event);
-  const uploadClosed = uploadEnabled && isPhotosUploadClosed(event);
-  const previewText = event.photos_preview_text?.trim()
-    || "Nach dem Event könnt ihr hier eure Fotos teilen. Der Upload-Link erscheint dann auf dieser Seite.";
-  const galleryUrl = event.photos_gallery_url?.trim() || event.photos_upload_url?.trim();
-  const closesLabel = event.photos_closes_at
-    ? new Date(event.photos_closes_at).toLocaleDateString("de-CH", { day: "numeric", month: "long", year: "numeric" })
-    : "";
-
-  if (uploadEnabled && !uploadClosed) {
-    return `
-      <section class="guest-section event-photos-section event-photos-active">
-        <h2>Event-Fotos</h2>
-        <p>Lade deine Fotos in Originalqualität hoch – der Upload läuft über einen externen Dienst (z.&nbsp;B. Google Drive oder Dropbox).</p>
-        ${closesLabel ? `<p class="event-photos-deadline">Upload möglich bis ${closesLabel}.</p>` : ""}
-        <div class="event-photos-actions">
-          <a href="${escapeHtml(event.photos_upload_url)}" target="_blank" rel="noopener" class="btn btn-primary">Fotos hochladen</a>
-          ${event.photos_gallery_url && event.photos_gallery_url !== event.photos_upload_url
-    ? `<a href="${escapeHtml(event.photos_gallery_url)}" target="_blank" rel="noopener" class="btn btn-outline-secondary">Alle Fotos ansehen</a>`
-    : ""}
-        </div>
-        <p class="text-muted small event-photos-hint">Tipp: Am Handy den Link im Browser öffnen. Für beste Qualität «Original» bzw. volle Auflösung wählen.</p>
-      </section>`;
-  }
-
-  if (uploadEnabled && uploadClosed) {
-    return `
-      <section class="guest-section event-photos-section event-photos-closed">
-        <h2>Event-Fotos</h2>
-        <p>Der Upload ist geschlossen${closesLabel ? ` (bis ${closesLabel} war er offen)` : ""}.</p>
-        ${galleryUrl
-    ? `<div class="event-photos-actions"><a href="${escapeHtml(galleryUrl)}" target="_blank" rel="noopener" class="btn btn-primary">Fotos ansehen / herunterladen</a></div>`
-    : `<p class="text-muted">Der Veranstalter stellt die Fotos bald bereit.</p>`}
-      </section>`;
-  }
-
-  if (showPreview && past) {
-    return `
-      <section class="guest-section event-photos-section event-photos-soon">
-        <h2>Event-Fotos</h2>
-        <p>${escapeHtml(previewText)}</p>
-        <p class="text-muted small">Der Upload-Link erscheint hier, sobald der Veranstalter ihn freischaltet.</p>
-      </section>`;
-  }
-
-  if (showPreview) {
-    return `
-      <section class="guest-section event-photos-section event-photos-preview">
-        <h2>Event-Fotos</h2>
-        <p>${escapeHtml(previewText)}</p>
-      </section>`;
-  }
-
-  return "";
+  return `
+    <section class="guest-section event-photos-section event-photos-active">
+      <h2>Event-Fotos</h2>
+      <p>Fotos hochladen oder ansehen – über den Link des Veranstalters.</p>
+      <div class="event-photos-actions">
+        <a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="btn btn-primary">Zu den Event-Fotos</a>
+      </div>
+    </section>`;
 }
 
 function toIcsDateTime(date) {

@@ -1342,11 +1342,53 @@ main { min-width: 0; margin: 0 auto; }
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
   margin-bottom: 1rem;
 }
 
 .edit-section-head h2 {
   margin-bottom: 0;
+}
+
+.edit-section-details {
+  padding: 0;
+  overflow: hidden;
+}
+
+.edit-section-details > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 1rem 1.5rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+
+.edit-section-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.edit-section-details > summary::after {
+  content: "▸";
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  transition: transform 0.15s ease;
+}
+
+.edit-section-details[open] > summary {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.edit-section-details[open] > summary::after {
+  transform: rotate(90deg);
+}
+
+.edit-section-details .edit-section-body {
+  padding: 1.25rem 1.5rem 1.5rem;
 }
 
 .trouvo-edit-header {
