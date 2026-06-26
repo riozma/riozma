@@ -22,14 +22,18 @@ function forceHttpsOnProduction() {
 forceHttpsOnProduction();
 
 function storeAuthReturnTo() {
-  sessionStorage.setItem("auth_return_to", `${window.location.pathname}${window.location.search}`);
+  const path = `${window.location.pathname}${window.location.search}`;
+  sessionStorage.setItem("auth_return_to", path);
+  writeCookie(RETURN_COOKIE, path);
+}
+
+function getAuthReturnTo() {
+  return sessionStorage.getItem("auth_return_to") || readCookie(RETURN_COOKIE) || "/trouvo/";
 }
 
 function siteOrigin() {
   if (isLocalDevHost()) return window.location.origin;
-  if (isProductionHost()) return `https://${window.location.hostname}`;
-  const configured = (window.SITE_URL || PRODUCTION_SITE_URL).replace(/\/$/, "");
-  return configured;
+  return (window.SITE_URL || PRODUCTION_SITE_URL).replace(/\/$/, "");
 }
 
 function siteUrl(path = "/") {
@@ -37,8 +41,12 @@ function siteUrl(path = "/") {
   return `${siteOrigin()}${normalized}`;
 }
 
+function canonicalPageUrl() {
+  return `${siteOrigin()}${window.location.pathname}${window.location.search}`;
+}
+
 function oauthReturnUrl() {
-  return authCallbackUrl();
+  return canonicalPageUrl();
 }
 
 function authCallbackUrl() {
@@ -46,21 +54,69 @@ function authCallbackUrl() {
 }
 
 function authRedirectUrl() {
-  return authCallbackUrl();
+  return oauthReturnUrl();
+}
+
+const PKCE_COOKIE = "riozma_pkce_verifier";
+const RETURN_COOKIE = "riozma_auth_return";
+
+function readCookie(name) {
+  const match = document.cookie.match(
+    new RegExp(`(?:^|; )${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}=([^;]*)`),
+  );
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function writeCookie(name, value, maxAgeSec = 900) {
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAgeSec}; SameSite=Lax${secure}`;
+}
+
+function deleteCookie(name) {
+  document.cookie = `${name}=; Path=/; Max-Age=0`;
+}
+
+function authStorageKeySuffix() {
+  const ref = (window.SUPABASE_URL || "").match(/https:\/\/([^.]+)/)?.[1];
+  return ref ? `sb-${ref}-auth-token` : "sb-auth-token";
+}
+
+function persistPkceVerifierToCookie() {
+  const suffix = authStorageKeySuffix();
+  const key = `${suffix}-code-verifier`;
+  const value =
+    localStorage.getItem(key)
+    ?? sessionStorage.getItem(key)
+    ?? readCookie(PKCE_COOKIE);
+  if (value) writeCookie(PKCE_COOKIE, value);
+}
+
+function restorePkceVerifierFromCookie() {
+  const cookieVal = readCookie(PKCE_COOKIE);
+  if (!cookieVal) return;
+  const key = `${authStorageKeySuffix()}-code-verifier`;
+  if (!localStorage.getItem(key)) localStorage.setItem(key, cookieVal);
+  if (!sessionStorage.getItem(key)) sessionStorage.setItem(key, cookieVal);
 }
 
 function createAuthStorage() {
   return {
     getItem(key) {
+      if (key.includes("code-verifier")) {
+        const cookieVal = readCookie(PKCE_COOKIE);
+        if (cookieVal) return cookieVal;
+      }
       return localStorage.getItem(key) ?? sessionStorage.getItem(key);
     },
     setItem(key, value) {
       localStorage.setItem(key, value);
       sessionStorage.setItem(key, value);
+      if (key.includes("code-verifier")) writeCookie(PKCE_COOKIE, value);
     },
     removeItem(key) {
       localStorage.removeItem(key);
       sessionStorage.removeItem(key);
+      if (key.includes("code-verifier")) deleteCookie(PKCE_COOKIE);
     },
   };
 }
@@ -77,13 +133,16 @@ async function completeAuthFromUrl(client) {
   }
 
   if (code) {
+    restorePkceVerifierFromCookie();
     const { data: { session: existing } } = await client.auth.getSession();
     if (!existing) {
       const { error } = await client.auth.exchangeCodeForSession(code);
       window.history.replaceState({}, document.title, window.location.pathname);
+      deleteCookie(PKCE_COOKIE);
       if (error) return { error: error.message };
     } else {
       window.history.replaceState({}, document.title, window.location.pathname);
+      deleteCookie(PKCE_COOKIE);
     }
     return { error: null };
   }

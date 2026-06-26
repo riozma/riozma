@@ -19,8 +19,9 @@
   <script>
     (async function () {
       var status = document.getElementById("auth-callback-status");
-      var returnTo = sessionStorage.getItem("auth_return_to") || "/trouvo/";
+  var returnTo = typeof getAuthReturnTo === "function" ? getAuthReturnTo() : (sessionStorage.getItem("auth_return_to") || "/trouvo/");
 
+      restorePkceVerifierFromCookie();
       var client = getSupabase();
       if (!client) {
         status.textContent = "Supabase ist nicht konfiguriert.";

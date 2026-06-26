@@ -4,9 +4,9 @@
 project_id = "lwxwcogvkhixfsfvkcvz"
 
 [auth]
+# Site URL: exactly https://riozma.ch — NO wildcards (/**) in this field!
 site_url = "https://riozma.ch"
 additional_redirect_urls = [
-  "https://riozma.ch/auth/callback.html",
   "https://riozma.ch/**",
   "https://www.riozma.ch/**",
   "http://riozma.ch/**",
