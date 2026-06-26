@@ -101,8 +101,11 @@ img {
 }
 
 .navbar-toggler {
-  border-color: rgba(78, 98, 75, 0.45);
-  padding: 0.35rem 0.55rem;
+  border: 2px solid rgba(78, 98, 75, 0.45);
+  padding: 0.45rem 0.6rem;
+  min-width: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
 }
 
 .navbar-bg.navbar-light .navbar-toggler-icon {
@@ -1075,6 +1078,51 @@ img {
     column-count: 1;
   }
 
+  .trouvo-dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .trouvo-header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .site-header .navbar {
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .site-header .navbar-brand {
+    max-width: calc(100% - 3.75rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .site-header .navbar-toggler {
+    margin-left: auto;
+    order: 2;
+  }
+
+  .site-header .navbar-collapse {
+    order: 3;
+    flex-basis: 100%;
+    width: 100%;
+  }
+
+  .site-header .navbar-collapse:not(.show) {
+    display: none;
+  }
+
+  .site-header .navbar-collapse.show {
+    display: block;
+  }
+
   .navbar-nav {
     padding-top: 0.5rem;
     width: 100%;
@@ -1086,28 +1134,10 @@ img {
     width: 100%;
   }
 
-  .site-header .navbar-collapse {
-    flex-basis: 100%;
-    flex-grow: 1;
-  }
-
-  .site-header .navbar-collapse.show,
-  .site-header .navbar-collapse.collapsing {
+  .site-header .navbar-collapse.show {
     border-top: 1px solid var(--color-border);
     margin-top: 0.35rem;
     padding-top: 0.35rem;
-  }
-
-  .trouvo-dashboard-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .trouvo-header-actions {
-    width: 100%;
-    flex-wrap: wrap;
-    gap: 0.75rem;
   }
 }
 
