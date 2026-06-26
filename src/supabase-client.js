@@ -100,25 +100,55 @@ function restorePkceVerifierFromCookie() {
 }
 
 function createAuthStorage() {
+  const pkceSuffix = "-code-verifier";
   return {
     getItem(key) {
-      if (key.includes("code-verifier")) {
-        const cookieVal = readCookie(PKCE_COOKIE);
-        if (cookieVal) return cookieVal;
-      }
-      return localStorage.getItem(key) ?? sessionStorage.getItem(key);
+      const fromLocal = localStorage.getItem(key);
+      if (fromLocal != null) return fromLocal;
+      const fromSession = sessionStorage.getItem(key);
+      if (fromSession != null) return fromSession;
+      if (key.endsWith(pkceSuffix)) return readCookie(PKCE_COOKIE);
+      return null;
     },
     setItem(key, value) {
       localStorage.setItem(key, value);
-      sessionStorage.setItem(key, value);
-      if (key.includes("code-verifier")) writeCookie(PKCE_COOKIE, value);
+      try {
+        sessionStorage.setItem(key, value);
+      } catch (_) {
+        /* sessionStorage can fail in private mode */
+      }
+      if (key.endsWith(pkceSuffix)) writeCookie(PKCE_COOKIE, value);
     },
     removeItem(key) {
       localStorage.removeItem(key);
       sessionStorage.removeItem(key);
-      if (key.includes("code-verifier")) deleteCookie(PKCE_COOKIE);
+      if (key.endsWith(pkceSuffix)) deleteCookie(PKCE_COOKIE);
     },
   };
+}
+
+async function requireAuthUser(client) {
+  if (!client) throw new Error("Supabase nicht konfiguriert.");
+
+  const { data: { session: cached } } = await client.auth.getSession();
+  if (cached?.user?.id) return cached.user;
+
+  const { data: refreshData, error: refreshError } = await client.auth.refreshSession();
+  if (refreshData.session?.user?.id) return refreshData.session.user;
+
+  const { data: { user }, error: userError } = await client.auth.getUser();
+  if (user?.id) return user;
+
+  const message = refreshError?.message || userError?.message || "Bitte erneut anmelden.";
+  throw new Error(message);
+}
+
+function formatDbError(message) {
+  if (!message) return "Etwas ist schiefgelaufen.";
+  if (message.includes("row-level security")) {
+    return "Keine Berechtigung – bitte abmelden und erneut anmelden.";
+  }
+  return message;
 }
 
 async function completeAuthFromUrl(client) {

@@ -192,6 +192,9 @@ async function savePost(publish, triggerBtn) {
     successLabel: publish ? "✓ Veröffentlicht" : "✓ Gespeichert",
     successMessage: publish ? "Beitrag erfolgreich veröffentlicht!" : "Entwurf gespeichert.",
     run: async () => {
+      const user = await requireAuthUser(client);
+      currentSession = { user };
+
       let coverPath = null;
       if (coverFile) {
         const compressed = await prepareBlogCover(coverFile);
@@ -209,7 +212,7 @@ async function savePost(publish, triggerBtn) {
         subtitle,
         excerpt: excerpt || subtitle,
         content,
-        author_id: currentSession.user.id,
+        author_id: user.id,
       };
       if (coverPath) basePayload.cover_image_path = coverPath;
 
@@ -233,7 +236,7 @@ async function savePost(publish, triggerBtn) {
         if (data) editingPostId = data.id;
       }
 
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(formatDbError(error.message));
       return { slug, publish };
     },
     onSuccess: async (result) => {
@@ -268,7 +271,7 @@ async function togglePublish(btn, id, isPublished) {
           published_at: !isPublished ? new Date().toISOString() : null,
         })
         .eq("id", id);
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(formatDbError(error.message));
       return true;
     },
     onSuccess: async () => {
@@ -292,7 +295,7 @@ async function deletePost(btn, id) {
     successMessage: "Beitrag gelöscht.",
     run: async () => {
       const { error } = await client.from("blog_posts").delete().eq("id", id);
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(formatDbError(error.message));
       return true;
     },
     onSuccess: async () => {

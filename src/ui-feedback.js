@@ -73,7 +73,8 @@ async function withActionFeedback({
     return result;
   } catch (err) {
     const msg = err?.message || errorMessage || "Etwas ist schiefgelaufen.";
-    if (messageEl) showStatus(messageEl, msg, "error");
+    const friendly = typeof formatDbError === "function" ? formatDbError(msg) : msg;
+    if (messageEl) showStatus(messageEl, friendly, "error");
     if (button && snapshot) restoreButton(button, snapshot);
     return false;
   }

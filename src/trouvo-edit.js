@@ -12,12 +12,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   const client = getSupabase();
   if (!client) return;
 
-  const { data: { session: s } } = await client.auth.getSession();
-  if (!s) {
+  try {
+    const user = await requireAuthUser(client);
+    session = { user };
+  } catch {
     window.location.href = "/trouvo/";
     return;
   }
-  session = s;
 
   const params = new URLSearchParams(window.location.search);
   eventId = params.get("id");
@@ -375,8 +376,9 @@ async function saveEvent(publish, triggerBtn) {
 
   const name = document.getElementById("ev-name").value.trim();
   const slug = document.getElementById("ev-slug").value.trim() || slugify(name);
-  if (!name || !document.getElementById("ev-date").value) {
-    showStatus(msg, "Name und Datum sind Pflicht.", "error");
+  const startTime = document.getElementById("ev-start").value;
+  if (!name || !document.getElementById("ev-date").value || !startTime) {
+    showStatus(msg, "Name, Datum und Startzeit sind Pflicht.", "error");
     return;
   }
 
@@ -387,6 +389,9 @@ async function saveEvent(publish, triggerBtn) {
     successLabel: publish ? "✓ Veröffentlicht" : "✓ Gespeichert",
     successMessage: publish ? "Veranstaltung veröffentlicht!" : "Veranstaltung gespeichert.",
     run: async () => {
+      const user = await requireAuthUser(client);
+      session = { user };
+
       const payload = {
         name,
         slug,
@@ -394,7 +399,7 @@ async function saveEvent(publish, triggerBtn) {
         location: document.getElementById("ev-location").value.trim(),
         organizer_phone: document.getElementById("ev-phone").value.trim() || null,
         event_date: document.getElementById("ev-date").value,
-        start_time: document.getElementById("ev-start").value,
+        start_time: startTime,
         end_time: document.getElementById("ev-open-end").checked ? null : document.getElementById("ev-end").value || null,
         open_end: document.getElementById("ev-open-end").checked,
         attendee_visibility: document.getElementById("ev-attendee-visibility").value,
@@ -417,12 +422,12 @@ async function saveEvent(publish, triggerBtn) {
         if (!publish) delete updatePayload.is_published;
         else updatePayload.is_published = true;
         const { error } = await client.from("events").update(updatePayload).eq("id", eventId);
-        if (error) throw new Error(error.message);
+        if (error) throw new Error(formatDbError(error.message));
       } else {
-        payload.organizer_id = session.user.id;
+        payload.organizer_id = user.id;
         payload.is_published = publish;
         const { data, error } = await client.from("events").insert(payload).select("id, slug, is_published, organizer_id").single();
-        if (error) throw new Error(error.message);
+        if (error) throw new Error(formatDbError(error.message));
         savedId = data.id;
         eventId = data.id;
         eventCreatorId = data.organizer_id;
