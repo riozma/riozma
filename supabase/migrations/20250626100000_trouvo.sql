@@ -1,0 +1,1 @@
+-- Trouvo Eventplanung (siehe Supabase migrations via MCP)

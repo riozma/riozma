@@ -1,21 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-    <url>
-        <loc>https://zeltner-koenig.ch/Manuel-Rio.html?category=politics</loc>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>https://zeltner-koenig.ch/Manuel-Rio.html?category=allgemeines</loc>
-        <priority>0.6</priority>
-    </url>
-    <url>
-        <loc>https://zeltner-koenig.ch/Manuel-Rio.html?category=kunst</loc>
-        <priority>0.9</priority>
-    </url>
-    <url>
-        <loc>https://zeltner-koenig.ch/</loc>
-        <priority>0.4</priority>
-    </url>
-    <!-- Weitere URLs hier hinzufügen -->
-</urlset>
-
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://riozma.ch/</loc>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>https://riozma.ch/kunst/</loc>
+        <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>https://riozma.ch/politik/</loc>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://riozma.ch/trouvo/</loc>
+        <priority>0.7</priority>
+    </url>
+</urlset>

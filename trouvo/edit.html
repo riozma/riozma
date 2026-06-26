@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Veranstaltung bearbeiten – Trouvo</title>
+  <link rel="icon" href="/src/img/favicon.svg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body class="site-body">
+  <header class="site-header">
+    <nav class="navbar navbar-expand-lg navbar-bg">
+      <a class="navbar-brand trouvo-brand" href="/trouvo/">Trouvo</a>
+      <div class="navbar-nav ms-auto flex-row gap-2">
+        <a class="nav-link" href="/trouvo/">Dashboard</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="trouvo-main" id="edit-app">
+    <p id="edit-loading">Lade…</p>
+    <div id="edit-content" class="d-none">
+      <div class="trouvo-edit-header">
+        <h1 class="section-heading" id="edit-title">Neue Veranstaltung</h1>
+      </div>
+      <p id="edit-message" class="admin-message"></p>
+      <div id="guest-link-box" class="guest-link-box d-none">
+        <strong>Gast-Link:</strong>
+        <code id="guest-link-url"></code>
+        <button type="button" class="btn btn-sm btn-outline-primary" id="btn-copy-link">Kopieren</button>
+      </div>
+
+      <section class="edit-section">
+        <h2>Grundlagen</h2>
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-control" id="ev-name" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">URL-Slug</label>
+            <input type="text" class="form-control" id="ev-slug" placeholder="automatisch">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Beschreibung</label>
+            <textarea class="form-control" id="ev-description" rows="3"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Ort</label>
+            <input type="text" class="form-control" id="ev-location" placeholder="Adresse oder Ort – wird mit Google Maps verknüpft">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Deine Telefonnummer (optional)</label>
+            <input type="tel" class="form-control" id="ev-phone" placeholder="+41 79 000 00 00">
+            <div class="form-text">Wird Gästen angezeigt, falls sie ihre Anmeldung anpassen möchten.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Datum</label>
+            <input type="date" class="form-control" id="ev-date" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Start</label>
+            <input type="time" class="form-control" id="ev-start" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Ende</label>
+            <input type="time" class="form-control" id="ev-end">
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="ev-open-end">
+              <label class="form-check-label" for="ev-open-end">Open End (nur Start)</label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="edit-section">
+        <div class="edit-section-head">
+          <h2>Zeitplan</h2>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-timetable">+ Eintrag</button>
+        </div>
+        <div id="timetable-list" class="timetable-list"></div>
+      </section>
+
+      <section class="edit-section">
+        <div class="edit-section-head">
+          <h2>Anmeldefelder</h2>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-field">+ Feld</button>
+        </div>
+        <p class="text-muted small">Name ist immer Pflicht. Zusätzliche Felder kannst du hier definieren.</p>
+        <div id="fields-list"></div>
+      </section>
+
+      <section class="edit-section">
+        <div class="edit-section-head">
+          <h2>Mitbringsel</h2>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-bring">+ Item</button>
+        </div>
+        <div id="bring-list"></div>
+      </section>
+
+      <section class="edit-section">
+        <h2>Sichtbarkeit der Anmeldungen</h2>
+        <p class="text-muted small">Was andere Gäste über Anmeldungen sehen dürfen (du als Veranstalter siehst immer alles).</p>
+        <select class="form-select" id="ev-attendee-visibility" style="max-width: 420px;">
+          <option value="none">Nichts – keine Anmeldungsinfo für Gäste</option>
+          <option value="count">Nur Anzahl – z.B. «5 angemeldet»</option>
+          <option value="full">Namen – wer ist angemeldet</option>
+        </select>
+      </section>
+
+      <section class="edit-section">
+        <h2>Event-Fotos (extern)</h2>
+        <p class="text-muted small">Gäste laden in voller Qualität über Google Drive, Dropbox o.&nbsp;ä. hoch – du fügst den geteilten Upload-Link ein. Speichert kein Speicher bei Trouvo.</p>
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="ev-photos-preview">
+              <label class="form-check-label" for="ev-photos-preview">Hinweis anzeigen: Fotos folgen nach dem Event</label>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="ev-photos-preview-text">Hinweistext (optional)</label>
+            <textarea class="form-control" id="ev-photos-preview-text" rows="2" placeholder="Nach dem Event könnt ihr hier eure Fotos teilen…"></textarea>
+          </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="ev-photos-upload-enabled">
+              <label class="form-check-label" for="ev-photos-upload-enabled">Foto-Upload freigeschaltet (Link für Gäste sichtbar)</label>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="ev-photos-upload-url">Upload-Link</label>
+            <input type="url" class="form-control" id="ev-photos-upload-url" placeholder="https://… (Dropbox File Request, Google Drive Ordner mit Upload-Recht)">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="ev-photos-gallery-url">Galerie-Link (optional)</label>
+            <input type="url" class="form-control" id="ev-photos-gallery-url" placeholder="Separater Link zum Ansehen/Herunterladen">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="ev-photos-closes">Upload möglich bis (optional)</label>
+            <input type="date" class="form-control" id="ev-photos-closes">
+            <div class="form-text">Danach nur noch Galerie-Link, kein Upload-Button.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="edit-section d-none" id="co-organizers-section">
+        <h2>Weitere Veranstalter</h2>
+        <p class="text-muted small">Personen mit Trouvo-Konto per E-Mail hinzufügen. Sie können die Veranstaltung bearbeiten, aber nicht löschen.</p>
+        <div class="row g-2 align-items-end mb-3">
+          <div class="col-md-8">
+            <label class="form-label" for="co-org-email">E-Mail</label>
+            <input type="email" class="form-control" id="co-org-email" placeholder="name@beispiel.ch">
+          </div>
+          <div class="col-md-4">
+            <button type="button" class="btn btn-outline-secondary w-100" id="btn-add-co-org">Hinzufügen</button>
+          </div>
+        </div>
+        <div id="co-organizers-list"></div>
+      </section>
+
+      <div class="edit-actions-bottom">
+        <button type="button" class="btn btn-primary" id="btn-save">Speichern</button>
+        <button type="button" class="btn btn-success" id="btn-publish">Veröffentlichen</button>
+        <button type="button" class="btn btn-outline-danger d-none" id="btn-delete-event">Veranstaltung löschen</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/src/supabase-config.js"></script>
+  <script src="/src/supabase-client.js"></script>
+  <script src="/src/ui-feedback.js"></script>
+  <script src="/src/trouvo-edit.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+</body>
+</html>

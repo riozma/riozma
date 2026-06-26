@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trouvo – Eventplanung</title>
+  <link rel="icon" href="/src/img/favicon.svg">
+  <meta name="description" content="Trouvo – Events planen, Gäste einladen und Anmeldungen verwalten.">
+  <meta name="theme-color" content="#dbedd8">
+  <link rel="canonical" href="https://riozma.ch/trouvo/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Trouvo – Eventplanung">
+  <meta property="og:url" content="https://riozma.ch/trouvo/">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body class="site-body">
+  <header class="site-header">
+    <nav class="navbar navbar-expand-lg navbar-bg">
+      <a class="navbar-brand" href="/">Manuel Rio Zeltner</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-lg-auto">
+          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="/kunst/">Kunst</a></li>
+          <li class="nav-item"><a class="nav-link" href="/politik/">Politik</a></li>
+          <li class="nav-item"><a class="nav-link active" href="/trouvo/">Trouvo</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <main class="trouvo-main">
+    <section id="login-section" class="trouvo-login-section d-none">
+      <div class="trouvo-login-wrap">
+        <a href="/trouvo/" class="trouvo-brand-link"><span class="trouvo-wordmark trouvo-wordmark-lg">Trouvo</span></a>
+        <h1 class="section-heading">Eventplanung</h1>
+        <p class="section-description">Plane Veranstaltungen, erstelle Anmeldelinks und koordiniere Mitbringsel.</p>
+        <div id="auth-container"></div>
+      </div>
+    </section>
+
+    <section id="dashboard-section" class="d-none">
+      <div class="trouvo-dashboard-header">
+        <div>
+          <a href="/trouvo/" class="trouvo-brand-link"><span class="trouvo-wordmark">Trouvo</span></a>
+          <h1 class="section-heading">Meine Veranstaltungen</h1>
+        </div>
+        <div class="trouvo-header-actions">
+          <div id="auth-container-dashboard"></div>
+          <a href="/trouvo/edit.html" class="btn btn-primary">+ Neue Veranstaltung</a>
+        </div>
+      </div>
+
+      <div class="trouvo-events-block">
+        <h2>Kommende</h2>
+        <div id="events-upcoming" class="event-list"></div>
+      </div>
+      <div class="trouvo-events-block">
+        <h2>Vergangene</h2>
+        <div id="events-past" class="event-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><p>© Manuel Rio Zeltner</p></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/src/supabase-config.js"></script>
+  <script src="/src/supabase-client.js"></script>
+  <script src="/src/ui-feedback.js"></script>
+  <script src="/src/auth-ui.js"></script>
+  <script src="/src/trouvo.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+</body>
+</html>
