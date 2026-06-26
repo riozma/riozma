@@ -67,7 +67,12 @@ img {
 .navbar-bg {
   background: rgba(164, 198, 159, 0.95);
   border-bottom: 1px solid var(--color-border);
-  padding: 0.65rem 0;
+  padding: 0.65rem 1rem;
+}
+
+.site-header .navbar.navbar-bg {
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
 }
 
 .navbar-brand {
@@ -96,7 +101,12 @@ img {
 }
 
 .navbar-toggler {
-  border-color: var(--color-border);
+  border-color: rgba(78, 98, 75, 0.45);
+  padding: 0.35rem 0.55rem;
+}
+
+.navbar-bg.navbar-light .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2878, 98, 75, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 
 .navbar-toggler:focus {
@@ -1067,10 +1077,37 @@ img {
 
   .navbar-nav {
     padding-top: 0.5rem;
+    width: 100%;
   }
 
   .navbar-nav .nav-link {
     margin-bottom: 0.25rem;
+    display: block;
+    width: 100%;
+  }
+
+  .site-header .navbar-collapse {
+    flex-basis: 100%;
+    flex-grow: 1;
+  }
+
+  .site-header .navbar-collapse.show,
+  .site-header .navbar-collapse.collapsing {
+    border-top: 1px solid var(--color-border);
+    margin-top: 0.35rem;
+    padding-top: 0.35rem;
+  }
+
+  .trouvo-dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .trouvo-header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
 }
 

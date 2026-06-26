@@ -6,6 +6,7 @@ project_id = "lwxwcogvkhixfsfvkcvz"
 [auth]
 site_url = "https://riozma.ch"
 additional_redirect_urls = [
+  "https://riozma.ch/auth/callback.html",
   "https://riozma.ch/**",
   "https://www.riozma.ch/**",
   "http://riozma.ch/**",

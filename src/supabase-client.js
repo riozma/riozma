@@ -21,26 +21,8 @@ function forceHttpsOnProduction() {
 
 forceHttpsOnProduction();
 
-function isAuthCallbackPage() {
-  return window.location.pathname.endsWith("/auth/callback.html");
-}
-
-function redirectOAuthCodeToCallback() {
-  if (!window.location.search.includes("code=") && !window.location.search.includes("error=")) return;
-  if (isAuthCallbackPage()) return;
-  window.location.replace(siteUrl(`/auth/callback.html${window.location.search}`));
-}
-
 function storeAuthReturnTo() {
   sessionStorage.setItem("auth_return_to", `${window.location.pathname}${window.location.search}`);
-}
-
-function oauthCallbackUrl() {
-  return siteUrl("/auth/callback.html");
-}
-
-function authRedirectUrl() {
-  return oauthCallbackUrl();
 }
 
 function siteOrigin() {
@@ -55,6 +37,34 @@ function siteUrl(path = "/") {
   return `${siteOrigin()}${normalized}`;
 }
 
+function oauthReturnUrl() {
+  return authCallbackUrl();
+}
+
+function authCallbackUrl() {
+  return siteUrl("/auth/callback.html");
+}
+
+function authRedirectUrl() {
+  return authCallbackUrl();
+}
+
+function createAuthStorage() {
+  return {
+    getItem(key) {
+      return localStorage.getItem(key) ?? sessionStorage.getItem(key);
+    },
+    setItem(key, value) {
+      localStorage.setItem(key, value);
+      sessionStorage.setItem(key, value);
+    },
+    removeItem(key) {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    },
+  };
+}
+
 async function completeAuthFromUrl(client) {
   const params = new URLSearchParams(window.location.search);
   const authError = params.get("error_description") || params.get("error");
@@ -67,9 +77,14 @@ async function completeAuthFromUrl(client) {
   }
 
   if (code) {
-    const { error } = await client.auth.exchangeCodeForSession(code);
-    window.history.replaceState({}, document.title, window.location.pathname);
-    if (error) return { error: error.message };
+    const { data: { session: existing } } = await client.auth.getSession();
+    if (!existing) {
+      const { error } = await client.auth.exchangeCodeForSession(code);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      if (error) return { error: error.message };
+    } else {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
     return { error: null };
   }
 
@@ -81,8 +96,6 @@ async function completeAuthFromUrl(client) {
 
   return { error: null };
 }
-
-redirectOAuthCodeToCallback();
 
 function getSupabase() {
   if (supabaseClient) return supabaseClient;
@@ -101,9 +114,10 @@ function getSupabase() {
   supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY, {
     auth: {
       flowType: "pkce",
-      detectSessionInUrl: true,
+      detectSessionInUrl: false,
       persistSession: true,
       autoRefreshToken: true,
+      storage: createAuthStorage(),
     },
   });
   return supabaseClient;
