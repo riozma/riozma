@@ -29,13 +29,15 @@ async function initAuthUI(options = {}) {
     return null;
   }
 
-  authInstances.set(loginContainerId, { container, onAuthChange, mode, showGoogle, client });
+  const authResult = await completeAuthFromUrl(client);
+
+  authInstances.set(loginContainerId, { container, onAuthChange, mode, showGoogle, client, pendingAuthError: authResult.error });
   container.classList.toggle("auth-container-discreet", mode === "discreet");
 
   async function renderContainer(loginContainerId, session) {
     const inst = authInstances.get(loginContainerId);
     if (!inst) return;
-    const { container, onAuthChange, mode, showGoogle, client } = inst;
+    const { container, onAuthChange, mode, showGoogle, client, pendingAuthError } = inst;
 
     if (session) {
       const logoutId = `auth-logout-${loginContainerId}`;
@@ -105,11 +107,15 @@ async function initAuthUI(options = {}) {
 
     container.querySelector(`[data-google="${loginContainerId}"]`)?.addEventListener("click", async () => {
       const msg = document.getElementById(msgId);
-      const { error } = await client.auth.signInWithOAuth({
+      const { data, error } = await client.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: authRedirectUrl() },
+        options: {
+          redirectTo: authRedirectUrl(),
+          skipBrowserRedirect: false,
+        },
       });
       if (error && msg) showStatus(msg, error.message, "error");
+      else if (data?.url) window.location.assign(data.url);
     });
 
     container.querySelector(`[data-toggle-discreet="${loginContainerId}"]`)?.addEventListener("click", () => {
@@ -151,6 +157,12 @@ async function initAuthUI(options = {}) {
       if (error) showStatus(msg, error.message, "error");
       else showStatus(msg, "Konto erstellt. Bitte E-Mail bestätigen, falls aktiviert.", "success");
     });
+
+    if (pendingAuthError) {
+      const msg = document.getElementById(msgId);
+      if (msg) showStatus(msg, pendingAuthError, "error");
+      inst.pendingAuthError = null;
+    }
 
     if (onAuthChange) onAuthChange(null);
   }

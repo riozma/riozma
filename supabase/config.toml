@@ -1,0 +1,15 @@
+# Supabase project config (riozma)
+# Push auth URLs: npx supabase login && npx supabase config push --project-ref lwxwcogvkhixfsfvkcvz
+
+project_id = "lwxwcogvkhixfsfvkcvz"
+
+[auth]
+site_url = "https://riozma.ch"
+additional_redirect_urls = [
+  "https://riozma.ch/**",
+  "https://www.riozma.ch/**",
+  "http://riozma.ch/**",
+  "http://www.riozma.ch/**",
+  "https://riozma.github.io/riozma/**",
+  "http://localhost:8080/**",
+]

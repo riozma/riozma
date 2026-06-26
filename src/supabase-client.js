@@ -1,14 +1,29 @@
 let supabaseClient = null;
 
 const PRODUCTION_SITE_URL = "https://riozma.ch";
+const PRODUCTION_HOSTS = new Set(["riozma.ch", "www.riozma.ch"]);
 
 function isLocalDevHost() {
   const host = window.location.hostname;
   return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
 }
 
+function isProductionHost() {
+  return PRODUCTION_HOSTS.has(window.location.hostname);
+}
+
+function forceHttpsOnProduction() {
+  if (!isProductionHost() || window.location.protocol === "https:") return;
+  window.location.replace(
+    `https://${window.location.host}${window.location.pathname}${window.location.search}${window.location.hash}`,
+  );
+}
+
+forceHttpsOnProduction();
+
 function siteOrigin() {
   if (isLocalDevHost()) return window.location.origin;
+  if (isProductionHost()) return `https://${window.location.hostname}`;
   const configured = (window.SITE_URL || PRODUCTION_SITE_URL).replace(/\/$/, "");
   return configured;
 }
@@ -19,10 +34,34 @@ function siteUrl(path = "/") {
 }
 
 function authRedirectUrl() {
-  if (isLocalDevHost()) {
-    return `${window.location.origin}${window.location.pathname}${window.location.search}`;
+  return `${window.location.origin}${window.location.pathname}${window.location.search}`;
+}
+
+async function completeAuthFromUrl(client) {
+  const params = new URLSearchParams(window.location.search);
+  const authError = params.get("error_description") || params.get("error");
+  const code = params.get("code");
+  const cleanPath = `${window.location.pathname}${window.location.search}`;
+
+  if (authError) {
+    window.history.replaceState({}, document.title, window.location.pathname);
+    return { error: authError };
   }
-  return siteUrl(`${window.location.pathname}${window.location.search}`);
+
+  if (code) {
+    const { error } = await client.auth.exchangeCodeForSession(code);
+    window.history.replaceState({}, document.title, window.location.pathname);
+    if (error) return { error: error.message };
+    return { error: null };
+  }
+
+  if (window.location.hash.includes("access_token")) {
+    const { error } = await client.auth.getSession();
+    window.history.replaceState({}, document.title, cleanPath);
+    if (error) return { error: error.message };
+  }
+
+  return { error: null };
 }
 
 function getSupabase() {
@@ -39,7 +78,14 @@ function getSupabase() {
     console.warn("Supabase JS SDK nicht geladen.");
     return null;
   }
-  supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY, {
+    auth: {
+      flowType: "pkce",
+      detectSessionInUrl: true,
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+  });
   return supabaseClient;
 }
 
