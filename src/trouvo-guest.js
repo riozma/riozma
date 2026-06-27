@@ -37,7 +37,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   eventData = event;
   document.title = `${event.name} – Trouvo`;
 
-  const [tt, fld, bring, regs] = await Promise.all([
+  const [tracks, tt, fld, bring, regs] = await Promise.all([
+    client.from("event_timetable_tracks").select("*").eq("event_id", event.id).order("sort_order"),
     client.from("event_timetable_items").select("*").eq("event_id", event.id).order("sort_order"),
     client.from("event_registration_fields").select("*").eq("event_id", event.id).order("sort_order"),
     client.from("event_bring_items").select("*").eq("event_id", event.id).order("sort_order"),
@@ -62,7 +63,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   loading.classList.add("d-none");
   content.classList.remove("d-none");
-  content.innerHTML = buildPage(event, tt.data || [], registrations, allClaims, allAnswers);
+  content.innerHTML = buildPage(event, tracks.data || [], tt.data || [], registrations, allClaims, allAnswers);
 
   document.getElementById("guest-register-form")?.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -74,8 +75,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 });
 
-function buildPage(event, timetable, registrations, claims, answers) {
-  const dateStr = formatEventDate(event);
+function buildPage(event, tracks, timetable, registrations, claims, answers) {
+  const dateStr = formatEventDateRange(event);
   const regCount = registrations.length;
   const visibility = getAttendeeVisibility(event);
   const locationHtml = event.location ? renderLocationBlock(event.location) : "";
@@ -93,22 +94,7 @@ function buildPage(event, timetable, registrations, claims, answers) {
       ${event.description ? `<div class="guest-event-desc">${renderParagraphs(event.description)}</div>` : ""}
     </article>
 
-    ${timetable.length ? `
-      <section class="guest-section">
-        <h2>Zeitplan</h2>
-        <div class="timeline">
-          ${timetable.map((t) => `
-            <div class="timeline-item">
-              <div class="timeline-time">${(t.start_time || "").slice(0, 5)}</div>
-              <div class="timeline-body">
-                <strong>${escapeHtml(t.title)}</strong>
-                ${t.description ? `<p>${escapeHtml(t.description)}</p>` : ""}
-              </div>
-            </div>
-          `).join("")}
-        </div>
-      </section>
-    ` : ""}
+    ${renderTimetableSection(event, tracks, timetable)}
 
     ${renderAttendeeSection(visibility, registrations, isOrganizer)}
 
@@ -317,12 +303,58 @@ async function submitRegistration(client, currentRegCount, submitBtn) {
   });
 }
 
-function formatEventDate(event) {
-  const date = new Date(event.event_date).toLocaleDateString("de-CH", {
-    weekday: "long", day: "numeric", month: "long", year: "numeric",
+function renderTimetableSection(event, tracks, items) {
+  if (!items.length) return "";
+
+  const multiDay = isMultiDayEvent(event);
+  let trackGroups = [];
+
+  if (tracks.length) {
+    trackGroups = tracks.map((track) => ({
+      name: track.name,
+      items: items.filter((item) => item.track_id === track.id),
+    }));
+  } else {
+    trackGroups = [{ name: "", items }];
+  }
+
+  trackGroups = trackGroups.filter((group) => group.items.length);
+  if (!trackGroups.length) return "";
+
+  trackGroups.forEach((group) => {
+    group.items.sort((a, b) => {
+      const dateA = a.item_date || event.event_date;
+      const dateB = b.item_date || event.event_date;
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
+      return (a.start_time || "").localeCompare(b.start_time || "");
+    });
   });
-  const start = (event.start_time || "").slice(0, 5);
-  if (event.open_end) return `${date}, ab ${start} Uhr`;
-  const end = (event.end_time || "").slice(0, 5);
-  return end ? `${date}, ${start}–${end} Uhr` : `${date}, ${start} Uhr`;
+
+  return `
+    <section class="guest-section">
+      <h2>Zeitplan</h2>
+      ${trackGroups.map((group) => `
+        <div class="timetable-track-guest">
+          ${group.name ? `<h3 class="timetable-track-title">${escapeHtml(group.name)}</h3>` : ""}
+          <div class="timeline">
+            ${group.items.map((t) => `
+              <div class="timeline-item">
+                <div class="timeline-time">
+                  ${multiDay && t.item_date ? `<span class="timeline-day">${escapeHtml(formatTimetableDay(t.item_date))}</span>` : ""}
+                  <span>${(t.start_time || "").slice(0, 5)}</span>
+                </div>
+                <div class="timeline-body">
+                  <strong>${escapeHtml(t.title)}</strong>
+                  ${t.description ? `<p>${escapeHtml(t.description)}</p>` : ""}
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `).join("")}
+    </section>`;
+}
+
+function formatEventDate(event) {
+  return formatEventDateRange(event);
 }

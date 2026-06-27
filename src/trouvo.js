@@ -76,9 +76,7 @@ async function loadEvents() {
   const past = [];
 
   events.forEach((event) => {
-    const eventEnd = event.open_end
-      ? endOfDay(new Date(event.event_date))
-      : combineDateTime(event.event_date, event.end_time || event.start_time);
+    const { end: eventEnd } = getEventDateTimes(event);
     if (eventEnd >= now) upcoming.push(event);
     else past.push(event);
   });
@@ -157,22 +155,6 @@ document.addEventListener("click", (e) => {
   });
 });
 
-function combineDateTime(dateStr, timeStr) {
-  return new Date(`${dateStr}T${timeStr || "00:00:00"}`);
-}
-
-function endOfDay(date) {
-  const d = new Date(date);
-  d.setHours(23, 59, 59, 999);
-  return d;
-}
-
 function formatEventDate(event) {
-  const date = new Date(event.event_date).toLocaleDateString("de-CH", {
-    weekday: "short", day: "numeric", month: "long", year: "numeric",
-  });
-  const start = (event.start_time || "").slice(0, 5);
-  if (event.open_end) return `${date}, ab ${start}`;
-  const end = (event.end_time || "").slice(0, 5);
-  return end ? `${date}, ${start}–${end}` : `${date}, ${start}`;
+  return formatEventDateRange(event, true);
 }

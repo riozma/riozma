@@ -4,7 +4,7 @@ let slugManual = false;
 let eventCreatorId = null;
 let isEventCreator = false;
 
-const timetableItems = [];
+const timetableTracks = [];
 const regFields = [];
 const bringItems = [];
 
@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("edit-loading").classList.add("d-none");
     document.getElementById("edit-content").classList.remove("d-none");
     renderAllLists();
+    syncMultiDayUI();
     applySectionOpenState();
   }
 
@@ -42,8 +43,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("ev-open-end").addEventListener("change", (e) => {
     document.getElementById("ev-end").disabled = e.target.checked;
   });
+  document.getElementById("ev-multi-day").addEventListener("change", syncMultiDayUI);
+  document.getElementById("ev-date").addEventListener("change", () => {
+    syncEndDateMin();
+    renderTimetableTracks();
+  });
+  document.getElementById("ev-end-date").addEventListener("change", () => renderTimetableTracks());
+  document.getElementById("ev-start").addEventListener("change", () => {
+    /* timetable defaults use start time when adding entries */
+  });
 
-  ["ev-name", "ev-date", "ev-start"].forEach((id) => {
+  ["ev-name", "ev-date", "ev-start", "ev-end-date"].forEach((id) => {
     document.getElementById(id)?.addEventListener("input", () => {
       document.getElementById(id)?.classList.remove("is-invalid");
     });
@@ -56,16 +66,10 @@ function bindUI() {
   document.getElementById("btn-copy-link").addEventListener("click", copyGuestLink);
   document.getElementById("btn-delete-event").addEventListener("click", deleteEvent);
   document.getElementById("btn-add-co-org").addEventListener("click", addCoOrganizer);
-  document.getElementById("btn-add-timetable").addEventListener("click", () => {
+  document.getElementById("btn-add-track").addEventListener("click", () => {
     collectFromDOM();
-    const section = document.getElementById("section-timetable");
-    if (section) section.open = true;
-    timetableItems.push({
-      start_time: nextTimetableTime(),
-      title: "",
-      description: "",
-    });
-    renderTimetable();
+    document.getElementById("section-timetable").open = true;
+    addTimetableTrack();
   });
   document.getElementById("btn-add-field").addEventListener("click", () => {
     collectFromDOM();
@@ -107,6 +111,10 @@ async function loadEvent() {
   document.getElementById("ev-location").value = event.location || "";
   document.getElementById("ev-phone").value = event.organizer_phone || "";
   document.getElementById("ev-date").value = event.event_date;
+  const multiDay = isMultiDayEvent(event);
+  document.getElementById("ev-multi-day").checked = multiDay;
+  document.getElementById("ev-end-date").value = multiDay ? event.end_date : "";
+  syncMultiDayUI();
   document.getElementById("ev-start").value = (event.start_time || "").slice(0, 5);
   document.getElementById("ev-end").value = (event.end_time || "").slice(0, 5);
   document.getElementById("ev-open-end").checked = event.open_end;
@@ -114,18 +122,42 @@ async function loadEvent() {
   document.getElementById("ev-attendee-visibility").value = getAttendeeVisibility(event);
   document.getElementById("ev-photos-link").value = event.photos_upload_url || event.photos_gallery_url || "";
 
-  const [tt, fields, bring] = await Promise.all([
+  const [tracks, tt, fields, bring] = await Promise.all([
+    client.from("event_timetable_tracks").select("*").eq("event_id", eventId).order("sort_order"),
     client.from("event_timetable_items").select("*").eq("event_id", eventId).order("sort_order"),
     client.from("event_registration_fields").select("*").eq("event_id", eventId).order("sort_order"),
     client.from("event_bring_items").select("*").eq("event_id", eventId).order("sort_order"),
   ]);
 
-  timetableItems.length = 0;
-  (tt.data || []).forEach((r) => timetableItems.push({
-    start_time: (r.start_time || "").slice(0, 5),
-    title: r.title,
-    description: r.description || "",
-  }));
+  timetableTracks.length = 0;
+  const trackRows = tracks.data || [];
+  const itemRows = tt.data || [];
+  if (trackRows.length) {
+    trackRows.forEach((track) => {
+      timetableTracks.push({
+        name: track.name || "",
+        items: itemRows
+          .filter((r) => r.track_id === track.id)
+          .map((r) => ({
+            item_date: r.item_date || event.event_date,
+            start_time: (r.start_time || "").slice(0, 5),
+            title: r.title,
+            description: r.description || "",
+          })),
+      });
+    });
+  } else if (itemRows.length) {
+    timetableTracks.push({
+      name: "",
+      items: itemRows.map((r) => ({
+        item_date: r.item_date || event.event_date,
+        start_time: (r.start_time || "").slice(0, 5),
+        title: r.title,
+        description: r.description || "",
+      })),
+    });
+  }
+  sortAllTimetableItems();
 
   regFields.length = 0;
   (fields.data || []).forEach((r) => regFields.push({
@@ -272,9 +304,37 @@ async function deleteEvent() {
 }
 
 function renderAllLists() {
-  renderTimetable();
+  renderTimetableTracks();
   renderFields();
   renderBring();
+}
+
+function isFormMultiDay() {
+  return document.getElementById("ev-multi-day")?.checked;
+}
+
+function getFormEventDates() {
+  const event = {
+    event_date: document.getElementById("ev-date")?.value,
+    end_date: isFormMultiDay() ? document.getElementById("ev-end-date")?.value : null,
+  };
+  return listEventDates(event);
+}
+
+function syncMultiDayUI() {
+  const multi = isFormMultiDay();
+  document.getElementById("ev-end-date-wrap")?.classList.toggle("d-none", !multi);
+  syncEndDateMin();
+  renderTimetableTracks();
+}
+
+function syncEndDateMin() {
+  const start = document.getElementById("ev-date")?.value;
+  const endEl = document.getElementById("ev-end-date");
+  if (!endEl || !start) return;
+  endEl.min = start;
+  if (endEl.value && endEl.value < start) endEl.value = start;
+  if (isFormMultiDay() && !endEl.value) endEl.value = start;
 }
 
 function addMinutesToTime(timeStr, minutes) {
@@ -285,11 +345,51 @@ function addMinutesToTime(timeStr, minutes) {
   return `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
 }
 
-function nextTimetableTime() {
+function nextTimetableTime(track) {
   const startTime = document.getElementById("ev-start")?.value || "19:00";
-  if (!timetableItems.length) return startTime;
-  const lastTime = timetableItems[timetableItems.length - 1]?.start_time || startTime;
-  return addMinutesToTime(lastTime, 30);
+  const dates = getFormEventDates();
+  const defaultDate = dates[0] || document.getElementById("ev-date")?.value || "";
+  if (!track.items.length) {
+    return { item_date: defaultDate, start_time: startTime };
+  }
+  const last = track.items[track.items.length - 1];
+  return {
+    item_date: last.item_date || defaultDate,
+    start_time: addMinutesToTime(last.start_time || startTime, 30),
+  };
+}
+
+function sortTimetableItems(items) {
+  items.sort((a, b) => {
+    const dateA = a.item_date || "";
+    const dateB = b.item_date || "";
+    if (dateA !== dateB) return dateA.localeCompare(dateB);
+    return (a.start_time || "").localeCompare(b.start_time || "");
+  });
+}
+
+function sortAllTimetableItems() {
+  timetableTracks.forEach((track) => sortTimetableItems(track.items));
+}
+
+function addTimetableTrack() {
+  const index = timetableTracks.length + 1;
+  timetableTracks.push({ name: `Zeitstrahl ${index}`, items: [] });
+  renderTimetableTracks();
+}
+
+function addTimetableItem(trackIndex) {
+  collectFromDOM();
+  const track = timetableTracks[trackIndex];
+  if (!track) return;
+  document.getElementById("section-timetable").open = true;
+  track.items.push(nextTimetableTime(track));
+  sortTimetableItems(track.items);
+  renderTimetableTracks();
+}
+
+function timetableHasContent() {
+  return timetableTracks.some((track) => track.name.trim() || track.items.some((item) => item.title || item.description));
 }
 
 function sectionHasCoOrganizers() {
@@ -298,7 +398,7 @@ function sectionHasCoOrganizers() {
 }
 
 function applySectionOpenState() {
-  setSectionOpen("section-timetable", timetableItems.length > 0);
+  setSectionOpen("section-timetable", timetableHasContent());
   setSectionOpen("section-fields", regFields.length > 0);
   setSectionOpen("section-bring", bringItems.length > 0);
   setSectionOpen("section-visibility", document.getElementById("ev-attendee-visibility")?.value !== "none");
@@ -323,28 +423,68 @@ function photosPayloadFromForm() {
   };
 }
 
-function renderTimetable() {
-  const el = document.getElementById("timetable-list");
-  if (!timetableItems.length) {
-    el.innerHTML = `<p class="text-muted small">Noch kein Zeitplan. Optional Einträge hinzufügen.</p>`;
+function renderTimetableTracks() {
+  const el = document.getElementById("timetable-tracks");
+  const multiDay = isFormMultiDay();
+  const dates = getFormEventDates();
+
+  if (!timetableTracks.length) {
+    el.innerHTML = `<p class="text-muted small">Noch keine Zeitstrahlen. Mit «+ Zeitstrahl» starten.</p>`;
     return;
   }
-  el.innerHTML = timetableItems.map((item, i) => `
-    <div class="builder-row timeline-row" data-i="${i}">
-      <input type="time" class="form-control form-control-sm tt-time" value="${item.start_time}">
-      <input type="text" class="form-control form-control-sm tt-title" placeholder="Titel" value="${escapeHtml(item.title)}">
-      <input type="text" class="form-control form-control-sm tt-desc" placeholder="Beschreibung (optional)" value="${escapeHtml(item.description)}">
-      <button type="button" class="btn btn-sm btn-outline-danger btn-remove-tt">×</button>
+
+  el.innerHTML = timetableTracks.map((track, trackIndex) => `
+    <div class="timetable-track-block" data-track="${trackIndex}">
+      <div class="timetable-track-head">
+        <input type="text" class="form-control form-control-sm track-name" placeholder="Name des Zeitstrahls" value="${escapeHtml(track.name)}">
+        <div class="timetable-track-actions">
+          <button type="button" class="btn btn-sm btn-outline-secondary btn-add-tt-item" data-track="${trackIndex}">+ Eintrag</button>
+          <button type="button" class="btn btn-sm btn-outline-danger btn-remove-track" data-track="${trackIndex}">×</button>
+        </div>
+      </div>
+      ${track.items.length ? track.items.map((item, itemIndex) => `
+        <div class="builder-row timeline-row ${multiDay ? "timeline-row-multiday" : ""}" data-track="${trackIndex}" data-i="${itemIndex}">
+          ${multiDay ? `<select class="form-select form-select-sm tt-date">${buildDateSelectOptions(item.item_date || dates[0])}</select>` : ""}
+          <input type="time" class="form-control form-control-sm tt-time" value="${item.start_time}">
+          <input type="text" class="form-control form-control-sm tt-title" placeholder="Titel" value="${escapeHtml(item.title)}">
+          <input type="text" class="form-control form-control-sm tt-desc" placeholder="Beschreibung (optional)" value="${escapeHtml(item.description)}">
+          <button type="button" class="btn btn-sm btn-outline-danger btn-remove-tt">×</button>
+        </div>
+      `).join("") : `<p class="text-muted small timetable-track-empty">Noch keine Einträge in diesem Zeitstrahl.</p>`}
     </div>
   `).join("");
+
+  el.querySelectorAll(".btn-add-tt-item").forEach((btn) => {
+    btn.addEventListener("click", () => addTimetableItem(Number(btn.dataset.track)));
+  });
+
+  el.querySelectorAll(".btn-remove-track").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      collectFromDOM();
+      timetableTracks.splice(Number(btn.dataset.track), 1);
+      renderTimetableTracks();
+    });
+  });
 
   el.querySelectorAll(".btn-remove-tt").forEach((btn) => {
     btn.addEventListener("click", () => {
       collectFromDOM();
-      timetableItems.splice(Number(btn.closest(".timeline-row").dataset.i), 1);
-      renderTimetable();
+      const row = btn.closest(".timeline-row");
+      timetableTracks[Number(row.dataset.track)].items.splice(Number(row.dataset.i), 1);
+      renderTimetableTracks();
     });
   });
+}
+
+function buildDateSelectOptions(selectedDate) {
+  const dates = getFormEventDates();
+  const fallback = dates[0] || "";
+  const selected = selectedDate || fallback;
+  return dates.map((d) => `<option value="${d}"${d === selected ? " selected" : ""}>${escapeHtml(formatTimetableDay(d))}</option>`).join("");
+}
+
+function renderTimetable() {
+  renderTimetableTracks();
 }
 
 function renderFields() {
@@ -405,11 +545,19 @@ function renderBring() {
 }
 
 function collectFromDOM() {
-  document.querySelectorAll(".timeline-row").forEach((row, i) => {
-    if (!timetableItems[i]) return;
-    timetableItems[i].start_time = row.querySelector(".tt-time").value;
-    timetableItems[i].title = row.querySelector(".tt-title").value.trim();
-    timetableItems[i].description = row.querySelector(".tt-desc").value.trim();
+  document.querySelectorAll(".timetable-track-block").forEach((block, trackIndex) => {
+    if (!timetableTracks[trackIndex]) return;
+    timetableTracks[trackIndex].name = block.querySelector(".track-name")?.value.trim() || "";
+    const defaultDate = getFormEventDates()[0] || document.getElementById("ev-date")?.value || "";
+    block.querySelectorAll(".timeline-row").forEach((row, itemIndex) => {
+      if (!timetableTracks[trackIndex].items[itemIndex]) return;
+      const item = timetableTracks[trackIndex].items[itemIndex];
+      item.item_date = row.querySelector(".tt-date")?.value || defaultDate;
+      item.start_time = row.querySelector(".tt-time").value;
+      item.title = row.querySelector(".tt-title").value.trim();
+      item.description = row.querySelector(".tt-desc").value.trim();
+    });
+    sortTimetableItems(timetableTracks[trackIndex].items);
   });
   document.querySelectorAll(".field-row").forEach((row, i) => {
     if (!regFields[i]) return;
@@ -448,13 +596,18 @@ async function saveEvent(publish, triggerBtn) {
       const { user } = await ensureWriteSession(client);
       session = { user };
 
+      const multiDay = isFormMultiDay();
+      const startDate = document.getElementById("ev-date").value;
+      const endDateVal = multiDay ? document.getElementById("ev-end-date").value : null;
+
       const payload = {
         name,
         slug,
         description: document.getElementById("ev-description").value.trim(),
         location: document.getElementById("ev-location").value.trim(),
         organizer_phone: document.getElementById("ev-phone").value.trim() || null,
-        event_date: document.getElementById("ev-date").value,
+        event_date: startDate,
+        end_date: multiDay && endDateVal && endDateVal !== startDate ? endDateVal : null,
         start_time: startTime,
         end_time: document.getElementById("ev-open-end").checked ? null : document.getElementById("ev-end").value || null,
         open_end: document.getElementById("ev-open-end").checked,
@@ -479,6 +632,7 @@ async function saveEvent(publish, triggerBtn) {
           location: payload.location,
           organizer_phone: payload.organizer_phone || "",
           event_date: payload.event_date,
+          end_date: payload.end_date || "",
           start_time: payload.start_time,
           end_time: payload.end_time || "",
           open_end: payload.open_end,
@@ -503,20 +657,48 @@ async function saveEvent(publish, triggerBtn) {
       }
 
       await client.from("event_timetable_items").delete().eq("event_id", savedId);
-      await client.from("event_registration_fields").delete().eq("event_id", savedId);
-      await client.from("event_bring_items").delete().eq("event_id", savedId);
+      await client.from("event_timetable_tracks").delete().eq("event_id", savedId);
 
-      const ttRows = timetableItems.filter((t) => t.title).map((t, i) => ({
-        event_id: savedId, start_time: t.start_time, title: t.title, description: t.description, sort_order: i,
-      }));
-      if (ttRows.length) {
-        const { error } = await client.from("event_timetable_items").insert(ttRows);
-        if (error) throw new Error(formatDbError(error.message));
+      collectFromDOM();
+      sortAllTimetableItems();
+      const multiDaySave = isFormMultiDay();
+
+      for (let ti = 0; ti < timetableTracks.length; ti++) {
+        const track = timetableTracks[ti];
+        const hasItems = track.items.some((item) => item.title);
+        if (!track.name.trim() && !hasItems) continue;
+
+        const { data: trackRow, error: trackErr } = await client
+          .from("event_timetable_tracks")
+          .insert({ event_id: savedId, name: track.name.trim(), sort_order: ti })
+          .select("id")
+          .single();
+        if (trackErr) throw new Error(formatDbError(trackErr.message));
+
+        const ttRows = track.items
+          .filter((item) => item.title)
+          .map((item, ii) => ({
+            event_id: savedId,
+            track_id: trackRow.id,
+            item_date: multiDaySave ? item.item_date : null,
+            start_time: item.start_time,
+            title: item.title,
+            description: item.description,
+            sort_order: ii,
+          }));
+        if (ttRows.length) {
+          const { error } = await client.from("event_timetable_items").insert(ttRows);
+          if (error) throw new Error(formatDbError(error.message));
+        }
       }
 
       const fieldRows = regFields.filter((f) => f.label).map((f, i) => ({
         event_id: savedId, label: f.label, field_type: f.field_type, required: f.required, visible_to_others: f.visible_to_others, sort_order: i,
       }));
+
+      await client.from("event_registration_fields").delete().eq("event_id", savedId);
+      await client.from("event_bring_items").delete().eq("event_id", savedId);
+
       if (fieldRows.length) {
         const { error } = await client.from("event_registration_fields").insert(fieldRows);
         if (error) throw new Error(formatDbError(error.message));
@@ -556,6 +738,21 @@ function validateEventForm(msg) {
     if (!el?.value.trim()) {
       el?.classList.add("is-invalid");
       showFormFeedback(msg, `${label} ist Pflicht.`, "error", el);
+      return false;
+    }
+  }
+
+  if (isFormMultiDay()) {
+    const endEl = document.getElementById("ev-end-date");
+    const startDate = document.getElementById("ev-date").value;
+    if (!endEl?.value) {
+      endEl?.classList.add("is-invalid");
+      showFormFeedback(msg, "Enddatum ist Pflicht bei mehrtägigen Events.", "error", endEl);
+      return false;
+    }
+    if (endEl.value < startDate) {
+      endEl.classList.add("is-invalid");
+      showFormFeedback(msg, "Enddatum darf nicht vor dem Startdatum liegen.", "error", endEl);
       return false;
     }
   }

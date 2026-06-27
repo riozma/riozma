@@ -347,14 +347,68 @@ function getAttendeeVisibility(event) {
   return event.show_attendee_list ? "full" : "none";
 }
 
+function getEventLastDate(event) {
+  return event.end_date || event.event_date;
+}
+
+function isMultiDayEvent(event) {
+  return !!(event.end_date && event.end_date !== event.event_date);
+}
+
+function listEventDates(event) {
+  const dates = [];
+  let cur = event.event_date;
+  const last = getEventLastDate(event);
+  if (!cur) return dates;
+  while (cur <= last) {
+    dates.push(cur);
+    const d = new Date(`${cur}T12:00:00`);
+    d.setDate(d.getDate() + 1);
+    cur = d.toISOString().slice(0, 10);
+  }
+  return dates;
+}
+
+function formatEventDateRange(event, short = false) {
+  const startDate = new Date(event.event_date);
+  const lastDate = new Date(getEventLastDate(event));
+  const start = (event.start_time || "").slice(0, 5);
+  const end = (event.end_time || "").slice(0, 5);
+  const fmt = short
+    ? { weekday: "short", day: "numeric", month: "long", year: "numeric" }
+    : { weekday: "long", day: "numeric", month: "long", year: "numeric" };
+
+  if (!isMultiDayEvent(event)) {
+    const dateStr = startDate.toLocaleDateString("de-CH", fmt);
+    if (event.open_end) return `${dateStr}, ab ${start} Uhr`;
+    return end ? `${dateStr}, ${start}–${end} Uhr` : `${dateStr}, ${start} Uhr`;
+  }
+
+  const startStr = startDate.toLocaleDateString("de-CH", { day: "numeric", month: "long", year: "numeric" });
+  const endStr = lastDate.toLocaleDateString("de-CH", { day: "numeric", month: "long", year: "numeric" });
+  const range = `${startStr} – ${endStr}`;
+  if (event.open_end) return `${range}, ab ${start} Uhr`;
+  return end ? `${range}, ${start}–${end} Uhr` : `${range}, ab ${start} Uhr`;
+}
+
+function formatTimetableDay(isoDate) {
+  if (!isoDate) return "";
+  return new Date(isoDate).toLocaleDateString("de-CH", {
+    weekday: "short", day: "numeric", month: "short",
+  });
+}
+
 function getEventDateTimes(event) {
   const start = new Date(`${event.event_date}T${(event.start_time || "00:00").slice(0, 8)}`);
+  const lastDate = getEventLastDate(event);
   let end;
   if (event.open_end) {
-    end = new Date(start.getTime() + 3 * 60 * 60 * 1000);
+    end = new Date(`${lastDate}T23:59:59`);
   } else if (event.end_time) {
-    end = new Date(`${event.event_date}T${event.end_time.slice(0, 8)}`);
-    if (end <= start) end = new Date(end.getTime() + 24 * 60 * 60 * 1000);
+    end = new Date(`${lastDate}T${event.end_time.slice(0, 8)}`);
+    if (!isMultiDayEvent(event) && end <= start) {
+      end = new Date(end.getTime() + 24 * 60 * 60 * 1000);
+    }
   } else {
     end = new Date(start.getTime() + 60 * 60 * 1000);
   }

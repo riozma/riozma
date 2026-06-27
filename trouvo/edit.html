@@ -57,8 +57,18 @@
             <div class="form-text">Wird Gästen angezeigt, falls sie ihre Anmeldung anpassen möchten.</div>
           </div>
           <div class="col-md-6">
-            <label class="form-label form-label-required" for="ev-date">Datum</label>
+            <label class="form-label form-label-required" for="ev-date">Startdatum</label>
             <input type="date" class="form-control" id="ev-date" required>
+          </div>
+          <div class="col-md-6 d-none" id="ev-end-date-wrap">
+            <label class="form-label form-label-required" for="ev-end-date">Enddatum</label>
+            <input type="date" class="form-control" id="ev-end-date">
+          </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="ev-multi-day">
+              <label class="form-check-label" for="ev-multi-day">Mehrtägiges Event</label>
+            </div>
           </div>
           <div class="col-md-4">
             <label class="form-label form-label-required" for="ev-start">Start</label>
@@ -81,10 +91,10 @@
         <summary>Zeitplan</summary>
         <div class="edit-section-body">
           <div class="edit-section-head">
-            <p class="text-muted small mb-0">Optional – Ablauf mit Zeiten und Titeln.</p>
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-timetable">+ Eintrag</button>
+            <p class="text-muted small mb-0">Optional – mehrere Zeitstrahlen mit Einträgen. Zeiten werden automatisch sortiert.</p>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-track">+ Zeitstrahl</button>
           </div>
-          <div id="timetable-list" class="timetable-list"></div>
+          <div id="timetable-tracks" class="timetable-tracks"></div>
         </div>
       </details>
 
