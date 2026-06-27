@@ -10,11 +10,7 @@
   <link rel="stylesheet" href="/src/style.css">
 </head>
 <body class="site-body">
-  <header class="site-header">
-    <nav class="navbar navbar-expand-lg navbar-light navbar-bg">
-      <a class="navbar-brand trouvo-brand" href="/trouvo/">Trouvo</a>
-    </nav>
-  </header>
+  <header class="site-header" data-site-header data-header-context="trouvo"></header>
 
   <main class="trouvo-main guest-main" id="guest-app">
     <p id="guest-loading">Lade Veranstaltung…</p>
@@ -29,6 +25,7 @@
   <script src="/src/ui-feedback.js"></script>
   <script src="/src/trouvo-guest.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+  <script src="/src/site-header.js"></script>
   <script src="/src/site-nav.js"></script>
 </body>
 </html>

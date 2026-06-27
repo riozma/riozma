@@ -38,6 +38,8 @@ async function loadEvents() {
   const client = getSupabase();
   if (!client || !currentSession) return;
 
+  await maybePurgeExpiredCovers(client);
+
   const userId = currentSession.user.id;
   const [{ data: owned, error: ownedErr }, { data: coRows }] = await Promise.all([
     client.from("events").select("*").eq("organizer_id", userId).order("event_date", { ascending: true }),
@@ -81,7 +83,8 @@ async function loadEvents() {
     else past.push(event);
   });
 
-  past.reverse();
+  upcoming.sort((a, b) => eventSortTimestamp(a) - eventSortTimestamp(b));
+  past.sort((a, b) => eventSortTimestamp(b) - eventSortTimestamp(a));
 
   upcomingEl.innerHTML = upcoming.length
     ? upcoming.map((e) => renderEventCard(e, regCounts[e.id] || 0)).join("")
@@ -107,9 +110,11 @@ function renderEventCard(event, regCount) {
     : `<span class="badge bg-secondary">Entwurf</span>`;
   const isCreator = currentSession && event.organizer_id === currentSession.user.id;
   const coBadge = !isCreator ? `<span class="badge bg-info text-dark">Mitveranstalter</span>` : "";
+  const coverUrl = event.cover_image_path ? storagePublicUrl("event-covers", event.cover_image_path) : "";
 
   return `
-    <article class="event-card">
+    <article class="event-card${coverUrl ? " event-card-has-cover" : ""}">
+      ${coverUrl ? `<div class="event-card-cover"><img src="${escapeHtml(coverUrl)}" alt=""></div>` : ""}
       <div class="event-card-main">
         <div class="event-card-top">
           <h3>${escapeHtml(event.name)}</h3>

@@ -1,17 +1,6 @@
 const authInstances = new Map();
 let globalAuthBound = false;
 
-function recoverAuthFromWrongHost() {
-  const hash = window.location.hash;
-  if (!hash || !hash.includes("access_token")) return;
-  const host = window.location.hostname;
-  if (host !== "localhost" && host !== "127.0.0.1") return;
-  const production = (window.SITE_URL || "https://riozma.ch").replace(/\/$/, "");
-  window.location.replace(`${production}${window.location.pathname}${window.location.search}${hash}`);
-}
-
-recoverAuthFromWrongHost();
-
 async function initAuthUI(options = {}) {
   const {
     onAuthChange,

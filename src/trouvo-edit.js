@@ -3,6 +3,10 @@ let session = null;
 let slugManual = false;
 let eventCreatorId = null;
 let isEventCreator = false;
+let pendingCoverFile = null;
+let removeCover = false;
+let currentCoverPath = null;
+let coverPreviewUrl = null;
 
 const timetableTracks = [];
 const regFields = [];
@@ -71,6 +75,17 @@ function bindUI() {
     document.getElementById("section-timetable").open = true;
     addTimetableTrack();
   });
+  document.getElementById("btn-add-timetable").addEventListener("click", () => {
+    addTimetableEntry();
+  });
+  document.getElementById("ev-cover-file")?.addEventListener("change", onCoverFileSelected);
+  document.getElementById("btn-remove-cover")?.addEventListener("click", () => {
+    pendingCoverFile = null;
+    removeCover = true;
+    revokeCoverPreviewUrl();
+    document.getElementById("ev-cover-file").value = "";
+    updateCoverPreview(null);
+  });
   document.getElementById("btn-add-field").addEventListener("click", () => {
     collectFromDOM();
     document.getElementById("section-fields").open = true;
@@ -121,6 +136,10 @@ async function loadEvent() {
   document.getElementById("ev-end").disabled = event.open_end;
   document.getElementById("ev-attendee-visibility").value = getAttendeeVisibility(event);
   document.getElementById("ev-photos-link").value = event.photos_upload_url || event.photos_gallery_url || "";
+  currentCoverPath = event.cover_image_path || null;
+  removeCover = false;
+  pendingCoverFile = null;
+  updateCoverPreview(currentCoverPath ? storagePublicUrl("event-covers", currentCoverPath) : null);
 
   const [tracks, tt, fields, bring] = await Promise.all([
     client.from("event_timetable_tracks").select("*").eq("event_id", eventId).order("sort_order"),
@@ -346,7 +365,7 @@ function addMinutesToTime(timeStr, minutes) {
 }
 
 function nextTimetableTime(track) {
-  const startTime = document.getElementById("ev-start")?.value || "19:00";
+  const startTime = defaultStartTime();
   const dates = getFormEventDates();
   const defaultDate = dates[0] || document.getElementById("ev-date")?.value || "";
   if (!track.items.length) {
@@ -357,6 +376,11 @@ function nextTimetableTime(track) {
     item_date: last.item_date || defaultDate,
     start_time: addMinutesToTime(last.start_time || startTime, 30),
   };
+}
+
+function formatTimeValue(time) {
+  if (!time) return defaultStartTime();
+  return String(time).slice(0, 5);
 }
 
 function sortTimetableItems(items) {
@@ -372,9 +396,25 @@ function sortAllTimetableItems() {
   timetableTracks.forEach((track) => sortTimetableItems(track.items));
 }
 
+function defaultStartTime() {
+  return document.getElementById("ev-start")?.value || "19:00";
+}
+
+function ensureDefaultTrack() {
+  if (!timetableTracks.length) {
+    timetableTracks.push({ name: "", items: [] });
+  }
+  return timetableTracks.length - 1;
+}
+
+function addTimetableEntry() {
+  collectFromDOM();
+  document.getElementById("section-timetable").open = true;
+  addTimetableItem(ensureDefaultTrack());
+}
+
 function addTimetableTrack() {
-  const index = timetableTracks.length + 1;
-  timetableTracks.push({ name: `Zeitstrahl ${index}`, items: [] });
+  timetableTracks.push({ name: "", items: [] });
   renderTimetableTracks();
 }
 
@@ -423,6 +463,80 @@ function photosPayloadFromForm() {
   };
 }
 
+function revokeCoverPreviewUrl() {
+  if (coverPreviewUrl?.startsWith("blob:")) {
+    URL.revokeObjectURL(coverPreviewUrl);
+  }
+  coverPreviewUrl = null;
+}
+
+function updateCoverPreview(url) {
+  const wrap = document.getElementById("ev-cover-preview");
+  const removeBtn = document.getElementById("btn-remove-cover");
+  if (!wrap) return;
+  revokeCoverPreviewUrl();
+  if (url) {
+    coverPreviewUrl = url;
+    wrap.innerHTML = `<img src="${escapeHtml(url)}" alt="Titelbild-Vorschau">`;
+    wrap.classList.remove("d-none");
+    removeBtn?.classList.remove("d-none");
+  } else {
+    wrap.innerHTML = "";
+    wrap.classList.add("d-none");
+    removeBtn?.classList.add("d-none");
+  }
+}
+
+function onCoverFileSelected(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    showStatus(document.getElementById("edit-message"), "Bitte ein Bild wählen.", "error");
+    e.target.value = "";
+    return;
+  }
+  pendingCoverFile = file;
+  removeCover = false;
+  updateCoverPreview(URL.createObjectURL(file));
+}
+
+async function saveEventCover(client, savedId, eventPayload) {
+  if (removeCover && currentCoverPath) {
+    await client.storage.from("event-covers").remove([currentCoverPath]);
+    await client.from("events").update({ cover_image_path: null, cover_image_expires_at: null }).eq("id", savedId);
+    currentCoverPath = null;
+    return;
+  }
+  if (!pendingCoverFile) return;
+
+  const compressed = await prepareEventCover(pendingCoverFile);
+  const path = `${savedId}/cover.jpg`;
+  if (currentCoverPath && currentCoverPath !== path) {
+    await client.storage.from("event-covers").remove([currentCoverPath]);
+  }
+  const { error: uploadError } = await client.storage.from("event-covers").upload(path, compressed, {
+    upsert: true,
+    contentType: "image/jpeg",
+  });
+  if (uploadError) throw storageUploadError(uploadError, uploadError.message);
+
+  const expiresAt = computeEventCoverExpiry({
+    event_date: eventPayload.event_date,
+    end_date: eventPayload.end_date,
+    start_time: eventPayload.start_time,
+    end_time: eventPayload.end_time,
+    open_end: eventPayload.open_end,
+  });
+  const { error } = await client.from("events").update({
+    cover_image_path: path,
+    cover_image_expires_at: expiresAt,
+  }).eq("id", savedId);
+  if (error) throw new Error(formatDbError(error.message));
+  currentCoverPath = path;
+  pendingCoverFile = null;
+  removeCover = false;
+}
+
 function renderTimetableTracks() {
   const el = document.getElementById("timetable-tracks");
   const multiDay = isFormMultiDay();
@@ -436,7 +550,7 @@ function renderTimetableTracks() {
   el.innerHTML = timetableTracks.map((track, trackIndex) => `
     <div class="timetable-track-block" data-track="${trackIndex}">
       <div class="timetable-track-head">
-        <input type="text" class="form-control form-control-sm track-name" placeholder="Name des Zeitstrahls" value="${escapeHtml(track.name)}">
+        <input type="text" class="form-control form-control-sm track-name" placeholder="Name des Zeitstrahls (optional)" value="${escapeHtml(track.name || "")}">
         <div class="timetable-track-actions">
           <button type="button" class="btn btn-sm btn-outline-secondary btn-add-tt-item" data-track="${trackIndex}">+ Eintrag</button>
           <button type="button" class="btn btn-sm btn-outline-danger btn-remove-track" data-track="${trackIndex}">×</button>
@@ -445,7 +559,7 @@ function renderTimetableTracks() {
       ${track.items.length ? track.items.map((item, itemIndex) => `
         <div class="builder-row timeline-row ${multiDay ? "timeline-row-multiday" : ""}" data-track="${trackIndex}" data-i="${itemIndex}">
           ${multiDay ? `<select class="form-select form-select-sm tt-date">${buildDateSelectOptions(item.item_date || dates[0])}</select>` : ""}
-          <input type="time" class="form-control form-control-sm tt-time" value="${item.start_time}">
+          <input type="time" class="form-control form-control-sm tt-time" value="${formatTimeValue(item.start_time)}">
           <input type="text" class="form-control form-control-sm tt-title" placeholder="Titel" value="${escapeHtml(item.title)}">
           <input type="text" class="form-control form-control-sm tt-desc" placeholder="Beschreibung (optional)" value="${escapeHtml(item.description)}">
           <button type="button" class="btn btn-sm btn-outline-danger btn-remove-tt">×</button>
@@ -553,7 +667,7 @@ function collectFromDOM() {
       if (!timetableTracks[trackIndex].items[itemIndex]) return;
       const item = timetableTracks[trackIndex].items[itemIndex];
       item.item_date = row.querySelector(".tt-date")?.value || defaultDate;
-      item.start_time = row.querySelector(".tt-time").value;
+      item.start_time = formatTimeValue(row.querySelector(".tt-time")?.value);
       item.title = row.querySelector(".tt-title").value.trim();
       item.description = row.querySelector(".tt-desc").value.trim();
     });
@@ -711,6 +825,8 @@ async function saveEvent(publish, triggerBtn) {
         const { error } = await client.from("event_bring_items").insert(bringRows);
         if (error) throw new Error(formatDbError(error.message));
       }
+
+      await saveEventCover(client, savedId, payload);
 
       const { data: ev } = await client.from("events").select("slug, is_published").eq("id", savedId).single();
       return { slug: ev.slug, isPublished: ev.is_published, name, publish };

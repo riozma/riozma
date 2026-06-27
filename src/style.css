@@ -62,6 +62,7 @@ img {
   top: 0;
   z-index: 100;
   backdrop-filter: blur(10px);
+  box-shadow: 0 1px 0 rgba(78, 98, 75, 0.12);
 }
 
 .navbar-bg {
@@ -1433,6 +1434,77 @@ main { min-width: 0; margin: 0 auto; }
 
 .timeline-row-multiday {
   grid-template-columns: 140px 100px 1fr 1fr auto;
+}
+
+.timetable-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.event-cover-preview {
+  margin-bottom: 0.75rem;
+  max-width: 320px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.event-cover-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.guest-event-cover {
+  margin: -0.25rem 0 1rem;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.guest-event-cover img {
+  width: 100%;
+  max-height: 420px;
+  object-fit: cover;
+  display: block;
+}
+
+.event-card-has-cover {
+  flex-wrap: nowrap;
+  align-items: stretch;
+}
+
+.event-card-cover {
+  width: 120px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  min-height: 80px;
+}
+
+.event-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.event-card-has-cover .event-card-main {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .event-card-has-cover {
+    flex-wrap: wrap;
+  }
+
+  .event-card-cover {
+    width: 100%;
+    max-height: 160px;
+  }
 }
 
 .timetable-tracks {

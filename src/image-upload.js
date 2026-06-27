@@ -79,3 +79,7 @@ async function prepareBlogCover(file) {
   const cover = await compressImageFile(file, { maxEdge: 1600, quality: 0.85 });
   return cover;
 }
+
+async function prepareEventCover(file) {
+  return prepareBlogCover(file);
+}

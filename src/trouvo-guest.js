@@ -86,6 +86,7 @@ function buildPage(event, tracks, timetable, registrations, claims, answers) {
     ${!event.is_published ? `<div class="draft-banner">Entwurf – nur für dich sichtbar</div>` : ""}
 
     <article class="guest-event-card">
+      ${renderEventCover(event)}
       <p class="eyebrow">Veranstaltung</p>
       <h1 class="guest-event-title">${escapeHtml(event.name)}</h1>
       <p class="guest-event-meta">${dateStr}</p>

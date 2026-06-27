@@ -420,6 +420,37 @@ function isEventPast(event) {
   return end < new Date();
 }
 
+function computeEventCoverExpiry(event) {
+  const { end } = getEventDateTimes(event);
+  const expires = new Date(end.getTime());
+  expires.setDate(expires.getDate() + 14);
+  return expires.toISOString();
+}
+
+function renderEventCover(event) {
+  if (!event.cover_image_path) return "";
+  if (event.cover_image_expires_at && new Date(event.cover_image_expires_at) < new Date()) return "";
+  const url = storagePublicUrl("event-covers", event.cover_image_path);
+  if (!url) return "";
+  return `<div class="guest-event-cover"><img src="${escapeHtml(url)}" alt="${escapeHtml(event.name || "Event")}"></div>`;
+}
+
+async function maybePurgeExpiredCovers(client) {
+  const key = "trouvo_covers_purged_at";
+  const last = Number(sessionStorage.getItem(key) || 0);
+  if (Date.now() - last < 3600000) return;
+  try {
+    await client.rpc("purge_expired_event_covers");
+    sessionStorage.setItem(key, String(Date.now()));
+  } catch (_) {
+    /* ignore – optional cleanup */
+  }
+}
+
+function eventSortTimestamp(event) {
+  return getEventDateTimes(event).start.getTime();
+}
+
 function renderEventPhotosSection(event) {
   const url = event.photos_upload_url?.trim() || event.photos_gallery_url?.trim();
   if (!url) return "";

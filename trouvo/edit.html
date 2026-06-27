@@ -10,14 +10,7 @@
   <link rel="stylesheet" href="/src/style.css">
 </head>
 <body class="site-body">
-  <header class="site-header">
-    <nav class="navbar navbar-expand-lg navbar-light navbar-bg">
-      <a class="navbar-brand trouvo-brand" href="/trouvo/">Trouvo</a>
-      <div class="navbar-nav ms-auto flex-row gap-2">
-        <a class="nav-link" href="/trouvo/">Dashboard</a>
-      </div>
-    </nav>
-  </header>
+  <header class="site-header" data-site-header data-header-context="trouvo"></header>
 
   <main class="trouvo-main" id="edit-app">
     <p id="edit-loading">Lade…</p>
@@ -56,6 +49,13 @@
             <input type="tel" class="form-control" id="ev-phone" placeholder="+41 79 000 00 00">
             <div class="form-text">Wird Gästen angezeigt, falls sie ihre Anmeldung anpassen möchten.</div>
           </div>
+          <div class="col-12">
+            <label class="form-label">Titelbild (optional)</label>
+            <div id="ev-cover-preview" class="event-cover-preview d-none"></div>
+            <input type="file" class="form-control" id="ev-cover-file" accept="image/jpeg,image/png,image/webp,image/gif">
+            <div class="form-text">Wird komprimiert hochgeladen und 2 Wochen nach dem Event automatisch gelöscht.</div>
+            <button type="button" class="btn btn-sm btn-outline-danger mt-2 d-none" id="btn-remove-cover">Bild entfernen</button>
+          </div>
           <div class="col-md-6">
             <label class="form-label form-label-required" for="ev-date">Startdatum</label>
             <input type="date" class="form-control" id="ev-date" required>
@@ -91,8 +91,11 @@
         <summary>Zeitplan</summary>
         <div class="edit-section-body">
           <div class="edit-section-head">
-            <p class="text-muted small mb-0">Optional – mehrere Zeitstrahlen mit Einträgen. Zeiten werden automatisch sortiert.</p>
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-track">+ Zeitstrahl</button>
+            <p class="text-muted small mb-0">Optional – Einträge mit Zeiten. Mehrere benannte Zeitstrahlen möglich.</p>
+            <div class="timetable-toolbar">
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-timetable">+ Eintrag</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-track">+ Zeitstrahl</button>
+            </div>
           </div>
           <div id="timetable-tracks" class="timetable-tracks"></div>
         </div>
@@ -173,8 +176,10 @@
   <script src="/src/supabase-config.js"></script>
   <script src="/src/supabase-client.js"></script>
   <script src="/src/ui-feedback.js"></script>
+  <script src="/src/image-upload.js"></script>
   <script src="/src/trouvo-edit.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+  <script src="/src/site-header.js"></script>
   <script src="/src/site-nav.js"></script>
 </body>
 </html>
