@@ -24,6 +24,17 @@
         <button type="button" class="btn btn-sm btn-outline-primary" id="btn-copy-link">Kopieren</button>
       </div>
 
+      <div id="copy-from-event-box" class="edit-copy-box d-none">
+        <h2 class="edit-copy-title">Aus Vorlage starten</h2>
+        <p class="text-muted small">Einstellungen von einem bestehenden oder vergangenen Event übernehmen (ohne Datum und ohne Titelbild).</p>
+        <div class="edit-copy-row">
+          <select class="form-select" id="copy-from-select">
+            <option value="">Event wählen…</option>
+          </select>
+          <button type="button" class="btn btn-outline-secondary" id="btn-apply-copy">Übernehmen</button>
+        </div>
+      </div>
+
       <section class="edit-section">
         <h2>Grundlagen</h2>
         <p class="form-required-hint text-muted small">Pflichtfelder sind mit <span class="form-label-required-inline">*</span> markiert.</p>
@@ -129,7 +140,7 @@
           <p class="text-muted small">Was andere Gäste über Anmeldungen sehen dürfen (du als Veranstalter siehst immer alles).</p>
           <select class="form-select" id="ev-attendee-visibility" style="max-width: 420px;">
             <option value="none">Nichts – keine Anmeldungsinfo für Gäste</option>
-            <option value="count">Nur Anzahl – z.B. «5 angemeldet»</option>
+            <option value="count" selected>Nur Anzahl – z.B. «5 angemeldet»</option>
             <option value="full">Namen – wer ist angemeldet</option>
           </select>
         </div>

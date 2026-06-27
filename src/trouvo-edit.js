@@ -33,9 +33,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   else {
     document.getElementById("edit-loading").classList.add("d-none");
     document.getElementById("edit-content").classList.remove("d-none");
+    document.getElementById("ev-attendee-visibility").value = "count";
     renderAllLists();
     syncMultiDayUI();
     applySectionOpenState();
+    await initNewEventPage();
   }
 
   document.getElementById("ev-name").addEventListener("input", (e) => {
@@ -86,6 +88,14 @@ function bindUI() {
     document.getElementById("ev-cover-file").value = "";
     updateCoverPreview(null);
   });
+  document.getElementById("btn-apply-copy")?.addEventListener("click", () => {
+    const sourceId = document.getElementById("copy-from-select")?.value;
+    if (!sourceId) {
+      showStatus(document.getElementById("edit-message"), "Bitte zuerst ein Event wählen.", "error");
+      return;
+    }
+    applyCopyFromEvent(sourceId);
+  });
   document.getElementById("btn-add-field").addEventListener("click", () => {
     collectFromDOM();
     document.getElementById("section-fields").open = true;
@@ -102,8 +112,8 @@ function bindUI() {
 
 async function loadEvent() {
   const client = getSupabase();
-  const { data: event, error } = await client.from("events").select("*").eq("id", eventId).single();
-  if (error || !event) {
+  const data = await fetchEventFormData(client, eventId);
+  if (!data) {
     document.getElementById("edit-loading").textContent = "Veranstaltung nicht gefunden.";
     return;
   }
@@ -114,43 +124,83 @@ async function loadEvent() {
     return;
   }
 
-  eventCreatorId = event.organizer_id;
+  eventCreatorId = data.event.organizer_id;
   isEventCreator = access.isCreator;
   updateCreatorUI();
+  populateFormFromSource(data, { isCopy: false });
 
-  document.getElementById("edit-title").textContent = event.name;
-  document.getElementById("ev-name").value = event.name;
-  document.getElementById("ev-slug").value = event.slug;
-  slugManual = true;
+  document.getElementById("edit-loading").classList.add("d-none");
+  document.getElementById("edit-content").classList.remove("d-none");
+  renderAllLists();
+  applySectionOpenState();
+  updateGuestLink(data.event.slug, data.event.is_published);
+  if (isEventCreator) await loadCoOrganizers();
+  applySectionOpenState();
+}
+
+async function fetchEventFormData(client, sourceEventId) {
+  const { data: event, error } = await client.from("events").select("*").eq("id", sourceEventId).single();
+  if (error || !event) return null;
+
+  const [tracks, tt, fields, bring] = await Promise.all([
+    client.from("event_timetable_tracks").select("*").eq("event_id", sourceEventId).order("sort_order"),
+    client.from("event_timetable_items").select("*").eq("event_id", sourceEventId).order("sort_order"),
+    client.from("event_registration_fields").select("*").eq("event_id", sourceEventId).order("sort_order"),
+    client.from("event_bring_items").select("*").eq("event_id", sourceEventId).order("sort_order"),
+  ]);
+
+  return {
+    event,
+    tracks: tracks.data || [],
+    timetableItems: tt.data || [],
+    fields: fields.data || [],
+    bring: bring.data || [],
+  };
+}
+
+function populateFormFromSource(data, { isCopy }) {
+  const { event } = data;
+
+  document.getElementById("edit-title").textContent = isCopy ? "Neue Veranstaltung" : event.name;
+  document.getElementById("ev-name").value = isCopy ? `${event.name} (Kopie)` : event.name;
+  document.getElementById("ev-slug").value = isCopy ? "" : event.slug;
+  slugManual = !isCopy && !!event.slug;
   document.getElementById("ev-description").value = event.description || "";
   document.getElementById("ev-location").value = event.location || "";
   document.getElementById("ev-phone").value = event.organizer_phone || "";
-  document.getElementById("ev-date").value = event.event_date;
-  const multiDay = isMultiDayEvent(event);
-  document.getElementById("ev-multi-day").checked = multiDay;
-  document.getElementById("ev-end-date").value = multiDay ? event.end_date : "";
-  syncMultiDayUI();
-  document.getElementById("ev-start").value = (event.start_time || "").slice(0, 5);
+
+  if (isCopy) {
+    document.getElementById("ev-date").value = "";
+    document.getElementById("ev-end-date").value = "";
+    document.getElementById("ev-multi-day").checked = false;
+    syncMultiDayUI();
+    pendingCoverFile = null;
+    removeCover = false;
+    currentCoverPath = null;
+    updateCoverPreview(null);
+    document.getElementById("ev-cover-file").value = "";
+  } else {
+    document.getElementById("ev-date").value = event.event_date;
+    const multiDay = isMultiDayEvent(event);
+    document.getElementById("ev-multi-day").checked = multiDay;
+    document.getElementById("ev-end-date").value = multiDay ? event.end_date : "";
+    syncMultiDayUI();
+    currentCoverPath = event.cover_image_path || null;
+    removeCover = false;
+    pendingCoverFile = null;
+    updateCoverPreview(currentCoverPath ? storagePublicUrl("event-covers", currentCoverPath) : null);
+  }
+
+  document.getElementById("ev-start").value = (event.start_time || "19:00").slice(0, 5);
   document.getElementById("ev-end").value = (event.end_time || "").slice(0, 5);
   document.getElementById("ev-open-end").checked = event.open_end;
   document.getElementById("ev-end").disabled = event.open_end;
   document.getElementById("ev-attendee-visibility").value = getAttendeeVisibility(event);
   document.getElementById("ev-photos-link").value = event.photos_upload_url || event.photos_gallery_url || "";
-  currentCoverPath = event.cover_image_path || null;
-  removeCover = false;
-  pendingCoverFile = null;
-  updateCoverPreview(currentCoverPath ? storagePublicUrl("event-covers", currentCoverPath) : null);
-
-  const [tracks, tt, fields, bring] = await Promise.all([
-    client.from("event_timetable_tracks").select("*").eq("event_id", eventId).order("sort_order"),
-    client.from("event_timetable_items").select("*").eq("event_id", eventId).order("sort_order"),
-    client.from("event_registration_fields").select("*").eq("event_id", eventId).order("sort_order"),
-    client.from("event_bring_items").select("*").eq("event_id", eventId).order("sort_order"),
-  ]);
 
   timetableTracks.length = 0;
-  const trackRows = tracks.data || [];
-  const itemRows = tt.data || [];
+  const trackRows = data.tracks;
+  const itemRows = data.timetableItems;
   if (trackRows.length) {
     trackRows.forEach((track) => {
       timetableTracks.push({
@@ -158,7 +208,7 @@ async function loadEvent() {
         items: itemRows
           .filter((r) => r.track_id === track.id)
           .map((r) => ({
-            item_date: r.item_date || event.event_date,
+            item_date: isCopy ? "" : (r.item_date || event.event_date),
             start_time: (r.start_time || "").slice(0, 5),
             title: r.title,
             description: r.description || "",
@@ -169,7 +219,7 @@ async function loadEvent() {
     timetableTracks.push({
       name: "",
       items: itemRows.map((r) => ({
-        item_date: r.item_date || event.event_date,
+        item_date: isCopy ? "" : (r.item_date || event.event_date),
         start_time: (r.start_time || "").slice(0, 5),
         title: r.title,
         description: r.description || "",
@@ -179,7 +229,7 @@ async function loadEvent() {
   sortAllTimetableItems();
 
   regFields.length = 0;
-  (fields.data || []).forEach((r) => regFields.push({
+  data.fields.forEach((r) => regFields.push({
     label: r.label,
     field_type: r.field_type,
     required: r.required,
@@ -187,20 +237,95 @@ async function loadEvent() {
   }));
 
   bringItems.length = 0;
-  (bring.data || []).forEach((r) => bringItems.push({
+  data.bring.forEach((r) => bringItems.push({
     name: r.name,
     quantity_mode: r.quantity_mode,
     quantity_value: Number(r.quantity_value),
     visible_to_others: r.visible_to_others,
   }));
 
-  document.getElementById("edit-loading").classList.add("d-none");
-  document.getElementById("edit-content").classList.remove("d-none");
+  if (isCopy && !slugManual) {
+    document.getElementById("ev-slug").value = slugify(document.getElementById("ev-name").value);
+  }
+}
+
+async function initNewEventPage() {
+  document.getElementById("copy-from-event-box")?.classList.remove("d-none");
+  await loadCopyFromOptions();
+  const copyId = new URLSearchParams(window.location.search).get("copy");
+  if (copyId) await applyCopyFromEvent(copyId);
+}
+
+async function loadCopyFromOptions() {
+  const client = getSupabase();
+  const select = document.getElementById("copy-from-select");
+  if (!client || !select || !session?.user?.id) return;
+
+  const userId = session.user.id;
+  const [{ data: owned }, { data: coRows }] = await Promise.all([
+    client.from("events").select("id, name, event_date, end_date, start_time, end_time, open_end").eq("organizer_id", userId).order("event_date", { ascending: false }),
+    client.from("event_co_organizers").select("event_id").eq("user_id", userId),
+  ]);
+
+  const coIds = (coRows || []).map((r) => r.event_id).filter((id) => !(owned || []).some((e) => e.id === id));
+  let coEvents = [];
+  if (coIds.length) {
+    const { data } = await client.from("events").select("id, name, event_date, end_date, start_time, end_time, open_end").in("id", coIds).order("event_date", { ascending: false });
+    coEvents = data || [];
+  }
+
+  const events = [...(owned || []), ...coEvents];
+  if (!events.length) {
+    select.innerHTML = `<option value="">Keine Events zum Kopieren vorhanden</option>`;
+    return;
+  }
+
+  const now = new Date();
+  const past = [];
+  const upcoming = [];
+  events.forEach((event) => {
+    const { end } = getEventDateTimes(event);
+    if (end < now) past.push(event);
+    else upcoming.push(event);
+  });
+  past.sort((a, b) => eventSortTimestamp(b) - eventSortTimestamp(a));
+  upcoming.sort((a, b) => eventSortTimestamp(a) - eventSortTimestamp(b));
+
+  const groups = [];
+  if (upcoming.length) {
+    groups.push(`<optgroup label="Kommende Events">${upcoming.map(eventCopyOption).join("")}</optgroup>`);
+  }
+  if (past.length) {
+    groups.push(`<optgroup label="Vergangene Events (Vorlagen)">${past.map(eventCopyOption).join("")}</optgroup>`);
+  }
+  select.innerHTML = `<option value="">Event wählen…</option>${groups.join("")}`;
+}
+
+function eventCopyOption(event) {
+  const dateStr = formatEventDateRange(event, true);
+  return `<option value="${event.id}">${escapeHtml(event.name)} (${escapeHtml(dateStr)})</option>`;
+}
+
+async function applyCopyFromEvent(sourceId) {
+  const client = getSupabase();
+  const msg = document.getElementById("edit-message");
+  const access = await userCanManageEvent(client, sourceId, session.user.id);
+  if (!access.canManage) {
+    showStatus(msg, "Kein Zugriff auf dieses Event.", "error");
+    return;
+  }
+
+  const data = await fetchEventFormData(client, sourceId);
+  if (!data) {
+    showStatus(msg, "Event nicht gefunden.", "error");
+    return;
+  }
+
+  populateFormFromSource(data, { isCopy: true });
   renderAllLists();
   applySectionOpenState();
-  updateGuestLink(event.slug, event.is_published);
-  if (isEventCreator) await loadCoOrganizers();
-  applySectionOpenState();
+  document.getElementById("copy-from-select").value = sourceId;
+  showFormFeedback(msg, `Vorlage «${data.event.name}» übernommen – bitte Name und Datum anpassen.`, "success", document.getElementById("ev-name"));
 }
 
 function updateCreatorUI() {
@@ -441,7 +566,7 @@ function applySectionOpenState() {
   setSectionOpen("section-timetable", timetableHasContent());
   setSectionOpen("section-fields", regFields.length > 0);
   setSectionOpen("section-bring", bringItems.length > 0);
-  setSectionOpen("section-visibility", document.getElementById("ev-attendee-visibility")?.value !== "none");
+  setSectionOpen("section-visibility", document.getElementById("ev-attendee-visibility")?.value === "full");
   setSectionOpen("section-photos", !!document.getElementById("ev-photos-link")?.value.trim());
   setSectionOpen("co-organizers-section", sectionHasCoOrganizers());
 }

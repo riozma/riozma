@@ -344,7 +344,7 @@ function renderLocationBlock(location) {
 
 function getAttendeeVisibility(event) {
   if (event.attendee_visibility) return event.attendee_visibility;
-  return event.show_attendee_list ? "full" : "none";
+  return event.show_attendee_list ? "full" : "count";
 }
 
 function getEventLastDate(event) {
