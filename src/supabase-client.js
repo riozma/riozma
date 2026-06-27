@@ -310,6 +310,7 @@ function renderParagraphs(text) {
 }
 
 function escapeHtml(str) {
+  if (str == null) return "";
   return String(str)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")

@@ -25,6 +25,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         dashboardSection.classList.remove("d-none");
         renderDashboardAuth(session);
         await loadEvents();
+        bindNewEventButton();
+        if (new URLSearchParams(window.location.search).get("new") === "1") {
+          history.replaceState({}, "", "/trouvo/");
+          await openNewEventDialog();
+        }
       } else {
         loginSection.classList.remove("d-none");
         dashboardSection.classList.add("d-none");
@@ -96,10 +101,47 @@ async function loadEvents() {
   document.querySelectorAll("[data-delete-event]").forEach((btn) => {
     btn.addEventListener("click", () => deleteEventFromDashboard(btn.dataset.deleteEvent, btn));
   });
+}
 
-  document.getElementById("btn-new-event")?.addEventListener("click", () => {
-    sessionStorage.setItem("auth_return_to", "/trouvo/edit.html");
+function bindNewEventButton() {
+  const btn = document.getElementById("btn-new-event");
+  if (!btn || btn.dataset.bound) return;
+  btn.dataset.bound = "1";
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    openNewEventDialog();
   });
+}
+
+async function openNewEventDialog() {
+  if (!currentSession) return;
+
+  const btn = document.getElementById("btn-new-event");
+  const snapshot = btn ? { text: btn.textContent, disabled: btn.disabled } : null;
+
+  try {
+    const setup = await showNewEventSetupDialog();
+    if (!setup) return;
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Erstelle…";
+    }
+
+    const eventId = await createEventWithSetup({
+      name: setup.name,
+      date: setup.date,
+      template: setup.template || "",
+    });
+
+    window.location.href = `/trouvo/edit.html?id=${encodeURIComponent(eventId)}`;
+  } catch (err) {
+    if (btn && snapshot) {
+      btn.disabled = snapshot.disabled;
+      btn.textContent = snapshot.text;
+    }
+    alert(err?.message || "Event konnte nicht erstellt werden.");
+  }
 }
 
 function renderEventCard(event, regCount) {
@@ -107,7 +149,7 @@ function renderEventCard(event, regCount) {
   const dateStr = formatEventDate(event);
   const status = event.is_published
     ? `<span class="badge bg-success">Live</span>`
-    : `<span class="badge bg-secondary">Entwurf</span>`;
+    : `<span class="badge bg-secondary">Offline</span>`;
   const isCreator = currentSession && event.organizer_id === currentSession.user.id;
   const coBadge = !isCreator ? `<span class="badge bg-info text-dark">Mitveranstalter</span>` : "";
   const coverUrl = event.cover_image_path ? storagePublicUrl("event-covers", event.cover_image_path) : "";
@@ -125,7 +167,8 @@ function renderEventCard(event, regCount) {
         ${event.description ? `<p class="event-card-desc">${escapeHtml(event.description.slice(0, 120))}${event.description.length > 120 ? "…" : ""}</p>` : ""}
       </div>
       <div class="event-card-actions">
-        <a href="/trouvo/edit.html?id=${event.id}" class="btn btn-sm btn-outline-secondary">Bearbeiten</a>
+        <a href="/trouvo/edit.html?id=${event.id}" class="btn btn-sm btn-outline-secondary">Info</a>
+        <a href="/trouvo/planning.html?id=${event.id}" class="btn btn-sm btn-outline-secondary">Planung</a>
         <a href="/trouvo/manage.html?id=${event.id}" class="btn btn-sm btn-outline-secondary">Anmeldungen${regCount ? ` (${regCount})` : ""}</a>
         ${event.is_published ? `<button type="button" class="btn btn-sm btn-outline-primary" data-copy="${guestLink}">Link kopieren</button>` : ""}
         <a href="/trouvo/e/?slug=${encodeURIComponent(event.slug)}" class="btn btn-sm btn-primary">Ansehen</a>

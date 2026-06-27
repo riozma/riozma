@@ -4,6 +4,7 @@ let bringItems = [];
 let registrations = [];
 let answers = [];
 let claims = [];
+let expandedRegId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
   const eventId = new URLSearchParams(window.location.search).get("id");
@@ -27,7 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   eventData = event;
-  document.getElementById("manage-event-title").textContent = event.name;
+  setTrouvoEventTitle(event.name);
   document.title = `Anmeldungen – ${event.name}`;
 
   await reloadData(client);
@@ -65,8 +66,32 @@ function renderList() {
     return;
   }
 
-  el.innerHTML = registrations.map((reg) => renderRegistrationCard(reg)).join("");
+  const fieldHeaders = fields.map((f) => `<th>${escapeHtml(f.label)}</th>`).join("");
+  const hasBring = bringItems.length > 0;
 
+  el.innerHTML = `
+    <table class="registrations-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>E-Mail</th>
+          ${fieldHeaders}
+          ${hasBring ? "<th>Mitbringsel</th>" : ""}
+          <th>Angemeldet</th>
+          <th class="reg-actions-col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${registrations.map((reg) => renderRegistrationRows(reg, hasBring)).join("")}
+      </tbody>
+    </table>`;
+
+  el.querySelectorAll("[data-toggle-reg]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      expandedRegId = expandedRegId === btn.dataset.toggleReg ? null : btn.dataset.toggleReg;
+      renderList();
+    });
+  });
   el.querySelectorAll("[data-save-reg]").forEach((btn) => {
     btn.addEventListener("click", () => saveRegistration(btn, btn.dataset.saveReg));
   });
@@ -75,10 +100,45 @@ function renderList() {
   });
 }
 
-function renderRegistrationCard(reg) {
+function formatFieldDisplay(field, value) {
+  if (field.field_type === "checkbox") return value === "true" ? "Ja" : "–";
+  return value ? escapeHtml(value) : "–";
+}
+
+function formatBringSummary(regId) {
+  const regClaims = claims.filter((c) => c.registration_id === regId);
+  if (!regClaims.length) return "–";
+  return regClaims.map((claim) => {
+    const item = bringItems.find((b) => b.id === claim.bring_item_id);
+    const name = item?.name || "Item";
+    const note = claim.note ? ` (${claim.note})` : "";
+    return `${escapeHtml(name)} × ${claim.quantity}${note}`;
+  }).join(", ");
+}
+
+function renderRegistrationRows(reg, hasBring) {
   const regAnswers = answers.filter((a) => a.registration_id === reg.id);
-  const regClaims = claims.filter((c) => c.registration_id === reg.id);
-  const created = new Date(reg.created_at).toLocaleString("de-CH");
+  const created = new Date(reg.created_at).toLocaleString("de-CH", { dateStyle: "short", timeStyle: "short" });
+  const isOpen = expandedRegId === reg.id;
+
+  const fieldCells = fields.map((f) => {
+    const ans = regAnswers.find((a) => a.field_id === f.id);
+    return `<td class="reg-field-cell">${formatFieldDisplay(f, ans?.value ?? "")}</td>`;
+  }).join("");
+
+  const summaryRow = `
+    <tr class="reg-summary-row${isOpen ? " reg-summary-row-open" : ""}">
+      <td><strong>${escapeHtml(reg.guest_name)}</strong></td>
+      <td>${reg.guest_email ? escapeHtml(reg.guest_email) : "–"}</td>
+      ${fieldCells}
+      ${hasBring ? `<td class="reg-bring-cell">${formatBringSummary(reg.id)}</td>` : ""}
+      <td class="text-muted small">${created}</td>
+      <td class="reg-actions-col">
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle-reg="${reg.id}">${isOpen ? "Schliessen" : "Bearbeiten"}</button>
+      </td>
+    </tr>`;
+
+  if (!isOpen) return summaryRow;
 
   const fieldsHtml = fields.map((f) => {
     const ans = regAnswers.find((a) => a.field_id === f.id);
@@ -105,7 +165,7 @@ function renderRegistrationCard(reg) {
   }).join("");
 
   const bringHtml = bringItems.map((item) => {
-    const claim = regClaims.find((c) => c.bring_item_id === item.id);
+    const claim = claims.find((c) => c.registration_id === reg.id && c.bring_item_id === item.id);
     return `
       <div class="mb-2 bring-edit-row">
         <label class="form-label">${escapeHtml(item.name)}</label>
@@ -116,31 +176,33 @@ function renderRegistrationCard(reg) {
       </div>`;
   }).join("");
 
-  return `
-    <article class="registration-card" data-reg-id="${reg.id}">
-      <div class="registration-card-head">
-        <div>
-          <strong>${escapeHtml(reg.guest_name)}</strong>
-          <span class="text-muted small"> · ${created}</span>
+  const colSpan = 4 + fields.length + (hasBring ? 1 : 0);
+
+  const editRow = `
+    <tr class="reg-edit-row">
+      <td colspan="${colSpan}">
+        <div class="reg-edit-panel">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Name</label>
+              <input type="text" class="form-control form-control-sm reg-name" data-reg="${reg.id}" value="${escapeHtml(reg.guest_name)}">
+              <label class="form-label mt-2">E-Mail</label>
+              <input type="email" class="form-control form-control-sm reg-email" data-reg="${reg.id}" value="${escapeHtml(reg.guest_email || "")}">
+            </div>
+            <div class="col-md-4">
+              ${fieldsHtml || `<p class="text-muted small mb-0">Keine Zusatzfelder</p>`}
+            </div>
+            ${bringItems.length ? `<div class="col-md-4"><h4 class="h6">Mitbringsel</h4>${bringHtml}</div>` : ""}
+          </div>
+          <div class="reg-edit-actions">
+            <button type="button" class="btn btn-sm btn-primary" data-save-reg="${reg.id}">Speichern</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" data-delete-reg="${reg.id}">Löschen</button>
+          </div>
         </div>
-        <div class="d-flex gap-2">
-          <button type="button" class="btn btn-sm btn-primary" data-save-reg="${reg.id}">Speichern</button>
-          <button type="button" class="btn btn-sm btn-outline-danger" data-delete-reg="${reg.id}">Löschen</button>
-        </div>
-      </div>
-      <div class="registration-card-body row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Name</label>
-          <input type="text" class="form-control form-control-sm reg-name" data-reg="${reg.id}" value="${escapeHtml(reg.guest_name)}">
-          <label class="form-label mt-2">E-Mail</label>
-          <input type="email" class="form-control form-control-sm reg-email" data-reg="${reg.id}" value="${escapeHtml(reg.guest_email || "")}">
-        </div>
-        <div class="col-md-6">
-          ${fieldsHtml || `<p class="text-muted small">Keine Zusatzfelder</p>`}
-        </div>
-        ${bringItems.length ? `<div class="col-12"><h4 class="h6">Mitbringsel</h4>${bringHtml}</div>` : ""}
-      </div>
-    </article>`;
+      </td>
+    </tr>`;
+
+  return summaryRow + editRow;
 }
 
 async function saveRegistration(btn, regId) {
@@ -205,6 +267,7 @@ async function saveRegistration(btn, regId) {
       return true;
     },
     onSuccess: async () => {
+      expandedRegId = regId;
       await reloadData(getSupabase());
       renderList();
     },
@@ -228,6 +291,7 @@ async function deleteRegistration(btn, regId) {
       return true;
     },
     onSuccess: async () => {
+      if (expandedRegId === regId) expandedRegId = null;
       await reloadData(client);
       renderList();
     },

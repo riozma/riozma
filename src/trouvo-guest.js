@@ -82,8 +82,8 @@ function buildPage(event, tracks, timetable, registrations, claims, answers) {
   const locationHtml = event.location ? renderLocationBlock(event.location) : "";
 
   return `
-    ${isOrganizer ? `<div class="organizer-banner"><span>Du bist Veranstalter</span><a href="/trouvo/manage.html?id=${event.id}" class="btn btn-sm btn-light">Anmeldungen</a><a href="/trouvo/edit.html?id=${event.id}" class="btn btn-sm btn-light">Bearbeiten</a></div>` : ""}
-    ${!event.is_published ? `<div class="draft-banner">Entwurf – nur für dich sichtbar</div>` : ""}
+    ${isOrganizer ? `<div class="organizer-banner"><span>Du bist Veranstalter</span><a href="/trouvo/edit.html?id=${event.id}" class="btn btn-sm btn-light">Info</a><a href="/trouvo/planning.html?id=${event.id}" class="btn btn-sm btn-light">Planung</a><a href="/trouvo/manage.html?id=${event.id}" class="btn btn-sm btn-light">Anmeldungen</a></div>` : ""}
+    ${!event.is_published ? `<div class="draft-banner">Offline – nur für Veranstalter sichtbar</div>` : ""}
 
     <article class="guest-event-card">
       ${renderEventCover(event)}
