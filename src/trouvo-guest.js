@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const client = getSupabase();
   if (!client) {
-    loading.textContent = "Supabase nicht konfiguriert.";
+    loading.textContent = "Diese Seite ist momentan nicht verfügbar. Bitte später erneut versuchen.";
     return;
   }
 

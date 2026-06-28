@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const client = getSupabase();
   if (!client) {
-    container.innerHTML = `<p>Supabase nicht konfiguriert.</p>`;
+    container.innerHTML = `<p class="text-muted">Beitrag momentan nicht verfügbar.</p>`;
     return;
   }
 

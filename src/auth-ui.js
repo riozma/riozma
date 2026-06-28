@@ -14,7 +14,7 @@ async function initAuthUI(options = {}) {
 
   const client = getSupabase();
   if (!client) {
-    container.innerHTML = `<p class="auth-hint text-muted small">Supabase noch nicht konfiguriert.</p>`;
+    container.innerHTML = `<p class="auth-hint text-muted small">Anmeldung momentan nicht verfügbar. Bitte später erneut versuchen.</p>`;
     return null;
   }
 

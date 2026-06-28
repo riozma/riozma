@@ -25,7 +25,7 @@ async function loadPublishedPosts() {
   const client = getSupabase();
 
   if (!client) {
-    container.innerHTML = `<p class="text-muted">Blog noch nicht verbunden. Supabase in <code>src/supabase-config.js</code> konfigurieren.</p>`;
+    container.innerHTML = `<p class="text-muted">Blog momentan nicht verfügbar.</p>`;
     return;
   }
 

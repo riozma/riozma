@@ -1,4 +1,14 @@
 User-agent: *
 Allow: /
 
+Disallow: /docs/
+Disallow: /supabase/
+Disallow: /SUPABASE_SETUP.md
+Disallow: /trouvo/edit.html
+Disallow: /trouvo/manage.html
+Disallow: /trouvo/planning.html
+Disallow: /trouvo/feedback.html
+Disallow: /auth/
+Disallow: /snake/
+
 Sitemap: https://riozma.ch/sitemap.xml
