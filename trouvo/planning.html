@@ -22,6 +22,8 @@
         </div>
       </div>
 
+      <p id="planning-save-status" class="edit-save-status-bar" aria-live="polite"></p>
+
       <div class="planning-template-box">
         <h2 class="planning-section-title">Vorlage</h2>
         <p class="text-muted small">Startliste für gängige Anlässe — wird zu bestehenden Einträgen hinzugefügt.</p>
@@ -64,11 +66,6 @@
         </div>
       </section>
 
-      <div class="planning-save-row">
-        <button type="button" class="btn btn-primary" id="btn-save-planning">Speichern</button>
-        <p id="planning-message" class="admin-message mb-0"></p>
-      </div>
-
       <hr class="my-4">
       <div class="event-feedback-panel" id="event-feedback-panel">
         <div class="form-check form-switch mb-2">
@@ -76,7 +73,10 @@
           <label class="form-check-label" for="feedback-mode-toggle">Feedback-Modus</label>
         </div>
         <p class="text-muted small mb-2">Kommentare erscheinen rechts in der Randspalte — pro Abschnitt und pro Zeile. Leer = dezent, mit Text = hervorgehoben.</p>
-        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-clear-all-feedback">Alle Feedback-Felder leeren</button>
+        <div class="d-flex flex-wrap gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-clear-all-feedback">Alle Feedback-Felder leeren</button>
+          <a class="btn btn-sm btn-outline-primary" id="btn-feedback-review" href="#">Nachbesprechung anzeigen</a>
+        </div>
       </div>
     </div>
   </main>
@@ -85,6 +85,7 @@
   <script src="/src/supabase-config.js"></script>
   <script src="/src/supabase-client.js"></script>
   <script src="/src/ui-feedback.js"></script>
+  <script src="/src/auto-save-status.js"></script>
   <script src="/src/event-templates.js"></script>
   <script src="/src/event-feedback.js"></script>
   <script src="/src/trouvo-planning.js"></script>

@@ -71,10 +71,10 @@ async function loadEvents() {
   if (events.length) {
     const { data: regs } = await client
       .from("event_registrations")
-      .select("event_id")
+      .select("event_id, party_size")
       .in("event_id", events.map((e) => e.id));
     (regs || []).forEach((r) => {
-      regCounts[r.event_id] = (regCounts[r.event_id] || 0) + 1;
+      regCounts[r.event_id] = (regCounts[r.event_id] || 0) + (Number(r.party_size) || 1);
     });
   }
 
@@ -99,7 +99,16 @@ async function loadEvents() {
     : `<p class="text-muted">Keine vergangenen Veranstaltungen.</p>`;
 
   document.querySelectorAll("[data-delete-event]").forEach((btn) => {
-    btn.addEventListener("click", () => deleteEventFromDashboard(btn.dataset.deleteEvent, btn));
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      deleteEventFromDashboard(btn.dataset.deleteEvent, btn);
+    });
+  });
+  document.querySelectorAll("[data-duplicate-event]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      duplicateEventFromDashboard(btn.dataset.duplicateEvent, btn);
+    });
   });
 }
 
@@ -140,7 +149,7 @@ async function openNewEventDialog() {
       btn.disabled = snapshot.disabled;
       btn.textContent = snapshot.text;
     }
-    alert(err?.message || "Event konnte nicht erstellt werden.");
+    showStatus(document.getElementById("dashboard-message"), err?.message || "Event konnte nicht erstellt werden.", "error");
   }
 }
 
@@ -153,26 +162,42 @@ function renderEventCard(event, regCount) {
   const isCreator = currentSession && event.organizer_id === currentSession.user.id;
   const coBadge = !isCreator ? `<span class="badge bg-info text-dark">Mitveranstalter</span>` : "";
   const coverUrl = event.cover_image_path ? storagePublicUrl("event-covers", event.cover_image_path) : "";
+  const editUrl = `/trouvo/edit.html?id=${encodeURIComponent(event.id)}`;
+
+  const menuItems = [
+    `<li><a class="dropdown-item" href="/trouvo/planning.html?id=${encodeURIComponent(event.id)}">Planung</a></li>`,
+    `<li><a class="dropdown-item" href="/trouvo/manage.html?id=${encodeURIComponent(event.id)}">Anmeldungen${regCount ? ` (${regCount})` : ""}</a></li>`,
+    `<li><button type="button" class="dropdown-item" data-duplicate-event="${event.id}">Duplizieren</button></li>`,
+    event.is_published
+      ? `<li><button type="button" class="dropdown-item" data-copy="${escapeHtml(guestLink)}">Link kopieren</button></li>`
+      : "",
+    `<li><a class="dropdown-item" href="/trouvo/e/?slug=${encodeURIComponent(event.slug)}" target="_blank" rel="noopener">Ansehen</a></li>`,
+    isCreator
+      ? `<li><hr class="dropdown-divider"></li><li><button type="button" class="dropdown-item text-danger" data-delete-event="${event.id}">Löschen</button></li>`
+      : "",
+  ].filter(Boolean).join("");
 
   return `
     <article class="event-card${coverUrl ? " event-card-has-cover" : ""}">
-      ${coverUrl ? `<div class="event-card-cover"><img src="${escapeHtml(coverUrl)}" alt=""></div>` : ""}
-      <div class="event-card-main">
-        <div class="event-card-top">
-          <h3>${escapeHtml(event.name)}</h3>
-          ${status}
-          ${coBadge}
+      <a href="${editUrl}" class="event-card-hit">
+        ${coverUrl ? `<div class="event-card-cover"><img src="${escapeHtml(coverUrl)}" alt=""></div>` : ""}
+        <div class="event-card-main">
+          <div class="event-card-top">
+            <h3>${escapeHtml(event.name)}</h3>
+            ${status}
+            ${coBadge}
+          </div>
+          <p class="event-card-meta">${dateStr}${event.location ? ` · ${escapeHtml(event.location)}` : ""}${regCount ? ` · ${regCount} Anmeldung${regCount === 1 ? "" : "en"}` : ""}</p>
+          ${event.description ? `<p class="event-card-desc">${escapeHtml(event.description.slice(0, 120))}${event.description.length > 120 ? "…" : ""}</p>` : ""}
         </div>
-        <p class="event-card-meta">${dateStr}${event.location ? ` · ${escapeHtml(event.location)}` : ""}${regCount ? ` · ${regCount} Anmeldung${regCount === 1 ? "" : "en"}` : ""}</p>
-        ${event.description ? `<p class="event-card-desc">${escapeHtml(event.description.slice(0, 120))}${event.description.length > 120 ? "…" : ""}</p>` : ""}
-      </div>
-      <div class="event-card-actions">
-        <a href="/trouvo/edit.html?id=${event.id}" class="btn btn-sm btn-outline-secondary">Info</a>
-        <a href="/trouvo/planning.html?id=${event.id}" class="btn btn-sm btn-outline-secondary">Planung</a>
-        <a href="/trouvo/manage.html?id=${event.id}" class="btn btn-sm btn-outline-secondary">Anmeldungen${regCount ? ` (${regCount})` : ""}</a>
-        ${event.is_published ? `<button type="button" class="btn btn-sm btn-outline-primary" data-copy="${guestLink}">Link kopieren</button>` : ""}
-        <a href="/trouvo/e/?slug=${encodeURIComponent(event.slug)}" class="btn btn-sm btn-primary">Ansehen</a>
-        ${isCreator ? `<button type="button" class="btn btn-sm btn-outline-danger" data-delete-event="${event.id}">Löschen</button>` : ""}
+      </a>
+      <div class="dropdown event-card-menu">
+        <button type="button" class="btn event-card-menu-btn" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed","placement":"bottom-end"}' data-bs-auto-close="true" aria-expanded="false" aria-label="Aktionen">
+          <span class="event-card-menu-dots" aria-hidden="true">⋮</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+          ${menuItems}
+        </ul>
       </div>
     </article>
   `;
@@ -191,6 +216,19 @@ async function deleteEventFromDashboard(eventId, btn) {
       return true;
     },
     onSuccess: loadEvents,
+  });
+}
+
+async function duplicateEventFromDashboard(sourceEventId, btn) {
+  await withActionFeedback({
+    button: btn,
+    loadingLabel: "Dupliziere…",
+    successLabel: "✓ Kopie",
+    run: async () => {
+      const newId = await duplicateEventFromSource(sourceEventId);
+      window.location.href = `/trouvo/edit.html?id=${encodeURIComponent(newId)}`;
+      return true;
+    },
   });
 }
 

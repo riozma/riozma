@@ -246,6 +246,11 @@ function populateFormFromSource(data, { isCopy }) {
   document.getElementById("ev-end").disabled = event.open_end;
   document.getElementById("ev-attendee-visibility").value = getAttendeeVisibility(event);
   document.getElementById("ev-photos-link").value = event.photos_upload_url || event.photos_gallery_url || "";
+  document.getElementById("ev-max-registrations").value = event.max_registrations ?? "";
+  document.getElementById("ev-allow-plus-one").checked = !!event.allow_plus_one;
+  document.getElementById("ev-guest-email-required").checked = !!event.guest_email_required;
+  document.getElementById("ev-send-registration-email").checked = !!event.send_registration_email;
+  document.getElementById("ev-registration-deadline").value = datetimeLocalFromIso(event.registration_closes_at);
 
   timetableTracks.length = 0;
   const trackRows = data.tracks;
@@ -915,11 +920,28 @@ function sectionHasCoOrganizers() {
   return !!list?.querySelector(".co-organizer-row");
 }
 
+function registrationHasAdvancedOptions() {
+  return !!(
+    parseMaxRegistrationsFromForm() ||
+    document.getElementById("ev-allow-plus-one")?.checked ||
+    document.getElementById("ev-registration-deadline")?.value.trim()
+  );
+}
+
+function registrationEmailConfigured() {
+  return !!(
+    document.getElementById("ev-guest-email-required")?.checked ||
+    document.getElementById("ev-send-registration-email")?.checked
+  );
+}
+
 function applySectionOpenState() {
   setSectionOpen("section-timetable", timetableHasContent());
+  setSectionOpen("section-registration", registrationHasAdvancedOptions());
   setSectionOpen("section-fields", regFields.length > 0);
   setSectionOpen("section-bring", bringItems.length > 0);
-  setSectionOpen("section-visibility", document.getElementById("ev-attendee-visibility")?.value === "full");
+  setSectionOpen("section-visibility", document.getElementById("ev-attendee-visibility")?.value !== "count");
+  setSectionOpen("section-registration-email", registrationEmailConfigured());
   setSectionOpen("section-photos", !!document.getElementById("ev-photos-link")?.value.trim());
   setSectionOpen("co-organizers-section", sectionHasCoOrganizers());
 }
@@ -927,6 +949,13 @@ function applySectionOpenState() {
 function setSectionOpen(id, open) {
   const el = document.getElementById(id);
   if (el?.tagName === "DETAILS") el.open = !!open;
+}
+
+function parseMaxRegistrationsFromForm() {
+  const raw = document.getElementById("ev-max-registrations")?.value.trim();
+  if (!raw) return null;
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? n : null;
 }
 
 function photosPayloadFromForm() {
@@ -1288,12 +1317,16 @@ async function persistEvent() {
     show_attendee_list: document.getElementById("ev-attendee-visibility").value === "full",
     ...photosPayloadFromForm(),
     is_published: publish,
+    max_registrations: parseMaxRegistrationsFromForm(),
+    allow_plus_one: document.getElementById("ev-allow-plus-one").checked,
+    guest_email_required: document.getElementById("ev-guest-email-required").checked,
+    send_registration_email: document.getElementById("ev-send-registration-email").checked,
+    registration_closes_at: isoFromDatetimeLocal(document.getElementById("ev-registration-deadline").value),
   };
 
   let savedId = eventId;
   if (eventId) {
-    const { error } = await client.from("events").update(payload).eq("id", eventId);
-    if (error) throw new Error(formatDbError(error.message));
+    await updateEventRow(client, eventId, payload);
   } else {
     const rpcPayload = {
       slug,
@@ -1397,9 +1430,16 @@ async function persistEvent() {
 
 function updateGuestLink(slug, published) {
   const box = document.getElementById("guest-link-box");
+  const linkEl = document.getElementById("guest-link-url");
+  if (!box || !linkEl || !slug) {
+    box?.classList.add("d-none");
+    return;
+  }
   const url = siteUrl(`/trouvo/e/?slug=${encodeURIComponent(slug)}`);
-  document.getElementById("guest-link-url").textContent = url;
-  box.classList.toggle("d-none", !published);
+  linkEl.href = url;
+  linkEl.textContent = url;
+  box.classList.remove("d-none");
+  document.getElementById("guest-link-offline-hint")?.classList.toggle("d-none", published);
 }
 
 function updatePlanningLink() {
@@ -1414,7 +1454,7 @@ function updatePlanningLink() {
 }
 
 function copyGuestLink() {
-  const url = document.getElementById("guest-link-url").textContent;
+  const url = document.getElementById("guest-link-url")?.href || "";
   const btn = document.getElementById("btn-copy-link");
   navigator.clipboard.writeText(url).then(() => {
     const snapshot = { text: btn.textContent, disabled: btn.disabled, className: btn.className };

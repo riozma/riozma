@@ -67,18 +67,47 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("guest-register-form")?.addEventListener("submit", (e) => {
     e.preventDefault();
-    submitRegistration(client, registrations.length, e.submitter);
+    submitRegistration(client, registrations, e.submitter);
   });
 
   document.getElementById("btn-download-ics")?.addEventListener("click", () => {
     downloadEventIcs(eventData);
   });
+  document.getElementById("btn-download-ics-main")?.addEventListener("click", () => {
+    downloadEventIcs(eventData);
+  });
+  document.getElementById("btn-share-event")?.addEventListener("click", () => {
+    shareGuestEvent(eventData);
+  });
+  document.getElementById("guest-feedback-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    submitGuestFeedback(client, e.submitter);
+  });
 });
+
+async function shareGuestEvent(event) {
+  const url = guestEventUrl(event);
+  const shareData = { title: event.name, text: `Anmeldung: ${event.name}`, url };
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData);
+      return;
+    } catch {
+      /* fallback */
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    showStatus(document.getElementById("register-message") || document.getElementById("guest-feedback-message"), "Link kopiert.", "info");
+  } catch {
+    showStatus(document.getElementById("register-message"), "Teilen nicht möglich.", "error");
+  }
+}
 
 function buildPage(event, tracks, timetable, registrations, claims, answers) {
   const dateStr = formatEventDateRange(event);
-  const regCount = registrations.length;
-  const visibility = getAttendeeVisibility(event);
+  const headcount = registrationHeadcount(registrations);
+  const maxReached = event.max_registrations && headcount >= event.max_registrations;
   const locationHtml = event.location ? renderLocationBlock(event.location) : "";
 
   return `
@@ -92,46 +121,37 @@ function buildPage(event, tracks, timetable, registrations, claims, answers) {
       <p class="guest-event-meta">${dateStr}</p>
       ${locationHtml}
       ${renderOrganizerContact(event)}
+      <div class="guest-share-row">
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-share-event">Link teilen</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-download-ics-main">In Kalender (.ics)</button>
+      </div>
       ${event.description ? `<div class="guest-event-desc">${renderParagraphs(event.description)}</div>` : ""}
     </article>
 
     ${renderTimetableSection(event, tracks, timetable)}
 
-    ${renderAttendeeSection(visibility, registrations, isOrganizer)}
+    ${renderAttendeeSection(getAttendeeVisibility(event), registrations, headcount, isOrganizer)}
 
     ${renderVisibleAnswers(registrations, answers)}
 
     ${bringItems.length ? `
       <section class="guest-section">
         <h2>Mitbringsel</h2>
-        ${bringItems.map((item) => renderBringItem(item, regCount, claims, registrations)).join("")}
+        ${bringItems.map((item) => renderBringItem(item, headcount, claims, registrations)).join("")}
       </section>
     ` : ""}
 
     ${renderEventPhotosSection(event)}
 
-    <section class="guest-section guest-register-section" id="guest-register-section">
-      <h2>Anmelden</h2>
-      <form id="guest-register-form" class="guest-form">
-        <div class="mb-3">
-          <label class="form-label" for="guest-name">Name *</label>
-          <input type="text" class="form-control" id="guest-name" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label" for="guest-email">E-Mail (optional)</label>
-          <input type="email" class="form-control" id="guest-email">
-        </div>
-        ${fields.map((f) => renderFieldInput(f)).join("")}
-        ${bringItems.map((item) => renderBringInput(item)).join("")}
-        <button type="submit" class="btn btn-primary">Anmeldung absenden</button>
-        <p id="register-message" class="admin-message"></p>
-      </form>
-    </section>
+    ${renderRegistrationSection(event, headcount, maxReached)}
+
+    ${renderGuestFeedbackSection(event)}
 
     <section class="guest-section guest-success-section d-none" id="guest-success-section">
       <div class="guest-success-box">
         <h2>Erfolgreich angemeldet</h2>
         <p>Deine Anmeldung für <strong>${escapeHtml(event.name)}</strong> ist eingegangen.</p>
+        <p class="text-muted small d-none" id="guest-success-email-hint"></p>
         ${renderOrganizerContact(event)}
         <button type="button" class="btn btn-primary" id="btn-download-ics">Termin als .ics herunterladen</button>
       </div>
@@ -139,12 +159,90 @@ function buildPage(event, tracks, timetable, registrations, claims, answers) {
   `;
 }
 
-function renderAttendeeSection(visibility, registrations, organizer) {
+function renderRegistrationSection(event, headcount, maxReached) {
+  if (!isRegistrationOpen(event)) {
+    return `
+      <section class="guest-section guest-register-section">
+        <h2>Anmelden</h2>
+        <p class="text-muted">${escapeHtml(registrationClosedMessage(event))}</p>
+      </section>`;
+  }
+
+  if (maxReached) {
+    return `
+      <section class="guest-section guest-register-section">
+        <h2>Anmelden</h2>
+        <p class="text-muted">Maximale Teilnehmerzahl erreicht (${headcount}/${event.max_registrations}).</p>
+      </section>`;
+  }
+
+  const emailRequired = !!event.guest_email_required;
+  const plusOne = !!event.allow_plus_one;
+  const maxHint = event.max_registrations
+    ? `<p class="text-muted small">${headcount} / ${event.max_registrations} Plätze belegt</p>`
+    : "";
+  const deadlineHint = event.registration_closes_at
+    ? `<p class="text-muted small">Anmeldefrist: ${escapeHtml(new Date(event.registration_closes_at).toLocaleString("de-CH", { dateStyle: "medium", timeStyle: "short" }))}</p>`
+    : "";
+
+  return `
+    <section class="guest-section guest-register-section" id="guest-register-section">
+      <h2>Anmelden</h2>
+      ${maxHint}
+      ${deadlineHint}
+      <form id="guest-register-form" class="guest-form">
+        <div class="mb-3">
+          <label class="form-label" for="guest-name">Name *</label>
+          <input type="text" class="form-control" id="guest-name" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="guest-email">E-Mail${emailRequired ? " *" : " (optional)"}</label>
+          <input type="email" class="form-control" id="guest-email" ${emailRequired ? "required" : ""}>
+        </div>
+        ${plusOne ? `
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="guest-plus-one">
+            <label class="form-check-label" for="guest-plus-one">Ich bringe eine Begleitung (+1) mit</label>
+          </div>` : ""}
+        ${fields.map((f) => renderFieldInput(f)).join("")}
+        ${bringItems.map((item) => renderBringInput(item)).join("")}
+        <button type="submit" class="btn btn-primary">Anmeldung absenden</button>
+        <p id="register-message" class="admin-message"></p>
+      </form>
+    </section>`;
+}
+
+function renderGuestFeedbackSection(event) {
+  if (!isEventPast(event)) return "";
+  return `
+    <section class="guest-section guest-feedback-section" id="guest-feedback-section">
+      <h2>Wie war's?</h2>
+      <p class="text-muted small">Dein Feedback nach dem Event — optional, aber willkommen.</p>
+      <form id="guest-feedback-form" class="guest-feedback-form guest-form">
+        <div class="mb-3">
+          <label class="form-label" for="guest-fb-name">Name *</label>
+          <input type="text" class="form-control" id="guest-fb-name" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="guest-fb-email">E-Mail (optional)</label>
+          <input type="email" class="form-control" id="guest-fb-email">
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="guest-fb-message">Feedback *</label>
+          <textarea class="form-control" id="guest-fb-message" required placeholder="Was lief gut? Was können wir besser machen?"></textarea>
+        </div>
+        <button type="submit" class="btn btn-outline-primary">Feedback senden</button>
+        <p id="guest-feedback-message" class="admin-message"></p>
+      </form>
+    </section>`;
+}
+
+function renderAttendeeSection(visibility, registrations, headcount, organizer) {
   if (organizer && registrations.length) {
     return `
       <section class="guest-section">
-        <h2>Angemeldet (${registrations.length})</h2>
-        <ul class="guest-list">${registrations.map((r) => `<li>${escapeHtml(r.guest_name)}</li>`).join("")}</ul>
+        <h2>Angemeldet (${headcount})</h2>
+        <ul class="guest-list">${registrations.map((r) => `<li>${escapeHtml(r.guest_name)}${r.party_size > 1 ? " (+1)" : ""}</li>`).join("")}</ul>
       </section>`;
   }
   if (!registrations.length || visibility === "none") return "";
@@ -152,13 +250,13 @@ function renderAttendeeSection(visibility, registrations, organizer) {
     return `
       <section class="guest-section">
         <h2>Anmeldungen</h2>
-        <p class="guest-attendee-count">${registrations.length} ${registrations.length === 1 ? "Person ist" : "Personen sind"} angemeldet</p>
+        <p class="guest-attendee-count">${headcount} ${headcount === 1 ? "Person ist" : "Personen sind"} angemeldet</p>
       </section>`;
   }
   return `
     <section class="guest-section">
-      <h2>Angemeldet (${registrations.length})</h2>
-      <ul class="guest-list">${registrations.map((r) => `<li>${escapeHtml(r.guest_name)}</li>`).join("")}</ul>
+      <h2>Angemeldet (${headcount})</h2>
+      <ul class="guest-list">${registrations.map((r) => `<li>${escapeHtml(r.guest_name)}${r.party_size > 1 ? " (+1)" : ""}</li>`).join("")}</ul>
     </section>`;
 }
 
@@ -235,13 +333,31 @@ function renderVisibleAnswers(registrations, answers) {
   return `<section class="guest-section"><h2>Angaben der Gäste</h2>${blocks.join("")}</section>`;
 }
 
-async function submitRegistration(client, currentRegCount, submitBtn) {
+async function submitRegistration(client, existingRegs, submitBtn) {
   const msg = document.getElementById("register-message");
   const guestName = document.getElementById("guest-name").value.trim();
   const guestEmail = document.getElementById("guest-email").value.trim();
+  const partySize = document.getElementById("guest-plus-one")?.checked ? 2 : 1;
 
   if (!guestName) {
     showStatus(msg, "Bitte Name angeben.", "error");
+    return;
+  }
+  if (!isRegistrationOpen(eventData)) {
+    showStatus(msg, registrationClosedMessage(eventData), "error");
+    return;
+  }
+  if (eventData.guest_email_required && !guestEmail) {
+    showStatus(msg, "Bitte E-Mail angeben.", "error");
+    return;
+  }
+
+  const currentHeadcount = registrationHeadcount(existingRegs);
+  if (eventData.max_registrations && currentHeadcount + partySize > eventData.max_registrations) {
+    const left = Math.max(0, eventData.max_registrations - currentHeadcount);
+    showStatus(msg, left
+      ? `Nur noch ${left} ${left === 1 ? "Platz" : "Plätze"} frei — Begleitung ggf. abwählen.`
+      : "Maximale Teilnehmerzahl erreicht.", "error");
     return;
   }
 
@@ -257,6 +373,7 @@ async function submitRegistration(client, currentRegCount, submitBtn) {
         event_id: eventData.id,
         guest_name: guestName,
         guest_email: guestEmail || null,
+        party_size: partySize,
         user_id: session?.user?.id || null,
       }).select("id").single();
 
@@ -293,13 +410,63 @@ async function submitRegistration(client, currentRegCount, submitBtn) {
         if (claimErr) throw new Error(claimErr.message);
       }
 
-      return true;
+      let emailSent = false;
+      if (eventData.send_registration_email && guestEmail) {
+        const { data: mailData, error: mailErr } = await client.functions.invoke("send-registration-email", {
+          body: { registration_id: reg.id },
+        });
+        if (!mailErr && mailData?.sent) {
+          emailSent = true;
+        } else if (mailErr?.message || mailData?.error) {
+          console.warn("Bestätigungsmail:", mailErr?.message || mailData?.error);
+        }
+      }
+
+      return { emailSent, guestEmail };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       document.getElementById("guest-register-section")?.classList.add("d-none");
       const successSection = document.getElementById("guest-success-section");
       successSection?.classList.remove("d-none");
+      const emailHint = document.getElementById("guest-success-email-hint");
+      if (emailHint && result?.emailSent && result?.guestEmail) {
+        emailHint.textContent = `Bestätigungsmail wurde an ${result.guestEmail} gesendet.`;
+        emailHint.classList.remove("d-none");
+      }
       successSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+  });
+}
+
+async function submitGuestFeedback(client, submitBtn) {
+  const msg = document.getElementById("guest-feedback-message");
+  const name = document.getElementById("guest-fb-name").value.trim();
+  const email = document.getElementById("guest-fb-email").value.trim();
+  const message = document.getElementById("guest-fb-message").value.trim();
+
+  if (!name || !message) {
+    showStatus(msg, "Bitte Name und Feedback ausfüllen.", "error");
+    return;
+  }
+
+  await withActionFeedback({
+    button: submitBtn,
+    messageEl: msg,
+    loadingLabel: "Senden…",
+    successLabel: "✓ Danke",
+    run: async () => {
+      const { error } = await client.from("event_guest_feedback").insert({
+        event_id: eventData.id,
+        guest_name: name,
+        guest_email: email || null,
+        message,
+      });
+      if (error) throw new Error(error.message);
+      return true;
+    },
+    onSuccess: () => {
+      document.getElementById("guest-feedback-form")?.reset();
+      showStatus(msg, "Danke für dein Feedback!", "info");
     },
   });
 }

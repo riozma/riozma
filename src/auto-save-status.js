@@ -13,7 +13,7 @@ function ensureAutoSaveIndicator(el) {
 
 function showAutoSaveFeedback(el, state, message) {
   const indicator = el ? ensureAutoSaveIndicator(el) : null;
-  const bar = document.getElementById("edit-save-status");
+  const bar = document.getElementById("edit-save-status") || document.getElementById("planning-save-status");
 
   if (indicator) {
     indicator.className = "auto-save-indicator";

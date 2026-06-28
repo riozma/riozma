@@ -3,6 +3,9 @@
 
 project_id = "lwxwcogvkhixfsfvkcvz"
 
+[functions.send-registration-email]
+verify_jwt = true
+
 [auth]
 # Site URL: exactly https://riozma.ch — NO wildcards (/**) in this field!
 site_url = "https://riozma.ch"

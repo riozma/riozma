@@ -202,6 +202,52 @@ function redirectToTrouvoLogin(returnPath) {
   window.location.replace(`/trouvo/?next=${next}`);
 }
 
+function registrationHeadcount(registrations) {
+  return (registrations || []).reduce((sum, r) => sum + (Number(r.party_size) || 1), 0);
+}
+
+function guestEventUrl(event) {
+  return siteUrl(`/trouvo/e/?slug=${encodeURIComponent(event.slug)}`);
+}
+
+const EVENT_OPTIONAL_COLUMNS = [
+  "max_registrations",
+  "allow_plus_one",
+  "guest_email_required",
+  "send_registration_email",
+  "registration_closes_at",
+  "feedback_mode_enabled",
+  "feedback_notes",
+];
+
+function isMissingColumnError(message) {
+  return /could not find|column.*does not exist|schema cache/i.test(message || "");
+}
+
+function splitEventPayload(payload) {
+  const core = { ...payload };
+  const optional = {};
+  EVENT_OPTIONAL_COLUMNS.forEach((key) => {
+    if (key in core) {
+      optional[key] = core[key];
+      delete core[key];
+    }
+  });
+  return { core, optional };
+}
+
+async function updateEventRow(client, eventId, payload) {
+  const { core, optional } = splitEventPayload(payload);
+  const { error } = await client.from("events").update(core).eq("id", eventId);
+  if (error) throw new Error(formatDbError(error.message));
+
+  if (!Object.keys(optional).length) return;
+
+  const { error: optErr } = await client.from("events").update(optional).eq("id", eventId);
+  if (!optErr) return;
+  if (!isMissingColumnError(optErr.message)) throw new Error(formatDbError(optErr.message));
+}
+
 function formatDbError(message) {
   if (!message) return "Etwas ist schiefgelaufen.";
   if (message.includes("row-level security") || message.includes("Not authenticated")) {
@@ -419,6 +465,42 @@ function getEventDateTimes(event) {
 function isEventPast(event) {
   const { end } = getEventDateTimes(event);
   return end < new Date();
+}
+
+function isRegistrationOpen(event) {
+  if (!event) return false;
+  if (isEventPast(event)) return false;
+  if (event.registration_closes_at) {
+    const closes = new Date(event.registration_closes_at);
+    if (!Number.isNaN(closes.getTime()) && Date.now() >= closes.getTime()) return false;
+  }
+  return true;
+}
+
+function registrationClosedMessage(event) {
+  if (!event) return "Anmeldung nicht möglich.";
+  if (isEventPast(event)) return "Das Event hat bereits stattgefunden — Anmeldung ist nicht mehr möglich.";
+  if (event.registration_closes_at) {
+    const closes = new Date(event.registration_closes_at);
+    if (!Number.isNaN(closes.getTime()) && Date.now() >= closes.getTime()) {
+      return `Anmeldefrist abgelaufen (${closes.toLocaleString("de-CH", { dateStyle: "medium", timeStyle: "short" })}).`;
+    }
+  }
+  return "Anmeldung ist geschlossen.";
+}
+
+function datetimeLocalFromIso(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function isoFromDatetimeLocal(value) {
+  if (!value?.trim()) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
 
 function computeEventCoverExpiry(event) {

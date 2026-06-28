@@ -34,8 +34,78 @@ document.addEventListener("DOMContentLoaded", async () => {
   await reloadData(client);
   document.getElementById("manage-loading").classList.add("d-none");
   document.getElementById("manage-content").classList.remove("d-none");
+  wireManageActions();
   renderList();
 });
+
+function wireManageActions() {
+  document.getElementById("btn-export-csv")?.addEventListener("click", exportRegistrationsCsv);
+  document.getElementById("btn-copy-guest-link")?.addEventListener("click", copyGuestLinkFromManage);
+}
+
+function copyGuestLinkFromManage() {
+  const btn = document.getElementById("btn-copy-guest-link");
+  const url = guestEventUrl(eventData);
+  navigator.clipboard.writeText(url).then(() => {
+    const snapshot = { text: btn.textContent, disabled: btn.disabled };
+    flashButtonSuccess(btn, snapshot, "✓ Kopiert", 1500);
+  }).catch(() => {
+    showStatus(document.getElementById("manage-message"), "Link konnte nicht kopiert werden.", "error");
+  });
+}
+
+function exportRegistrationsCsv() {
+  const msg = document.getElementById("manage-message");
+  if (!registrations.length) {
+    showStatus(msg, "Keine Anmeldungen zum Exportieren.", "error");
+    return;
+  }
+
+  const headers = ["Name", "E-Mail", "Personen", ...fields.map((f) => f.label), "Angemeldet"];
+  if (bringItems.length) headers.push("Mitbringsel");
+
+  const rows = registrations.map((reg) => {
+    const regAnswers = answers.filter((a) => a.registration_id === reg.id);
+    const row = [
+      reg.guest_name,
+      reg.guest_email || "",
+      String(reg.party_size || 1),
+      ...fields.map((f) => {
+        const ans = regAnswers.find((a) => a.field_id === f.id);
+        if (!ans?.value) return "";
+        return f.field_type === "checkbox" ? (ans.value === "true" ? "Ja" : "Nein") : ans.value;
+      }),
+      new Date(reg.created_at).toLocaleString("de-CH"),
+    ];
+    if (bringItems.length) row.push(formatBringSummaryPlain(reg.id));
+    return row;
+  });
+
+  const csv = [headers, ...rows].map((line) => line.map(csvEscape).join(";")).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${slugify(eventData.name || "anmeldungen")}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showStatus(msg, "CSV exportiert.", "info");
+}
+
+function csvEscape(value) {
+  const s = String(value ?? "");
+  if (/[;"\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function formatBringSummaryPlain(regId) {
+  const regClaims = claims.filter((c) => c.registration_id === regId);
+  if (!regClaims.length) return "";
+  return regClaims.map((claim) => {
+    const item = bringItems.find((b) => b.id === claim.bring_item_id);
+    const name = item?.name || "Item";
+    return `${name} x${claim.quantity}${claim.note ? ` (${claim.note})` : ""}`;
+  }).join(", ");
+}
 
 async function reloadData(client) {
   const [fld, bring, regs] = await Promise.all([
@@ -61,8 +131,25 @@ async function reloadData(client) {
 
 function renderList() {
   const el = document.getElementById("registrations-list");
+  const headcount = registrationHeadcount(registrations);
+  const maxNote = eventData.max_registrations
+    ? `<p class="text-muted small mb-3">${headcount} / ${eventData.max_registrations} Personen</p>`
+    : "";
+
   if (!registrations.length) {
-    el.innerHTML = `<p class="text-muted">Noch keine Anmeldungen.</p>`;
+    const guestUrl = guestEventUrl(eventData);
+    el.innerHTML = `
+      <div class="manage-empty-state">
+        <p class="mb-2">Noch keine Anmeldungen.</p>
+        <p class="text-muted small mb-3">Teile den Gast-Link, damit Gäste sich anmelden können:</p>
+        <code class="d-block mb-2 small text-break">${escapeHtml(guestUrl)}</code>
+        <button type="button" class="btn btn-sm btn-outline-primary" id="btn-copy-empty-link">Link kopieren</button>
+      </div>`;
+    document.getElementById("btn-copy-empty-link")?.addEventListener("click", () => {
+      navigator.clipboard.writeText(guestUrl).then(() => {
+        showStatus(document.getElementById("manage-message"), "Link kopiert.", "info");
+      });
+    });
     return;
   }
 
@@ -70,11 +157,13 @@ function renderList() {
   const hasBring = bringItems.length > 0;
 
   el.innerHTML = `
+    ${maxNote}
     <table class="registrations-table">
       <thead>
         <tr>
           <th>Name</th>
           <th>E-Mail</th>
+          <th>Personen</th>
           ${fieldHeaders}
           ${hasBring ? "<th>Mitbringsel</th>" : ""}
           <th>Angemeldet</th>
@@ -130,6 +219,7 @@ function renderRegistrationRows(reg, hasBring) {
     <tr class="reg-summary-row${isOpen ? " reg-summary-row-open" : ""}">
       <td><strong>${escapeHtml(reg.guest_name)}</strong></td>
       <td>${reg.guest_email ? escapeHtml(reg.guest_email) : "–"}</td>
+      <td>${reg.party_size > 1 ? `${reg.party_size} (+1)` : "1"}</td>
       ${fieldCells}
       ${hasBring ? `<td class="reg-bring-cell">${formatBringSummary(reg.id)}</td>` : ""}
       <td class="text-muted small">${created}</td>
@@ -176,7 +266,7 @@ function renderRegistrationRows(reg, hasBring) {
       </div>`;
   }).join("");
 
-  const colSpan = 4 + fields.length + (hasBring ? 1 : 0);
+  const colSpan = 5 + fields.length + (hasBring ? 1 : 0);
 
   const editRow = `
     <tr class="reg-edit-row">

@@ -9,14 +9,23 @@ function wirePlanningActions() {
     collectFromDOM();
     todos.push({ title: "", assignee: "", done: false });
     renderTodos();
+    document.querySelector("#planning-todos-open .planning-todo-row:last-child .planning-todo-title")?.focus();
   });
   document.getElementById("btn-add-material")?.addEventListener("click", () => {
     collectFromDOM();
     materials.push({ name: "", quantity: "", assignee: "", acquired: false });
     renderMaterials();
+    document.querySelector("#planning-materials-open .planning-material-row:last-child .planning-material-name")?.focus();
   });
   document.getElementById("btn-apply-template")?.addEventListener("click", applySelectedTemplate);
-  document.getElementById("btn-save-planning")?.addEventListener("click", (e) => savePlanning(e.currentTarget));
+
+  const content = document.getElementById("planning-content");
+  content?.addEventListener("input", (e) => {
+    if (e.target.matches("input, textarea, select")) autoSave();
+  });
+  content?.addEventListener("change", (e) => {
+    if (e.target.matches("input, textarea, select")) autoSave();
+  });
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -64,7 +73,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   } catch (err) {
     document.getElementById("planning-loading").classList.add("d-none");
     document.getElementById("planning-content")?.classList.remove("d-none");
-    showStatus(document.getElementById("planning-message"), err.message || "Planung konnte nicht geladen werden.", "error");
+    showAutoSaveFeedback(null, "error", err.message || "Planung konnte nicht geladen werden.");
   }
 });
 
@@ -76,17 +85,21 @@ async function loadPlanning(client) {
   if (todoRes.error) throw new Error(todoRes.error.message);
   if (matRes.error) throw new Error(matRes.error.message);
 
-  todos = (todoRes.data || []).map((row) => ({
-    title: row.title || "",
-    assignee: row.assignee || "",
-    done: !!row.done,
-  }));
-  materials = (matRes.data || []).map((row) => ({
-    name: row.name || "",
-    quantity: row.quantity || "",
-    assignee: row.assignee || "",
-    acquired: !!row.acquired,
-  }));
+  todos = (todoRes.data || [])
+    .map((row) => ({
+      title: row.title || "",
+      assignee: row.assignee || "",
+      done: !!row.done,
+    }))
+    .filter((t) => t.title || t.assignee);
+  materials = (matRes.data || [])
+    .map((row) => ({
+      name: row.name || "",
+      quantity: row.quantity || "",
+      assignee: row.assignee || "",
+      acquired: !!row.acquired,
+    }))
+    .filter((m) => m.name || m.quantity || m.assignee);
 }
 
 function renderAll() {
@@ -146,6 +159,7 @@ function bindTodoHandlers(container) {
       const row = btn.closest(".planning-todo-row");
       removeTodoByRow(row);
       renderTodos();
+      autoSave();
     });
   });
 }
@@ -212,6 +226,7 @@ function bindMaterialHandlers(container) {
       const row = btn.closest(".planning-material-row");
       removeMaterialByRow(row);
       renderMaterials();
+      autoSave();
     });
   });
 }
@@ -259,7 +274,7 @@ function applySelectedTemplate() {
   const key = document.getElementById("planning-template").value;
   const template = PLANNING_TEMPLATES[key];
   if (!template) {
-    showStatus(document.getElementById("planning-message"), "Bitte zuerst eine Vorlage wählen.", "error");
+    showAutoSaveFeedback(null, "error", "Bitte zuerst eine Vorlage wählen.");
     return;
   }
 
@@ -284,24 +299,22 @@ function applySelectedTemplate() {
 
   document.getElementById("planning-template").value = "";
   renderAll();
-  const msg = addedTodos || addedMaterials
-    ? `Vorlage «${template.label}»: ${addedTodos} Aufgabe(n), ${addedMaterials} Material — gespeichert.`
-    : `Vorlage «${template.label}»: Alle Einträge waren bereits vorhanden.`;
-  showStatus(document.getElementById("planning-message"), msg, "info");
   if (addedTodos || addedMaterials) autoSave();
+  else showAutoSaveFeedback(null, "ok", "Vorlage bereits vollständig vorhanden.");
 }
 
 let autoSaveTimer = null;
 function autoSave() {
   clearTimeout(autoSaveTimer);
-  autoSaveTimer = setTimeout(() => savePlanning(null, true), 400);
+  autoSaveTimer = setTimeout(() => savePlanning(true), 700);
 }
 
-async function savePlanning(triggerBtn, quiet) {
+async function savePlanning(quiet) {
   if (saveInFlight) return;
   const client = getSupabase();
-  const msg = document.getElementById("planning-message");
   collectFromDOM();
+
+  if (quiet) showAutoSaveFeedback(null, "pending");
 
   const run = async () => {
     saveInFlight = true;
@@ -338,28 +351,17 @@ async function savePlanning(triggerBtn, quiet) {
         if (error) throw new Error(formatDbError(error.message));
       }
 
-      await loadPlanning(client);
-      renderAll();
       return true;
     } finally {
       saveInFlight = false;
     }
   };
 
-  if (quiet) {
-    try {
-      await run();
-    } catch (err) {
-      if (msg) showStatus(msg, err.message || "Speichern fehlgeschlagen.", "error");
-    }
-    return;
+  try {
+    await run();
+    if (quiet) showAutoSaveFeedback(null, "ok");
+  } catch (err) {
+    if (quiet) showAutoSaveFeedback(null, "error", err.message || "Speichern fehlgeschlagen.");
+    else throw err;
   }
-
-  await withActionFeedback({
-    button: triggerBtn,
-    messageEl: msg,
-    loadingLabel: "Speichern…",
-    successLabel: "✓ Gespeichert",
-    run,
-  });
 }

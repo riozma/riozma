@@ -5,6 +5,8 @@ let feedbackOnModeChange = null;
 let feedbackModeEnabled = false;
 
 const SECTION_DETAILS_KEYS = {
+  "section-registration": "info.section.registration",
+  "section-registration-email": "info.section.registration-email",
   "section-fields": "info.section.fields",
   "section-bring": "info.section.bring",
   "section-timetable": "info.section.timetable",
@@ -104,6 +106,15 @@ function initEventFeedback({ eventId, enabled, notes, onModeChange }) {
   }
 
   refreshAllFeedbackFields();
+  wireFeedbackReviewLink(eventId);
+  wireFeedbackLayoutListeners();
+}
+
+function wireFeedbackReviewLink(eventId) {
+  const link = document.getElementById("btn-feedback-review");
+  if (link && eventId) {
+    link.href = `/trouvo/feedback.html?id=${encodeURIComponent(eventId)}`;
+  }
 }
 
 function mountSectionFeedbackSlots() {
@@ -137,19 +148,6 @@ function mountSectionFeedbackSlots() {
     slot.dataset.feedbackKey = key;
     wrap.appendChild(slot);
   });
-
-  const basicsBlock = document.querySelector(".edit-section-block");
-  if (basicsBlock && !basicsBlock.closest(".event-fb-section-wrap")) {
-    const key = "info.section.basics";
-    const wrap = document.createElement("div");
-    wrap.className = "event-fb-section-wrap event-fb-section-wrap-basics";
-    basicsBlock.parentNode.insertBefore(wrap, basicsBlock);
-    wrap.appendChild(basicsBlock);
-    const slot = document.createElement("aside");
-    slot.className = "event-fb-section-slot";
-    slot.dataset.feedbackKey = key;
-    wrap.appendChild(slot);
-  }
 }
 
 function applyFeedbackModeClass(on) {
@@ -166,14 +164,13 @@ async function setFeedbackMode(enabled) {
   if (error) console.warn(formatDbError(error.message));
 }
 
-function feedbackFieldInnerHtml(key, { section = false } = {}) {
+function feedbackFieldInnerHtml(key) {
   const val = escapeHtml(getFeedbackNote(key));
   const filled = val.trim() ? " is-filled" : "";
-  const sectionClass = section ? " event-feedback-field--section" : "";
   return `
-    <div class="event-feedback-field${filled}${sectionClass}">
-      <textarea class="form-control form-control-sm event-feedback-input" rows="${section ? 3 : 2}" placeholder="">${val}</textarea>
-      <button type="button" class="btn btn-sm btn-link text-danger px-0 event-feedback-clear-one">Löschen</button>
+    <div class="event-feedback-field${filled}">
+      <textarea class="event-feedback-input" rows="1" placeholder="Notiz…" aria-label="Feedback">${val}</textarea>
+      <button type="button" class="event-feedback-clear-one" title="Notiz löschen" aria-label="Notiz löschen">×</button>
     </div>`;
 }
 
@@ -197,15 +194,45 @@ function refreshAllFeedbackFields() {
     }
     const target = isSection ? el : el.querySelector(".event-fb-line-side");
     if (!target) return;
-    target.innerHTML = feedbackFieldInnerHtml(key, { section: isSection });
+    target.innerHTML = feedbackFieldInnerHtml(key);
     bindFeedbackInputs(target);
   });
+  refreshFeedbackRailLayout();
+}
+
+function refreshFeedbackRailLayout() {
+  if (!isEventFeedbackMode()) return;
+  requestAnimationFrame(() => {
+    document.querySelectorAll(".event-fb-line[data-feedback-key]").forEach((line) => {
+      const main = line.querySelector(".event-fb-line-main");
+      const side = line.querySelector(".event-fb-line-side");
+      if (!main || !side) return;
+      line.style.minHeight = `${Math.max(main.offsetHeight, side.offsetHeight)}px`;
+    });
+  });
+}
+
+function wireFeedbackLayoutListeners() {
+  if (document.body.dataset.fbLayoutBound === "1") return;
+  document.body.dataset.fbLayoutBound = "1";
+  window.addEventListener("resize", refreshFeedbackRailLayout);
+  document.querySelectorAll(".edit-section-details").forEach((details) => {
+    details.addEventListener("toggle", refreshFeedbackRailLayout);
+  });
+}
+
+function autoResizeFeedbackInput(textarea) {
+  if (!textarea) return;
+  textarea.style.height = "auto";
+  const max = 128;
+  textarea.style.height = `${Math.min(textarea.scrollHeight, max)}px`;
 }
 
 function updateFeedbackFieldState(textarea) {
   const field = textarea?.closest(".event-feedback-field");
   if (!field) return;
   field.classList.toggle("is-filled", !!textarea.value.trim());
+  autoResizeFeedbackInput(textarea);
 }
 
 function bindFeedbackInputs(root) {
@@ -218,9 +245,11 @@ function bindFeedbackInputs(root) {
     if (!textarea || !key) return;
     textarea.value = getFeedbackNote(key);
     updateFeedbackFieldState(textarea);
+    autoResizeFeedbackInput(textarea);
     textarea.oninput = () => {
       updateFeedbackFieldState(textarea);
       scheduleFeedbackSave(key, textarea.value);
+      refreshFeedbackRailLayout();
     };
     textarea.onfocus = () => field.classList.add("is-active");
     textarea.onblur = () => field.classList.remove("is-active");

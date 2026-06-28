@@ -18,7 +18,7 @@
       <div class="trouvo-edit-header">
         <div>
           <p class="eyebrow">Info</p>
-          <p class="text-muted small mb-0">Alles für die Gästeseite: Beschreibung, Zeitplan, Anmeldung und Fotos.</p>
+          <p class="text-muted small mb-0">Struktur wie die Gästeseite: zuerst Inhalt, dann Anmeldung, zuletzt Veranstalter-Optionen.</p>
         </div>
         <div class="ev-live-control">
           <div class="form-check form-switch ev-live-switch">
@@ -31,25 +31,25 @@
 
       <p id="edit-save-status" class="edit-save-status-bar" aria-live="polite"></p>
 
-      <div id="guest-link-box" class="guest-link-box d-none">
-        <strong>Gast-Link:</strong>
-        <code id="guest-link-url"></code>
-        <button type="button" class="btn btn-sm btn-outline-primary" id="btn-copy-link">Kopieren</button>
-      </div>
-
-      <div id="copy-from-event-box" class="edit-copy-box d-none">
-        <h2 class="edit-copy-title">Vorlage laden</h2>
-        <p class="text-muted small">Typ-Vorlage oder Einstellungen von einem eigenen Event — bei ausgefüllten Feldern wirst du gefragt, ob überschrieben werden soll.</p>
-        <div class="edit-copy-row">
-          <select class="form-select" id="copy-from-select">
-            <option value="">Vorlage wählen…</option>
-          </select>
-          <button type="button" class="btn btn-outline-secondary" id="btn-apply-copy">Übernehmen</button>
+      <div class="edit-page-group" id="group-publish">
+        <h2 class="edit-page-group-title">Veröffentlichen</h2>
+        <p class="edit-page-group-lead text-muted small">Live schalten oben rechts. Danach Link teilen oder Vorschau öffnen.</p>
+        <div id="guest-link-box" class="guest-link-box d-none">
+          <div class="guest-link-box-main">
+            <strong>Gast-Link</strong>
+            <p id="guest-link-offline-hint" class="text-muted small mb-1 d-none">Offline — nur du siehst die Vorschau, Gäste noch nicht.</p>
+            <a id="guest-link-url" class="guest-link-url" href="#" target="_blank" rel="noopener noreferrer"></a>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-primary" id="btn-copy-link">Kopieren</button>
         </div>
       </div>
 
+      <div class="edit-page-group" id="group-guest-page">
+        <h2 class="edit-page-group-title">Was Gäste sehen</h2>
+        <p class="edit-page-group-lead text-muted small">Reihenfolge entspricht der Gästeseite — von oben nach unten.</p>
+
       <section class="edit-section-block">
-        <h2>Grundlagen</h2>
+        <h3 class="edit-section-block-title">Grundlagen</h3>
         <p class="form-required-hint text-muted small">Pflichtfelder sind mit <span class="form-label-required-inline">*</span> markiert — werden für das automatische Speichern benötigt.</p>
 
         <div class="event-fb-line" data-feedback-key="info.basics.identity">
@@ -66,37 +66,6 @@
                 <div class="field-save-wrap">
                   <input type="text" class="form-control" id="ev-slug" placeholder="automatisch">
                 </div>
-              </div>
-            </div>
-          </div>
-          <aside class="event-fb-line-side"></aside>
-        </div>
-
-        <div class="event-fb-line" data-feedback-key="info.basics.description">
-          <div class="event-fb-line-main edit-section">
-            <label class="form-label">Beschreibung</label>
-            <div class="field-save-wrap">
-              <textarea class="form-control" id="ev-description" rows="3"></textarea>
-            </div>
-          </div>
-          <aside class="event-fb-line-side"></aside>
-        </div>
-
-        <div class="event-fb-line" data-feedback-key="info.basics.location">
-          <div class="event-fb-line-main edit-section">
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label">Ort</label>
-                <div class="field-save-wrap">
-                  <input type="text" class="form-control" id="ev-location" placeholder="Adresse oder Ort – wird mit Google Maps verknüpft">
-                </div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Deine Telefonnummer (optional)</label>
-                <div class="field-save-wrap">
-                  <input type="tel" class="form-control" id="ev-phone" placeholder="+41 79 000 00 00">
-                </div>
-                <div class="form-text">Wird Gästen angezeigt, falls sie ihre Anmeldung anpassen möchten.</div>
               </div>
             </div>
           </div>
@@ -166,6 +135,37 @@
           </div>
           <aside class="event-fb-line-side"></aside>
         </div>
+
+        <div class="event-fb-line" data-feedback-key="info.basics.location">
+          <div class="event-fb-line-main edit-section">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Ort</label>
+                <div class="field-save-wrap">
+                  <input type="text" class="form-control" id="ev-location" placeholder="Adresse oder Ort – wird mit Google Maps verknüpft">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Deine Telefonnummer (optional)</label>
+                <div class="field-save-wrap">
+                  <input type="tel" class="form-control" id="ev-phone" placeholder="+41 79 000 00 00">
+                </div>
+                <div class="form-text">Wird Gästen angezeigt, falls sie ihre Anmeldung anpassen möchten.</div>
+              </div>
+            </div>
+          </div>
+          <aside class="event-fb-line-side"></aside>
+        </div>
+
+        <div class="event-fb-line" data-feedback-key="info.basics.description">
+          <div class="event-fb-line-main edit-section">
+            <label class="form-label">Beschreibung</label>
+            <div class="field-save-wrap">
+              <textarea class="form-control" id="ev-description" rows="3"></textarea>
+            </div>
+          </div>
+          <aside class="event-fb-line-side"></aside>
+        </div>
       </section>
 
       <details class="edit-section edit-section-details" id="section-timetable">
@@ -176,6 +176,37 @@
           <div class="builder-add-row">
             <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-timetable">+ Eintrag</button>
             <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-track">+ Zeitstrahl</button>
+          </div>
+        </div>
+      </details>
+
+      <div class="edit-page-subgroup" id="group-registration">
+        <h3 class="edit-page-subgroup-title">Anmeldung</h3>
+        <p class="edit-page-subgroup-lead text-muted small">Limits, Felder und Sichtbarkeit — einfache Events brauchen oft nur Name (Standard).</p>
+
+      <details class="edit-section edit-section-details" id="section-registration">
+        <summary>Anmeldung</summary>
+        <div class="edit-section-body">
+          <p class="text-muted small mb-3">Limits und Begleitung für die Gästeseite.</p>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label" for="ev-max-registrations">Max. Personen (optional)</label>
+              <div class="field-save-wrap">
+                <input type="number" class="form-control" id="ev-max-registrations" min="1" placeholder="Unbegrenzt">
+              </div>
+              <p class="form-text">Zählt Namen inkl. Begleitung (+1).</p>
+            </div>
+            <div class="col-md-8">
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="ev-allow-plus-one">
+                <label class="form-check-label" for="ev-allow-plus-one">Gäste dürfen +1 Begleitung mitbringen</label>
+              </div>
+              <label class="form-label" for="ev-registration-deadline">Anmeldefrist (optional)</label>
+              <div class="field-save-wrap">
+                <input type="datetime-local" class="form-control" id="ev-registration-deadline">
+              </div>
+              <p class="form-text mb-0">Leer lassen = offen bis Event-Ende. Nach dem Event ist Anmeldung immer geschlossen.</p>
+            </div>
           </div>
         </div>
       </details>
@@ -221,6 +252,24 @@
         </div>
       </details>
 
+      <details class="edit-section edit-section-details" id="section-registration-email">
+        <summary>E-Mail</summary>
+        <div class="edit-section-body">
+          <p class="text-muted small mb-3">E-Mail bei der Anmeldung — optional oder Pflicht, mit Bestätigung nach Anmeldung.</p>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="ev-guest-email-required">
+            <label class="form-check-label" for="ev-guest-email-required">E-Mail Pflicht bei Anmeldung</label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="ev-send-registration-email">
+            <label class="form-check-label" for="ev-send-registration-email">Bestätigungsmail senden (wenn E-Mail angegeben)</label>
+          </div>
+          <p class="form-text mb-0">Versand über Resend. API-Key als Secret <code>RESEND_API_KEY</code> in Supabase setzen — siehe <a href="/docs/TROUVO_EMAIL.md" target="_blank" rel="noopener">Doku</a>.</p>
+        </div>
+      </details>
+
+      </div><!-- /group-registration -->
+
       <details class="edit-section edit-section-details" id="section-photos">
         <summary>Event-Fotos</summary>
         <div class="edit-section-body">
@@ -236,6 +285,23 @@
           </div>
         </div>
       </details>
+
+      </div><!-- /group-guest-page -->
+
+      <div class="edit-page-group" id="group-organizer">
+        <h2 class="edit-page-group-title">Veranstalter</h2>
+        <p class="edit-page-group-lead text-muted small">Vorlagen, Team und Nachbereitung — für dich, nicht für Gäste.</p>
+
+      <div id="copy-from-event-box" class="edit-copy-box d-none">
+        <h3 class="edit-copy-title">Vorlage laden</h3>
+        <p class="text-muted small">Typ-Vorlage oder Einstellungen von einem eigenen Event — bei ausgefüllten Feldern wirst du gefragt, ob überschrieben werden soll.</p>
+        <div class="edit-copy-row">
+          <select class="form-select" id="copy-from-select">
+            <option value="">Vorlage wählen…</option>
+          </select>
+          <button type="button" class="btn btn-outline-secondary" id="btn-apply-copy">Übernehmen</button>
+        </div>
+      </div>
 
       <details class="edit-section edit-section-details d-none" id="co-organizers-section">
         <summary>Weitere Veranstalter</summary>
@@ -254,7 +320,7 @@
         </div>
       </details>
 
-      <div class="edit-actions-bottom">
+      <div class="edit-actions-bottom edit-actions-organizer">
         <hr class="my-4">
         <div class="event-feedback-panel" id="event-feedback-panel">
           <div class="form-check form-switch mb-2">
@@ -262,10 +328,15 @@
             <label class="form-check-label" for="feedback-mode-toggle">Feedback-Modus</label>
           </div>
           <p class="text-muted small mb-2">Kommentare erscheinen rechts in der Randspalte — pro Abschnitt und pro Zeile. Leer = dezent, mit Text = hervorgehoben.</p>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-clear-all-feedback">Alle Feedback-Felder leeren</button>
+          <div class="d-flex flex-wrap gap-2 mb-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-clear-all-feedback">Alle Feedback-Felder leeren</button>
+            <a class="btn btn-sm btn-outline-primary" id="btn-feedback-review" href="#">Nachbesprechung anzeigen</a>
+          </div>
         </div>
         <button type="button" class="btn btn-outline-danger d-none" id="btn-delete-event">Veranstaltung löschen</button>
       </div>
+
+      </div><!-- /group-organizer -->
     </div>
   </main>
 
