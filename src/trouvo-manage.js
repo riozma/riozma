@@ -45,7 +45,7 @@ function wireManageActions() {
 
 function copyGuestLinkFromManage() {
   const btn = document.getElementById("btn-copy-guest-link");
-  const url = guestEventUrl(eventData);
+  const url = guestEventShareUrl(eventData);
   navigator.clipboard.writeText(url).then(() => {
     const snapshot = { text: btn.textContent, disabled: btn.disabled };
     flashButtonSuccess(btn, snapshot, "✓ Kopiert", 1500);
@@ -146,7 +146,7 @@ function renderList() {
         <button type="button" class="btn btn-sm btn-outline-primary" id="btn-copy-empty-link">Link kopieren</button>
       </div>`;
     document.getElementById("btn-copy-empty-link")?.addEventListener("click", () => {
-      navigator.clipboard.writeText(guestUrl).then(() => {
+      navigator.clipboard.writeText(guestEventShareUrl(eventData)).then(() => {
         showStatus(document.getElementById("manage-message"), "Link kopiert.", "info");
       });
     });

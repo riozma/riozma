@@ -37,6 +37,20 @@ Unter **Authentication → URL Configuration**:
 ### Als Gast
 - Link öffnen → Infos lesen → anmelden (Name + optionale Felder + Mitbringsel)
 
+### WhatsApp/Social-Vorschau (Edge Function `event-og`)
+
+Damit geteilte Trouvo-Links in WhatsApp/Facebook/Telegram das Titelbild zeigen, braucht es eine
+Edge Function, die Bots serverseitig HTML mit `og:image` ausliefert (die statische Gästeseite
+lädt die Daten erst per JS nach, das sehen Crawler nicht).
+
+1. Migration `supabase/migrations/20250629200000_bring_no_qty_and_organizer_name.sql` einspielen
+   (`npx supabase login && npx supabase db push --project-ref lwxwcogvkhixfsfvkcvz`, oder SQL im
+   Dashboard-Editor ausführen).
+2. Function deployen: `npx supabase functions deploy event-og --project-ref lwxwcogvkhixfsfvkcvz`
+3. Teilen-Links (Kopieren-Buttons, Web-Share) zeigen automatisch auf die Function-URL
+   (`.../functions/v1/event-og?slug=...`), die Bots ausliefert und echte Besucher sofort auf die
+   normale Gästeseite weiterleitet.
+
 ## Storage (Kunst/Politik-Bilder)
 
 Falls Upload fehlschlägt: Buckets `artworks` und `blog-images` im Dashboard anlegen (public).

@@ -1798,6 +1798,7 @@ main { min-width: 0; margin: 0 auto; }
 
 .guest-event-meta {
   color: var(--color-text-muted);
+  font-size: 0.85rem;
   margin-bottom: 1rem;
 }
 
@@ -2373,6 +2374,75 @@ main { min-width: 0; margin: 0 auto; }
 .guest-share-row {
   display: flex;
   flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.guest-actions-section .guest-share-row {
+  margin-top: 0;
+}
+
+.guest-success-inline {
+  background: var(--color-bg-soft);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+}
+
+.guest-success-inline p {
+  margin: 0 0 0.5rem;
+}
+
+.guest-success-inline p:last-of-type {
+  margin-bottom: 0.75rem;
+}
+
+.bring-status-card-check .bring-status-head {
+  margin-bottom: 0;
+}
+
+.bring-input-row-check .form-check {
+  margin-bottom: 0.4rem;
+}
+
+dialog.guest-register-dialog {
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 1.5rem 1.75rem;
+  width: min(520px, calc(100vw - 2rem));
+  max-height: min(88vh, 720px);
+  overflow-y: auto;
+  box-shadow: var(--shadow-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+dialog.guest-register-dialog::backdrop {
+  background: rgba(47, 58, 46, 0.45);
+}
+
+body:has(dialog.guest-register-dialog[open]) {
+  overflow: hidden;
+}
+
+dialog.guest-register-dialog .guest-form {
+  max-width: none;
+}
+
+dialog.guest-register-dialog h2 {
+  font-size: 1.2rem;
+  color: var(--color-primary-dark);
+  margin-bottom: 1rem;
+}
+
+.guest-dialog-subtitle {
+  font-size: 1rem;
+  color: var(--color-primary-dark);
+  margin: 1.25rem 0 0.5rem;
+}
+
+.guest-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
   gap: 0.5rem;
   margin-top: 1rem;
 }

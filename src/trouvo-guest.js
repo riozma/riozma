@@ -65,15 +65,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   content.classList.remove("d-none");
   content.innerHTML = buildPage(event, tracks.data || [], tt.data || [], registrations, allClaims, allAnswers);
 
+  const dialogEl = document.getElementById("guest-register-dialog");
+  document.getElementById("btn-open-register")?.addEventListener("click", () => dialogEl?.showModal());
+  document.getElementById("btn-cancel-register")?.addEventListener("click", () => dialogEl?.close());
+  dialogEl?.addEventListener("click", (e) => {
+    const rect = dialogEl.getBoundingClientRect();
+    const inside = e.clientY >= rect.top && e.clientY <= rect.bottom && e.clientX >= rect.left && e.clientX <= rect.right;
+    if (!inside) dialogEl.close();
+  });
+  dialogEl?.addEventListener("input", () => saveDraft(eventData, collectDraftFromDialog()));
+
   document.getElementById("guest-register-form")?.addEventListener("submit", (e) => {
     e.preventDefault();
-    submitRegistration(client, registrations, e.submitter);
+    submitRegistration(client, registrations, e.submitter, dialogEl);
   });
 
-  document.getElementById("btn-download-ics")?.addEventListener("click", () => {
-    downloadEventIcs(eventData);
-  });
-  document.getElementById("btn-download-ics-main")?.addEventListener("click", () => {
+  document.getElementById("btn-download-ics-bottom")?.addEventListener("click", () => {
     downloadEventIcs(eventData);
   });
   document.getElementById("btn-share-event")?.addEventListener("click", () => {
@@ -85,8 +92,66 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 });
 
+function draftKey(event) {
+  return `trouvo_draft_${event.id}`;
+}
+
+function registeredKey(event) {
+  return `trouvo_registered_${event.id}`;
+}
+
+function loadDraft(event) {
+  try {
+    return JSON.parse(sessionStorage.getItem(draftKey(event)) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function saveDraft(event, draft) {
+  try {
+    sessionStorage.setItem(draftKey(event), JSON.stringify(draft));
+  } catch {
+    /* ignore – e.g. storage disabled */
+  }
+}
+
+function clearDraft(event) {
+  try {
+    sessionStorage.removeItem(draftKey(event));
+  } catch {
+    /* ignore */
+  }
+}
+
+function collectDraftFromDialog() {
+  const draft = {
+    guestName: document.getElementById("guest-name")?.value || "",
+    guestEmail: document.getElementById("guest-email")?.value || "",
+    plusOne: document.getElementById("guest-plus-one")?.checked || false,
+    fields: {},
+    bring: {},
+  };
+  document.querySelectorAll(".guest-field").forEach((el) => {
+    draft.fields[el.dataset.fieldId] = el.type === "checkbox" ? el.checked : el.value;
+  });
+  document.querySelectorAll(".guest-bring-qty").forEach((el) => {
+    const id = el.dataset.bringId;
+    draft.bring[id] = { ...draft.bring[id], qty: el.value };
+  });
+  document.querySelectorAll(".guest-bring-check").forEach((el) => {
+    const id = el.dataset.bringId;
+    draft.bring[id] = { ...draft.bring[id], checked: el.checked };
+  });
+  document.querySelectorAll(".guest-bring-note").forEach((el) => {
+    const id = el.dataset.bringId;
+    draft.bring[id] = { ...draft.bring[id], note: el.value };
+  });
+  return draft;
+}
+
 async function shareGuestEvent(event) {
-  const url = guestEventUrl(event);
+  const url = guestEventShareUrl(event);
   const shareData = { title: event.name, text: `Anmeldung: ${event.name}`, url };
   if (navigator.share) {
     try {
@@ -98,7 +163,7 @@ async function shareGuestEvent(event) {
   }
   try {
     await navigator.clipboard.writeText(url);
-    showStatus(document.getElementById("register-message") || document.getElementById("guest-feedback-message"), "Link kopiert.", "info");
+    showStatus(document.getElementById("guest-feedback-message") || document.getElementById("register-message"), "Link kopiert.", "info");
   } catch {
     showStatus(document.getElementById("register-message"), "Teilen nicht möglich.", "error");
   }
@@ -109,6 +174,9 @@ function buildPage(event, tracks, timetable, registrations, claims, answers) {
   const headcount = registrationHeadcount(registrations);
   const maxReached = event.max_registrations && headcount >= event.max_registrations;
   const locationHtml = event.location ? renderLocationBlock(event.location) : "";
+  const draft = loadDraft(event);
+  const alreadyRegistered = !!sessionStorage.getItem(registeredKey(event));
+  const canRegister = isRegistrationOpen(event) && !maxReached && !alreadyRegistered;
 
   return `
     ${isOrganizer ? `<div class="organizer-banner"><span>Du bist Veranstalter</span><a href="/trouvo/edit.html?id=${event.id}" class="btn btn-sm btn-light">Info</a><a href="/trouvo/planning.html?id=${event.id}" class="btn btn-sm btn-light">Planung</a><a href="/trouvo/manage.html?id=${event.id}" class="btn btn-sm btn-light">Anmeldungen</a></div>` : ""}
@@ -118,14 +186,9 @@ function buildPage(event, tracks, timetable, registrations, claims, answers) {
       ${renderEventCover(event)}
       <p class="eyebrow">Veranstaltung</p>
       <h1 class="guest-event-title">${escapeHtml(event.name)}</h1>
-      <p class="guest-event-meta">${dateStr}</p>
-      ${locationHtml}
-      ${renderOrganizerContact(event)}
-      <div class="guest-share-row">
-        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-share-event">Link teilen</button>
-        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-download-ics-main">In Kalender (.ics)</button>
-      </div>
+      <p class="guest-event-meta">${renderOrganizerAndDate(event, dateStr)}</p>
       ${event.description ? `<div class="guest-event-desc">${renderParagraphs(event.description)}</div>` : ""}
+      ${locationHtml}
     </article>
 
     ${renderTimetableSection(event, tracks, timetable)}
@@ -133,6 +196,9 @@ function buildPage(event, tracks, timetable, registrations, claims, answers) {
     ${renderAttendeeSection(getAttendeeVisibility(event), registrations, headcount, isOrganizer)}
 
     ${renderVisibleAnswers(registrations, answers)}
+
+    ${renderRegistrationCta(event, headcount, maxReached, alreadyRegistered)}
+    ${canRegister ? renderRegistrationDialog(event, draft) : ""}
 
     ${bringItems.length ? `
       <section class="guest-section">
@@ -143,27 +209,36 @@ function buildPage(event, tracks, timetable, registrations, claims, answers) {
 
     ${renderEventPhotosSection(event)}
 
-    ${renderRegistrationSection(event, headcount, maxReached)}
-
     ${renderGuestFeedbackSection(event)}
 
-    <section class="guest-section guest-success-section d-none" id="guest-success-section">
-      <div class="guest-success-box">
-        <h2>Erfolgreich angemeldet</h2>
-        <p>Deine Anmeldung für <strong>${escapeHtml(event.name)}</strong> ist eingegangen.</p>
-        <p class="text-muted small d-none" id="guest-success-email-hint"></p>
-        ${renderOrganizerContact(event)}
-        <button type="button" class="btn btn-primary" id="btn-download-ics">Termin als .ics herunterladen</button>
-      </div>
-    </section>
+    ${renderActionsSection(event)}
   `;
 }
 
-function renderRegistrationSection(event, headcount, maxReached) {
+function renderOrganizerAndDate(event, dateStr) {
+  const parts = [];
+  if (event.organizer_name) parts.push(`Veranstaltet von ${escapeHtml(event.organizer_name)}`);
+  parts.push(escapeHtml(dateStr));
+  return parts.join(" · ");
+}
+
+function renderRegistrationCta(event, headcount, maxReached, alreadyRegistered) {
+  const maxHint = event.max_registrations
+    ? `<p class="text-muted small">${headcount} / ${event.max_registrations} Plätze belegt</p>`
+    : "";
+
+  if (alreadyRegistered) {
+    return `
+      <section class="guest-section guest-register-section" id="guest-register-section">
+        <h2>Anmeldung</h2>
+        ${renderRegisteredState()}
+      </section>`;
+  }
+
   if (!isRegistrationOpen(event)) {
     return `
       <section class="guest-section guest-register-section">
-        <h2>Anmelden</h2>
+        <h2>Anmeldung</h2>
         <p class="text-muted">${escapeHtml(registrationClosedMessage(event))}</p>
       </section>`;
   }
@@ -171,45 +246,63 @@ function renderRegistrationSection(event, headcount, maxReached) {
   if (maxReached) {
     return `
       <section class="guest-section guest-register-section">
-        <h2>Anmelden</h2>
+        <h2>Anmeldung</h2>
         <p class="text-muted">Maximale Teilnehmerzahl erreicht (${headcount}/${event.max_registrations}).</p>
       </section>`;
   }
 
-  const emailRequired = !!event.guest_email_required;
-  const plusOne = !!event.allow_plus_one;
-  const maxHint = event.max_registrations
-    ? `<p class="text-muted small">${headcount} / ${event.max_registrations} Plätze belegt</p>`
-    : "";
   const deadlineHint = event.registration_closes_at
     ? `<p class="text-muted small">Anmeldefrist: ${escapeHtml(new Date(event.registration_closes_at).toLocaleString("de-CH", { dateStyle: "medium", timeStyle: "short" }))}</p>`
     : "";
 
   return `
     <section class="guest-section guest-register-section" id="guest-register-section">
-      <h2>Anmelden</h2>
+      <h2>Anmeldung</h2>
       ${maxHint}
       ${deadlineHint}
+      <button type="button" class="btn btn-primary" id="btn-open-register">Jetzt anmelden</button>
+    </section>`;
+}
+
+function renderRegisteredState(emailHint) {
+  return `
+    <div class="guest-success-box guest-success-inline">
+      <p>✓ Du bist angemeldet für <strong>${escapeHtml(eventData.name)}</strong>.</p>
+      <p class="text-muted small${emailHint ? "" : " d-none"}" id="guest-success-email-hint">${emailHint ? escapeHtml(emailHint) : ""}</p>
+      <button type="button" class="btn btn-outline-primary btn-sm" id="btn-download-ics-success">Termin als .ics herunterladen</button>
+    </div>`;
+}
+
+function renderRegistrationDialog(event, draft) {
+  const emailRequired = !!event.guest_email_required;
+  const plusOne = !!event.allow_plus_one;
+
+  return `
+    <dialog id="guest-register-dialog" class="guest-register-dialog">
       <form id="guest-register-form" class="guest-form">
+        <h2>Anmelden</h2>
         <div class="mb-3">
           <label class="form-label" for="guest-name">Name *</label>
-          <input type="text" class="form-control" id="guest-name" required>
+          <input type="text" class="form-control" id="guest-name" required value="${escapeHtml(draft.guestName || "")}">
         </div>
         <div class="mb-3">
           <label class="form-label" for="guest-email">E-Mail${emailRequired ? " *" : " (optional)"}</label>
-          <input type="email" class="form-control" id="guest-email" ${emailRequired ? "required" : ""}>
+          <input type="email" class="form-control" id="guest-email" ${emailRequired ? "required" : ""} value="${escapeHtml(draft.guestEmail || "")}">
         </div>
         ${plusOne ? `
           <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" id="guest-plus-one">
+            <input class="form-check-input" type="checkbox" id="guest-plus-one" ${draft.plusOne ? "checked" : ""}>
             <label class="form-check-label" for="guest-plus-one">Ich bringe eine Begleitung (+1) mit</label>
           </div>` : ""}
-        ${fields.map((f) => renderFieldInput(f)).join("")}
-        ${bringItems.map((item) => renderBringInput(item)).join("")}
-        <button type="submit" class="btn btn-primary">Anmeldung absenden</button>
+        ${fields.map((f) => renderFieldInput(f, draft)).join("")}
+        ${bringItems.length ? `<h3 class="guest-dialog-subtitle">Mitbringsel</h3>${bringItems.map((item) => renderBringInput(item, draft)).join("")}` : ""}
+        <div class="guest-dialog-actions">
+          <button type="button" class="btn btn-outline-secondary" id="btn-cancel-register">Abbrechen</button>
+          <button type="submit" class="btn btn-primary">Anmeldung absenden</button>
+        </div>
         <p id="register-message" class="admin-message"></p>
       </form>
-    </section>`;
+    </dialog>`;
 }
 
 function renderGuestFeedbackSection(event) {
@@ -237,6 +330,19 @@ function renderGuestFeedbackSection(event) {
     </section>`;
 }
 
+function renderActionsSection(event) {
+  const contactHtml = renderOrganizerContact(event);
+  return `
+    <section class="guest-section guest-actions-section">
+      <h2>Teilen & Kalender</h2>
+      <div class="guest-share-row">
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-share-event">Link teilen</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-download-ics-bottom">In Kalender (.ics)</button>
+      </div>
+      ${contactHtml}
+    </section>`;
+}
+
 function renderAttendeeSection(visibility, registrations, headcount, organizer) {
   if (organizer && registrations.length) {
     return `
@@ -260,25 +366,37 @@ function renderAttendeeSection(visibility, registrations, headcount, organizer) 
     </section>`;
 }
 
-function renderFieldInput(field) {
+function renderFieldInput(field, draft) {
   const req = field.required ? "required" : "";
   const id = `field-${field.id}`;
+  const val = draft?.fields?.[field.id];
   if (field.field_type === "textarea") {
-    return `<div class="mb-3"><label class="form-label" for="${id}">${escapeHtml(field.label)}${field.required ? " *" : ""}</label><textarea class="form-control guest-field" data-field-id="${field.id}" id="${id}" ${req}></textarea></div>`;
+    return `<div class="mb-3"><label class="form-label" for="${id}">${escapeHtml(field.label)}${field.required ? " *" : ""}</label><textarea class="form-control guest-field" data-field-id="${field.id}" id="${id}" ${req}>${escapeHtml(val || "")}</textarea></div>`;
   }
   if (field.field_type === "checkbox") {
-    return `<div class="form-check mb-3"><input class="form-check-input guest-field" type="checkbox" data-field-id="${field.id}" id="${id}" ${req}><label class="form-check-label" for="${id}">${escapeHtml(field.label)}</label></div>`;
+    return `<div class="form-check mb-3"><input class="form-check-input guest-field" type="checkbox" data-field-id="${field.id}" id="${id}" ${req} ${val ? "checked" : ""}><label class="form-check-label" for="${id}">${escapeHtml(field.label)}</label></div>`;
   }
-  return `<div class="mb-3"><label class="form-label" for="${id}">${escapeHtml(field.label)}${field.required ? " *" : ""}</label><input type="text" class="form-control guest-field" data-field-id="${field.id}" id="${id}" ${req}></div>`;
+  return `<div class="mb-3"><label class="form-label" for="${id}">${escapeHtml(field.label)}${field.required ? " *" : ""}</label><input type="text" class="form-control guest-field" data-field-id="${field.id}" id="${id}" ${req} value="${escapeHtml(val || "")}"></div>`;
 }
 
-function renderBringInput(item) {
+function renderBringInput(item, draft) {
+  const state = draft?.bring?.[item.id] || {};
+  if (item.quantity_mode === "none") {
+    return `
+      <div class="mb-3 bring-input-row bring-input-row-check">
+        <div class="form-check">
+          <input class="form-check-input guest-bring-check" type="checkbox" data-bring-id="${item.id}" id="bring-check-${item.id}" ${state.checked ? "checked" : ""}>
+          <label class="form-check-label" for="bring-check-${item.id}">${escapeHtml(item.name)} bringe ich mit</label>
+        </div>
+        <input type="text" class="form-control guest-bring-note" data-bring-id="${item.id}" placeholder="Notiz (optional)" value="${escapeHtml(state.note || "")}">
+      </div>`;
+  }
   return `
     <div class="mb-3 bring-input-row">
       <label class="form-label">${escapeHtml(item.name)} mitbringen</label>
       <div class="d-flex gap-2 align-items-center">
-        <input type="number" class="form-control guest-bring-qty" data-bring-id="${item.id}" min="0" value="0" style="max-width:100px">
-        <input type="text" class="form-control guest-bring-note" data-bring-id="${item.id}" placeholder="Notiz (optional)">
+        <input type="number" class="form-control guest-bring-qty" data-bring-id="${item.id}" min="0" value="${escapeHtml(state.qty ?? "0")}" style="max-width:100px">
+        <input type="text" class="form-control guest-bring-note" data-bring-id="${item.id}" placeholder="Notiz (optional)" value="${escapeHtml(state.note || "")}">
       </div>
     </div>`;
 }
@@ -289,19 +407,28 @@ function targetQty(item, regCount) {
 }
 
 function renderBringItem(item, regCount, claims, registrations) {
-  const target = targetQty(item, regCount);
   const itemClaims = claims.filter((c) => c.bring_item_id === item.id);
-  const claimed = itemClaims.reduce((s, c) => s + c.quantity, 0);
   const visible = item.visible_to_others || isOrganizer;
 
-  let listHtml = "";
-  if (visible && itemClaims.length) {
-    listHtml = `<ul class="guest-list">${itemClaims.map((c) => {
-      const reg = registrations.find((r) => r.id === c.registration_id);
-      const name = reg ? reg.guest_name : "Gast";
-      return `<li>${escapeHtml(name)}: ${c.quantity}${c.note ? ` (${escapeHtml(c.note)})` : ""}</li>`;
-    }).join("")}</ul>`;
+  const renderNames = (withQty) => `<ul class="guest-list">${itemClaims.map((c) => {
+    const reg = registrations.find((r) => r.id === c.registration_id);
+    const name = reg ? reg.guest_name : "Gast";
+    return `<li>${escapeHtml(name)}${withQty ? `: ${c.quantity}` : ""}${c.note ? ` (${escapeHtml(c.note)})` : ""}</li>`;
+  }).join("")}</ul>`;
+
+  if (item.quantity_mode === "none") {
+    return `
+      <div class="bring-status-card bring-status-card-check">
+        <div class="bring-status-head">
+          <strong>${escapeHtml(item.name)}</strong>
+          <span class="bring-progress">${itemClaims.length ? `${itemClaims.length} ${itemClaims.length === 1 ? "Zusage" : "Zusagen"}` : "Noch offen"}</span>
+        </div>
+        ${visible && itemClaims.length ? renderNames(false) : ""}
+      </div>`;
   }
+
+  const target = targetQty(item, regCount);
+  const claimed = itemClaims.reduce((s, c) => s + c.quantity, 0);
 
   return `
     <div class="bring-status-card">
@@ -310,7 +437,7 @@ function renderBringItem(item, regCount, claims, registrations) {
         <span class="bring-progress">${claimed} / ${target}</span>
       </div>
       <div class="progress bring-bar"><div class="progress-bar" style="width:${Math.min(100, (claimed / target) * 100)}%"></div></div>
-      ${listHtml}
+      ${visible && itemClaims.length ? renderNames(true) : ""}
     </div>`;
 }
 
@@ -333,7 +460,7 @@ function renderVisibleAnswers(registrations, answers) {
   return `<section class="guest-section"><h2>Angaben der Gäste</h2>${blocks.join("")}</section>`;
 }
 
-async function submitRegistration(client, existingRegs, submitBtn) {
+async function submitRegistration(client, existingRegs, submitBtn, dialogEl) {
   const msg = document.getElementById("register-message");
   const guestName = document.getElementById("guest-name").value.trim();
   const guestEmail = document.getElementById("guest-email").value.trim();
@@ -405,6 +532,17 @@ async function submitRegistration(client, existingRegs, submitBtn) {
           });
         }
       });
+      document.querySelectorAll(".guest-bring-check").forEach((el) => {
+        if (el.checked) {
+          const noteEl = document.querySelector(`.guest-bring-note[data-bring-id="${el.dataset.bringId}"]`);
+          claimRows.push({
+            registration_id: reg.id,
+            bring_item_id: el.dataset.bringId,
+            quantity: 1,
+            note: noteEl?.value.trim() || "",
+          });
+        }
+      });
       if (claimRows.length) {
         const { error: claimErr } = await client.from("event_bring_claims").insert(claimRows);
         if (claimErr) throw new Error(claimErr.message);
@@ -425,15 +563,18 @@ async function submitRegistration(client, existingRegs, submitBtn) {
       return { emailSent, guestEmail };
     },
     onSuccess: (result) => {
-      document.getElementById("guest-register-section")?.classList.add("d-none");
-      const successSection = document.getElementById("guest-success-section");
-      successSection?.classList.remove("d-none");
-      const emailHint = document.getElementById("guest-success-email-hint");
-      if (emailHint && result?.emailSent && result?.guestEmail) {
-        emailHint.textContent = `Bestätigungsmail wurde an ${result.guestEmail} gesendet.`;
-        emailHint.classList.remove("d-none");
+      clearDraft(eventData);
+      sessionStorage.setItem(registeredKey(eventData), "1");
+      dialogEl?.close();
+      const ctaSection = document.getElementById("guest-register-section");
+      if (ctaSection) {
+        const emailHint = result?.emailSent && result?.guestEmail
+          ? `Bestätigungsmail wurde an ${result.guestEmail} gesendet.`
+          : "";
+        ctaSection.innerHTML = `<h2>Anmeldung</h2>${renderRegisteredState(emailHint)}`;
+        document.getElementById("btn-download-ics-success")?.addEventListener("click", () => downloadEventIcs(eventData));
+        ctaSection.scrollIntoView({ behavior: "smooth", block: "start" });
       }
-      successSection?.scrollIntoView({ behavior: "smooth", block: "start" });
     },
   });
 }

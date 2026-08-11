@@ -216,6 +216,7 @@ function populateFormFromSource(data, { isCopy }) {
   slugManual = !isCopy && !!event.slug;
   document.getElementById("ev-description").value = event.description || "";
   document.getElementById("ev-location").value = event.location || "";
+  document.getElementById("ev-organizer-name").value = event.organizer_name || "";
   document.getElementById("ev-phone").value = event.organizer_phone || "";
 
   if (isCopy) {
@@ -559,6 +560,9 @@ function mergeEventCopySkipEmpty(data) {
   }
   if (!document.getElementById("ev-location").value.trim()) {
     document.getElementById("ev-location").value = event.location || "";
+  }
+  if (!document.getElementById("ev-organizer-name").value.trim()) {
+    document.getElementById("ev-organizer-name").value = event.organizer_name || "";
   }
   if (!document.getElementById("ev-phone").value.trim()) {
     document.getElementById("ev-phone").value = event.organizer_phone || "";
@@ -1162,14 +1166,16 @@ function renderBring() {
     return;
   }
   el.innerHTML = bringItems.map((b, i) => {
+    const noQty = b.quantity_mode === "none";
     const rowHtml = `
     <div class="builder-row bring-row" data-i="${i}">
       <input type="text" class="form-control form-control-sm b-name" placeholder="z.B. Salat" value="${escapeHtml(b.name)}">
       <select class="form-select form-select-sm b-mode">
         <option value="fixed" ${b.quantity_mode === "fixed" ? "selected" : ""}>Fixe Menge</option>
         <option value="per_guest" ${b.quantity_mode === "per_guest" ? "selected" : ""}>Pro Anmeldung</option>
+        <option value="none" ${noQty ? "selected" : ""}>Ohne Menge (nur wer mitbringt)</option>
       </select>
-      <input type="number" class="form-control form-control-sm b-qty" min="0.1" step="0.1" value="${b.quantity_value}">
+      <input type="number" class="form-control form-control-sm b-qty" min="0.1" step="0.1" value="${b.quantity_value || 1}" ${noQty ? "disabled" : ""}>
       <label class="form-check-label small"><input type="checkbox" class="form-check-input b-vis" ${b.visible_to_others ? "checked" : ""}> Für Gäste sichtbar</label>
       <button type="button" class="btn btn-sm btn-outline-danger btn-remove-bring">×</button>
     </div>`;
@@ -1180,6 +1186,13 @@ function renderBring() {
     btn.addEventListener("click", () => {
       collectFromDOM();
       bringItems.splice(Number(btn.closest(".bring-row").dataset.i), 1);
+      renderBring();
+      scheduleAutoSave(el);
+    });
+  });
+  el.querySelectorAll(".b-mode").forEach((select) => {
+    select.addEventListener("change", () => {
+      collectFromDOM();
       renderBring();
       scheduleAutoSave(el);
     });
@@ -1307,6 +1320,7 @@ async function persistEvent() {
     slug,
     description: document.getElementById("ev-description").value.trim(),
     location: document.getElementById("ev-location").value.trim(),
+    organizer_name: document.getElementById("ev-organizer-name").value.trim() || null,
     organizer_phone: document.getElementById("ev-phone").value.trim() || null,
     event_date: startDate,
     end_date: multiDay && endDateVal && endDateVal !== startDate ? endDateVal : null,
@@ -1358,6 +1372,9 @@ async function persistEvent() {
     history.replaceState({}, "", `?id=${savedId}`);
     updateCreatorUI();
     setTrouvoEventTitle(name);
+    if (payload.organizer_name) {
+      await client.from("events").update({ organizer_name: payload.organizer_name }).eq("id", savedId);
+    }
   }
 
   await client.from("event_timetable_items").delete().eq("event_id", savedId);
@@ -1438,6 +1455,7 @@ function updateGuestLink(slug, published) {
   const url = siteUrl(`/trouvo/e/?slug=${encodeURIComponent(slug)}`);
   linkEl.href = url;
   linkEl.textContent = url;
+  linkEl.dataset.shareUrl = guestEventShareUrl({ slug });
   box.classList.remove("d-none");
   document.getElementById("guest-link-offline-hint")?.classList.toggle("d-none", published);
 }
@@ -1454,7 +1472,8 @@ function updatePlanningLink() {
 }
 
 function copyGuestLink() {
-  const url = document.getElementById("guest-link-url")?.href || "";
+  const linkEl = document.getElementById("guest-link-url");
+  const url = linkEl?.dataset.shareUrl || linkEl?.href || "";
   const btn = document.getElementById("btn-copy-link");
   navigator.clipboard.writeText(url).then(() => {
     const snapshot = { text: btn.textContent, disabled: btn.disabled, className: btn.className };

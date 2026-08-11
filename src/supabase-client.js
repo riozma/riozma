@@ -210,6 +210,11 @@ function guestEventUrl(event) {
   return siteUrl(`/trouvo/e/?slug=${encodeURIComponent(event.slug)}`);
 }
 
+function guestEventShareUrl(event) {
+  if (!window.SUPABASE_URL) return guestEventUrl(event);
+  return `${window.SUPABASE_URL}/functions/v1/event-og?slug=${encodeURIComponent(event.slug)}`;
+}
+
 const EVENT_OPTIONAL_COLUMNS = [
   "max_registrations",
   "allow_plus_one",
