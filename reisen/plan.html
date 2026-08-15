@@ -21,9 +21,17 @@
           <h1 id="plan-trip-title" class="section-heading"></h1>
           <p id="plan-trip-meta" class="text-muted small mb-0"></p>
         </div>
+        <div class="reisen-view-toggle" role="group" aria-label="Ansicht">
+          <button type="button" class="btn btn-sm btn-primary" id="btn-view-overview">Übersicht</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-view-edit">Bearbeiten</button>
+        </div>
       </div>
 
       <p id="planning-save-status" class="edit-save-status-bar" aria-live="polite"></p>
+
+      <div id="plan-overview"></div>
+
+      <div id="plan-edit" class="d-none">
 
       <section class="planning-section" id="trip-details-section">
         <div class="planning-section-head"><h2 class="planning-section-title">Reise-Details</h2></div>
@@ -55,6 +63,8 @@
         <div class="planning-section-head"><h2 class="planning-section-title">Tag für Tag</h2></div>
         <div id="days-list"></div>
       </section>
+
+      </div>
     </div>
   </main>
 

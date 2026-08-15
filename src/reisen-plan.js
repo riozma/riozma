@@ -4,6 +4,7 @@ let tripDays = [];
 let accommodations = [];
 let transportOptions = [];
 let usefulLinks = [];
+let tripMembers = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
   tripId = tripIdFromUrl();
@@ -38,6 +39,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderDays();
     wireTripDetailFields();
     wireAddLinkButton();
+    wireViewToggle();
+    setViewMode("overview");
 
     document.getElementById("plan-loading").classList.add("d-none");
     document.getElementById("plan-content").classList.remove("d-none");
@@ -51,19 +54,21 @@ function tripTitle() {
 }
 
 async function loadPlanData(client) {
-  const [daysRes, accRes, transRes, linksRes] = await Promise.all([
+  const [daysRes, accRes, transRes, linksRes, membersRes] = await Promise.all([
     client.from("trip_days").select("*").eq("trip_id", tripId).order("day_date"),
     client.from("trip_accommodations").select("*").eq("trip_id", tripId).order("sort_order"),
     client.from("trip_transport_options").select("*").eq("trip_id", tripId).order("leg_order").order("sort_order"),
     client.from("trip_useful_links").select("*").eq("trip_id", tripId).order("sort_order"),
+    client.from("trip_members").select("*").eq("trip_id", tripId).order("joined_at"),
   ]);
-  for (const res of [daysRes, accRes, transRes, linksRes]) {
+  for (const res of [daysRes, accRes, transRes, linksRes, membersRes]) {
     if (res.error) throw new Error(res.error.message);
   }
   tripDays = daysRes.data || [];
   accommodations = accRes.data || [];
   transportOptions = transRes.data || [];
   usefulLinks = linksRes.data || [];
+  tripMembers = membersRes.data || [];
 }
 
 function renderTripHeader() {
@@ -601,4 +606,232 @@ function bindAccommodationRow(day, row) {
       rerenderDay(day);
     });
   });
+}
+
+// ---------------------------------------------------------------------------
+// Übersicht (read-only Ansicht)
+// ---------------------------------------------------------------------------
+
+function wireViewToggle() {
+  document.getElementById("btn-view-overview").addEventListener("click", () => setViewMode("overview"));
+  document.getElementById("btn-view-edit").addEventListener("click", () => setViewMode("edit"));
+}
+
+function setViewMode(mode) {
+  const overviewBtn = document.getElementById("btn-view-overview");
+  const editBtn = document.getElementById("btn-view-edit");
+  const isOverview = mode === "overview";
+  if (isOverview) renderOverview();
+  document.getElementById("plan-overview").classList.toggle("d-none", !isOverview);
+  document.getElementById("plan-edit").classList.toggle("d-none", isOverview);
+  overviewBtn.className = `btn btn-sm ${isOverview ? "btn-primary" : "btn-outline-secondary"}`;
+  editBtn.className = `btn btn-sm ${isOverview ? "btn-outline-secondary" : "btn-primary"}`;
+}
+
+function formatTimeShort(iso, dayDate) {
+  if (!iso) return "–";
+  const d = new Date(iso);
+  const time = d.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" });
+  const isoDay = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  if (dayDate && isoDay !== dayDate) {
+    return `${time} (${d.toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit" })})`;
+  }
+  return time;
+}
+
+function linkButtonHtml(url, label) {
+  if (!url) return "";
+  return `<a class="btn btn-sm btn-outline-secondary" href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(label)} ↗</a>`;
+}
+
+function renderOverview() {
+  const el = document.getElementById("plan-overview");
+  const ridingDays = tripDays.filter((d) => Number(d.distance_km) > 0);
+  const totalKm = ridingDays.reduce((s, d) => s + Number(d.distance_km || 0), 0);
+  const totalHm = tripDays.reduce((s, d) => s + Number(d.elevation_gain_m || 0), 0);
+  const nights = Math.max(0, tripDays.length - 1);
+  const coverUrl = tripData.cover_map_image_path ? storagePublicUrl("trip-images", tripData.cover_map_image_path) : "";
+  const routePlaces = [];
+  tripDays.forEach((d) => {
+    [d.start_place, d.end_place].forEach((p) => {
+      if (p && routePlaces[routePlaces.length - 1] !== p) routePlaces.push(p);
+    });
+  });
+  const memberNames = tripMembers.map((m) => memberLabel(m)).filter(Boolean);
+
+  el.innerHTML = `
+    <div class="reisen-ov-stats">
+      <div class="reisen-ov-stat"><span class="reisen-ov-stat-value">${totalKm ? Math.round(totalKm) + " km" : "–"}</span><span class="reisen-ov-stat-label">Distanz</span></div>
+      <div class="reisen-ov-stat"><span class="reisen-ov-stat-value">${totalHm ? Math.round(totalHm).toLocaleString("de-CH") + " m" : "–"}</span><span class="reisen-ov-stat-label">Höhenmeter</span></div>
+      <div class="reisen-ov-stat"><span class="reisen-ov-stat-value">${ridingDays.length || "–"}</span><span class="reisen-ov-stat-label">Fahrtage</span></div>
+      <div class="reisen-ov-stat"><span class="reisen-ov-stat-value">${nights || "–"}</span><span class="reisen-ov-stat-label">Übernachtungen</span></div>
+    </div>
+
+    ${tripData.description ? `<p class="reisen-ov-description">${escapeHtml(tripData.description)}</p>` : ""}
+    <div class="reisen-ov-meta">
+      ${routePlaces.length ? `<p><strong>Route:</strong> ${routePlaces.map(escapeHtml).join(" → ")}</p>` : ""}
+      <p><strong>Zeitraum:</strong> ${escapeHtml(formatTripDateRange(tripData))}</p>
+      ${memberNames.length ? `<p><strong>Mitreisende:</strong> ${memberNames.map(escapeHtml).join(" & ")}</p>` : ""}
+      ${tripData.komoot_url ? `<p>${linkButtonHtml(tripData.komoot_url, "Gesamtroute auf Komoot")}</p>` : ""}
+    </div>
+
+    ${coverUrl ? `
+    <details class="reisen-ov-section" open>
+      <summary>🗺️ Gesamtroute</summary>
+      <div class="reisen-ov-section-body">
+        <img src="${escapeHtml(coverUrl)}" alt="Gesamtroute" class="reisen-ov-map">
+      </div>
+    </details>` : ""}
+
+    <details class="reisen-ov-section" open>
+      <summary>📋 Überblick – Alle Orte &amp; Nächte</summary>
+      <div class="reisen-ov-section-body reisen-ov-table-wrap">
+        <table class="reisen-ov-table">
+          <thead><tr><th>Tag</th><th>Datum</th><th>Route</th><th>km / HM</th><th>Unterkunft</th></tr></thead>
+          <tbody>
+            ${tripDays.map((d, i) => {
+              const acc = accommodations.find((a) => a.day_id === d.id && a.is_selected)
+                || accommodations.find((a) => a.day_id === d.id);
+              const route = d.start_place && d.end_place && d.start_place !== d.end_place
+                ? `${escapeHtml(d.start_place)} → ${escapeHtml(d.end_place)}`
+                : escapeHtml(d.end_place || d.start_place || "–");
+              const kmHm = d.distance_km ? `${d.distance_km} km / ${d.elevation_gain_m ?? "–"} m` : "–";
+              return `<tr>
+                <td>${i + 1}</td>
+                <td>${new Date(`${d.day_date}T00:00:00`).toLocaleDateString("de-CH", { weekday: "short", day: "2-digit", month: "2-digit" })}</td>
+                <td>${route}</td>
+                <td>${kmHm}</td>
+                <td>${acc ? `${escapeHtml(acc.name || "–")} ${statusBadgeHtml(acc.status)}` : "–"}</td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details class="reisen-ov-section" open>
+      <summary>📅 Tag-für-Tag Details</summary>
+      <div class="reisen-ov-section-body">
+        ${tripDays.map((d, i) => renderOverviewDay(d, i)).join("")}
+      </div>
+    </details>
+
+    ${usefulLinks.filter((l) => l.url).length ? `
+    <details class="reisen-ov-section">
+      <summary>📱 Nützliche Links</summary>
+      <div class="reisen-ov-section-body">
+        <ul class="reisen-ov-links">
+          ${usefulLinks.filter((l) => l.url).map((l) => `<li><a href="${escapeHtml(l.url)}" target="_blank" rel="noopener">${escapeHtml(l.label || l.url)} ↗</a></li>`).join("")}
+        </ul>
+      </div>
+    </details>` : ""}
+  `;
+}
+
+function renderOverviewDay(day, index) {
+  const dayAccs = accommodations.filter((a) => a.day_id === day.id);
+  const dayTrans = transportOptions.filter((t) => t.day_id === day.id);
+  const mapUrl = day.map_image_path ? storagePublicUrl("trip-images", day.map_image_path) : "";
+  const dateStr = new Date(`${day.day_date}T00:00:00`).toLocaleDateString("de-CH", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" });
+  const routeLabel = day.start_place && day.end_place && day.start_place !== day.end_place
+    ? `${day.start_place} → ${day.end_place}`
+    : (day.end_place || day.start_place || "");
+
+  const infoRows = [
+    day.distance_km ? `<div class="reisen-ov-info-row"><span>Distanz</span><span>${day.distance_km} km</span></div>` : "",
+    day.elevation_gain_m ? `<div class="reisen-ov-info-row"><span>Höhenmeter</span><span>${day.elevation_gain_m} m ⬆️</span></div>` : "",
+    day.ride_time_estimate ? `<div class="reisen-ov-info-row"><span>Fahrzeit</span><span>${escapeHtml(day.ride_time_estimate)}</span></div>` : "",
+  ].filter(Boolean).join("");
+
+  return `
+    <details class="reisen-ov-day">
+      <summary><strong>Tag ${index + 1}</strong> · ${escapeHtml(dateStr)}${routeLabel ? ` · ${escapeHtml(routeLabel)}` : ""}</summary>
+      <div class="reisen-ov-day-body">
+        ${infoRows}
+        ${day.komoot_url ? `<p class="mt-2">${linkButtonHtml(day.komoot_url, "Route auf Komoot")}</p>` : ""}
+        ${renderOverviewTransport(day, dayTrans)}
+        ${renderOverviewAccommodations(dayAccs)}
+        ${mapUrl ? `<img src="${escapeHtml(mapUrl)}" alt="Karte Tag ${index + 1}" class="reisen-ov-map">` : ""}
+        ${day.notes ? `<p class="reisen-ov-notes">${escapeHtml(day.notes)}</p>` : ""}
+      </div>
+    </details>`;
+}
+
+function renderOverviewTransport(day, dayTrans) {
+  if (!dayTrans.length) return "";
+  const groups = new Map();
+  dayTrans.forEach((t) => {
+    const key = t.leg_label || "";
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(t);
+  });
+
+  return [...groups.entries()].map(([label, rows]) => {
+    const selected = rows.filter((r) => r.is_selected);
+    const shown = selected.length ? selected : rows;
+    const alternatives = rows.filter((r) => !shown.includes(r));
+    return `
+      <div class="reisen-ov-transport">
+        <h4 class="reisen-ov-subheading">🚆 ${escapeHtml(label || "Transport")}</h4>
+        <div class="reisen-ov-table-wrap">
+          <table class="reisen-ov-table">
+            <thead><tr><th>Strecke</th><th>Abfahrt</th><th>Ankunft</th><th>Preis</th><th></th></tr></thead>
+            <tbody>
+              ${shown.map((t) => `
+                <tr>
+                  <td>${escapeHtml([t.from_place, t.to_place].filter(Boolean).join(" → ") || TRANSPORT_MODE_LABELS[t.mode] || "")}${t.provider ? ` <span class="text-muted">(${escapeHtml(t.provider)})</span>` : ""}</td>
+                  <td>${formatTimeShort(t.departure_at, day.day_date)}</td>
+                  <td>${formatTimeShort(t.arrival_at, day.day_date)}</td>
+                  <td>${formatMoney(t.price, t.currency) || "–"}</td>
+                  <td>${statusBadgeHtml(t.status)} ${t.booking_url ? `<a href="${escapeHtml(t.booking_url)}" target="_blank" rel="noopener">Link ↗</a>` : ""}</td>
+                </tr>
+                ${t.notes ? `<tr class="reisen-ov-note-row"><td colspan="5">${escapeHtml(t.notes)}</td></tr>` : ""}`).join("")}
+            </tbody>
+          </table>
+        </div>
+        ${alternatives.length ? `
+        <details class="reisen-ov-alternatives">
+          <summary>Weitere Optionen (${alternatives.length})</summary>
+          ${alternatives.map((t) => `
+            <div class="reisen-ov-alt-row">
+              ${escapeHtml([t.from_place, t.to_place].filter(Boolean).join(" → "))} ·
+              ${formatTimeShort(t.departure_at, day.day_date)}–${formatTimeShort(t.arrival_at, day.day_date)} ·
+              ${formatMoney(t.price, t.currency) || "–"} ${statusBadgeHtml(t.status)}
+              ${t.booking_url ? `<a href="${escapeHtml(t.booking_url)}" target="_blank" rel="noopener">Link ↗</a>` : ""}
+            </div>`).join("")}
+        </details>` : ""}
+      </div>`;
+  }).join("");
+}
+
+function renderOverviewAccommodations(dayAccs) {
+  if (!dayAccs.length) return "";
+  const selected = dayAccs.find((a) => a.is_selected) || dayAccs[0];
+  const alternatives = dayAccs.filter((a) => a !== selected);
+  const anySelected = dayAccs.some((a) => a.is_selected);
+
+  return `
+    <div class="reisen-ov-accommodation">
+      <h4 class="reisen-ov-subheading">🏨 Übernachtung${anySelected ? "" : " (noch keine Option gewählt)"}</h4>
+      ${renderOverviewAccCard(selected, anySelected)}
+      ${alternatives.length ? `
+      <details class="reisen-ov-alternatives"${anySelected ? "" : " open"}>
+        <summary>Weitere Optionen (${alternatives.length})</summary>
+        ${alternatives.map((a) => renderOverviewAccCard(a, false)).join("")}
+      </details>` : ""}
+    </div>`;
+}
+
+function renderOverviewAccCard(a, isSelected) {
+  const imgUrl = a.image_path ? storagePublicUrl("trip-images", a.image_path) : "";
+  return `
+    <div class="reisen-ov-acc-card${isSelected ? " reisen-ov-acc-selected" : ""}">
+      ${imgUrl ? `<img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(a.name || "Unterkunft")}" class="reisen-ov-acc-img">` : ""}
+      <div class="reisen-ov-acc-info">
+        <p class="reisen-ov-acc-name">${escapeHtml(a.name || "Unbenannt")} ${statusBadgeHtml(a.status)}</p>
+        ${a.price != null ? `<p class="reisen-ov-acc-price">${formatMoney(a.price, a.currency)}${a.place_note ? ` · ${escapeHtml(a.place_note)}` : ""}</p>` : (a.place_note ? `<p class="reisen-ov-acc-price">${escapeHtml(a.place_note)}</p>` : "")}
+        ${a.notes ? `<p class="reisen-ov-acc-notes">${escapeHtml(a.notes)}</p>` : ""}
+        ${a.booking_url ? `<p class="mb-0">${linkButtonHtml(a.booking_url, "Zur Buchung")}</p>` : ""}
+      </div>
+    </div>`;
 }
