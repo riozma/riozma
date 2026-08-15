@@ -195,11 +195,20 @@ async function requireAuthUser(client) {
   return user;
 }
 
-function redirectToTrouvoLogin(returnPath) {
+function redirectToAppLogin(returnPath, loginRoot) {
+  const root = loginRoot || "/trouvo/";
   const path = returnPath || `${window.location.pathname}${window.location.search}`;
   sessionStorage.setItem("auth_return_to", path);
   const next = encodeURIComponent(path);
-  window.location.replace(`/trouvo/?next=${next}`);
+  window.location.replace(`${root}?next=${next}`);
+}
+
+function redirectToTrouvoLogin(returnPath) {
+  redirectToAppLogin(returnPath, "/trouvo/");
+}
+
+function redirectToReisenLogin(returnPath) {
+  redirectToAppLogin(returnPath, "/reisen/");
 }
 
 function registrationHeadcount(registrations) {

@@ -1,1 +1,5 @@
 # Optional: lokale Secrets (anon key ist öffentlich und darf committed werden)
+
+# Supabase CLI temp & lokale Claude-Einstellungen
+supabase/.temp/
+.claude/

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/src/site-init.js"></script>
+  <title>To-Dos – Reisen</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body class="site-body">
+  <header class="site-header" data-site-header data-header-context="reisen"></header>
+
+  <main class="trouvo-main">
+    <p id="todos-loading">Lade To-Dos…</p>
+    <div id="todos-content" class="d-none">
+      <div class="trouvo-edit-header">
+        <div>
+          <p class="eyebrow">To-Dos</p>
+          <p class="text-muted small mb-0">Gemeinsame Aufgaben rund um die Reise.</p>
+        </div>
+      </div>
+
+      <p id="planning-save-status" class="edit-save-status-bar" aria-live="polite"></p>
+
+      <section class="planning-section">
+        <div class="planning-section-head"><h2 class="planning-section-title">Aufgaben</h2></div>
+        <div id="todos-open"></div>
+        <details class="planning-done-collapse" id="todos-done-wrap">
+          <summary>Erledigt (<span id="todos-done-count">0</span>)</summary>
+          <div id="todos-done"></div>
+        </details>
+        <div class="builder-add-row">
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-todo">+ Aufgabe</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/src/supabase-config.js"></script>
+  <script src="/src/supabase-client.js"></script>
+  <script src="/src/ui-feedback.js"></script>
+  <script src="/src/auto-save-status.js"></script>
+  <script src="/src/reisen-client.js"></script>
+  <script src="/src/reisen-todos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+  <script src="/src/site-header.js"></script>
+  <script src="/src/site-nav.js"></script>
+</body>
+</html>

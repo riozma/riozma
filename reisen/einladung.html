@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/src/site-init.js"></script>
+  <title>Einladung – Reisen</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body class="site-body">
+  <header class="site-header" data-site-header data-header-context="reisen"></header>
+
+  <main class="trouvo-main">
+    <section class="trouvo-login-section">
+      <div class="trouvo-login-wrap">
+        <a href="/reisen/" class="trouvo-brand-link"><span class="trouvo-wordmark trouvo-wordmark-lg">Reisen</span></a>
+        <div id="invite-preview">
+          <p id="invite-loading">Lade Einladung…</p>
+        </div>
+        <div id="invite-auth" class="d-none">
+          <p class="section-description">Melde dich an oder erstelle ein Konto, um der Reise beizutreten.</p>
+          <div id="auth-container"></div>
+        </div>
+        <div id="invite-join" class="d-none">
+          <div class="mb-3">
+            <label class="form-label" for="invite-display-name">Dein Name auf dieser Reise</label>
+            <input type="text" class="form-control" id="invite-display-name" placeholder="z.B. Tobias">
+          </div>
+          <button type="button" class="btn btn-primary w-100" id="btn-join-trip">Reise beitreten</button>
+          <p id="invite-message" class="admin-message"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><p>© Manuel Rio Zeltner</p></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/src/supabase-config.js"></script>
+  <script src="/src/supabase-client.js"></script>
+  <script src="/src/ui-feedback.js"></script>
+  <script src="/src/auth-ui.js"></script>
+  <script src="/src/reisen-client.js"></script>
+  <script src="/src/reisen-invite.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+  <script src="/src/site-header.js"></script>
+  <script src="/src/site-nav.js"></script>
+</body>
+</html>

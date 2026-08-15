@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/src/site-init.js"></script>
+  <title>Reisen – Fahrradtouren planen</title>
+  <link rel="icon" href="/src/img/favicon.svg">
+  <meta name="description" content="Reisen – Fahrradtouren gemeinsam planen: Route, Unterkünfte, Finanzen, Packliste.">
+  <meta name="theme-color" content="#dbedd8">
+  <link rel="canonical" href="https://riozma.ch/reisen/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Reisen – Fahrradtouren planen">
+  <meta property="og:description" content="Route, Unterkünfte, Finanzen und Packliste gemeinsam mit Mitreisenden verwalten.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body class="site-body">
+  <header class="site-header" data-site-header data-header-context="reisen"></header>
+
+  <main class="trouvo-main">
+    <section id="login-section" class="trouvo-login-section">
+      <div class="trouvo-login-wrap">
+        <a href="/reisen/" class="trouvo-brand-link"><span class="trouvo-wordmark trouvo-wordmark-lg">Reisen</span></a>
+        <h1 class="section-heading">Fahrradtouren planen</h1>
+        <p class="section-description">Route, Unterkünfte, Finanzen und Packliste gemeinsam mit deinen Mitreisenden verwalten.</p>
+        <div id="auth-container"></div>
+      </div>
+    </section>
+
+    <section id="dashboard-section" class="d-none">
+      <div class="trouvo-dashboard-header">
+        <div>
+          <a href="/reisen/" class="trouvo-brand-link"><span class="trouvo-wordmark">Reisen</span></a>
+          <h1 class="section-heading">Meine Reisen</h1>
+        </div>
+        <div class="trouvo-header-actions">
+          <div id="auth-container-dashboard"></div>
+          <button type="button" class="btn btn-primary" id="btn-new-trip">+ Neue Reise</button>
+        </div>
+      </div>
+
+      <div class="trouvo-events-block">
+        <h2>Laufend</h2>
+        <p id="dashboard-message" class="admin-message"></p>
+        <div id="trips-ongoing" class="event-list"></div>
+      </div>
+      <div class="trouvo-events-block">
+        <h2>Kommende</h2>
+        <div id="trips-upcoming" class="event-list"></div>
+      </div>
+      <div class="trouvo-events-block">
+        <h2>Vergangene</h2>
+        <div id="trips-past" class="event-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><p>© Manuel Rio Zeltner</p></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/src/supabase-config.js"></script>
+  <script src="/src/supabase-client.js"></script>
+  <script src="/src/ui-feedback.js"></script>
+  <script src="/src/auth-ui.js"></script>
+  <script src="/src/trouvo-dialog.js"></script>
+  <script src="/src/reisen-client.js"></script>
+  <script src="/src/reisen-dialog.js"></script>
+  <script src="/src/reisen-create-trip.js"></script>
+  <script src="/src/reisen.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+  <script src="/src/site-header.js"></script>
+  <script src="/src/site-nav.js"></script>
+</body>
+</html>

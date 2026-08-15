@@ -2896,3 +2896,284 @@ body.site-body,
 body.site-body :where(button, input, textarea, select, .btn, .form-control, .navbar, .nav-link, .card, h1, h2, h3, h4, h5, h6, p, a, li, label, time) {
   font-family: Helvetica, Arial, sans-serif;
 }
+
+/* Reisen */
+
+.reisen-trip-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0 1rem;
+}
+
+.reisen-trip-details-full {
+  grid-column: 1 / -1;
+}
+
+.form-label-sm {
+  font-size: 0.8rem;
+  margin-bottom: 0.15rem;
+  color: var(--color-text-muted);
+}
+
+.reisen-day-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.reisen-day-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.reisen-day-number {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--color-primary-dark);
+}
+
+.reisen-day-date {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+.reisen-day-route-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.reisen-day-map {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.reisen-day-map-img {
+  max-width: 100%;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.reisen-day-sub {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--color-border);
+}
+
+.reisen-option-row {
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.reisen-option-selected {
+  border-color: var(--color-primary-dark);
+  box-shadow: 0 0 0 1px var(--color-primary-dark);
+}
+
+.reisen-option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.4rem 0.6rem;
+}
+
+.reisen-acc-notes {
+  grid-column: 1 / -1;
+}
+
+.reisen-option-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.reisen-option-footer .btn-outline-danger {
+  margin-left: auto;
+}
+
+.reisen-selected-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--color-primary-dark);
+  cursor: pointer;
+  margin: 0;
+}
+
+.reisen-transport-group {
+  margin-bottom: 0.5rem;
+}
+
+.reisen-transport-group-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin: 0 0 0.35rem;
+}
+
+.reisen-acc-image {
+  margin-bottom: 0.6rem;
+}
+
+.reisen-acc-image img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.reisen-badge {
+  display: inline-block;
+  padding: 0.2em 0.6em;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.reisen-badge-idea {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.reisen-badge-considering {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.reisen-badge-booked {
+  background: #d1e7dd;
+  color: #0f5132;
+}
+
+.reisen-link-row {
+  grid-template-columns: minmax(120px, 1fr) minmax(160px, 2fr) auto auto;
+}
+
+.reisen-budget-row {
+  grid-template-columns: minmax(140px, 2fr) minmax(90px, 1fr) 70px minmax(120px, 2fr) auto;
+}
+
+.reisen-budget-total {
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin: 0.5rem 0 0;
+}
+
+.reisen-expense-participants {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+  margin-top: 0.6rem;
+}
+
+.reisen-participant-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+  margin: 0;
+  cursor: pointer;
+}
+
+.reisen-balance-block {
+  margin-bottom: 1rem;
+}
+
+.reisen-balance-currency {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  margin-bottom: 0.4rem;
+}
+
+.reisen-balance-row,
+.reisen-settle-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-soft);
+  margin-bottom: 0.3rem;
+  font-size: 0.92rem;
+}
+
+.reisen-balance-positive span:last-child {
+  color: #0f5132;
+  font-weight: 600;
+}
+
+.reisen-balance-negative span:last-child {
+  color: #842029;
+  font-weight: 600;
+}
+
+.reisen-member-row {
+  grid-template-columns: minmax(140px, 1fr) auto auto;
+  align-items: center;
+}
+
+.reisen-member-badges {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.reisen-member-actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.reisen-invite-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.reisen-invite-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.reisen-invite-url {
+  font-size: 0.85rem;
+  word-break: break-all;
+  color: var(--color-primary-dark);
+}
+
+.reisen-invite-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.reisen-invite-trip-name {
+  font-size: 1.25rem;
+  color: var(--color-primary-dark);
+  margin-bottom: 0.25rem;
+}
+
+.reisen-upload-btn {
+  margin: 0;
+}

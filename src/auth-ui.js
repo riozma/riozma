@@ -7,6 +7,7 @@ async function initAuthUI(options = {}) {
     loginContainerId = "auth-container",
     mode = "compact",
     showGoogle = true,
+    leadText = "Melde dich an, um Veranstaltungen zu planen.",
   } = options;
 
   const container = document.getElementById(loginContainerId);
@@ -20,13 +21,13 @@ async function initAuthUI(options = {}) {
 
   const authResult = await completeAuthFromUrl(client);
 
-  authInstances.set(loginContainerId, { container, onAuthChange, mode, showGoogle, client, pendingAuthError: authResult.error });
+  authInstances.set(loginContainerId, { container, onAuthChange, mode, showGoogle, leadText, client, pendingAuthError: authResult.error });
   container.classList.toggle("auth-container-discreet", mode === "discreet");
 
   async function renderContainer(loginContainerId, session) {
     const inst = authInstances.get(loginContainerId);
     if (!inst) return;
-    const { container, onAuthChange, mode, showGoogle, client, pendingAuthError } = inst;
+    const { container, onAuthChange, mode, showGoogle, leadText, client, pendingAuthError } = inst;
 
     if (session) {
       const logoutId = `auth-logout-${loginContainerId}`;
@@ -73,7 +74,7 @@ async function initAuthUI(options = {}) {
       const fullClass = mode === "full" ? "auth-panel-full" : "";
       container.innerHTML = `
         <div class="auth-panel ${fullClass}">
-          ${mode === "full" ? `<h2 class="auth-panel-title">Anmelden</h2><p class="auth-panel-lead">Melde dich an, um Veranstaltungen zu planen.</p>` : ""}
+          ${mode === "full" ? `<h2 class="auth-panel-title">Anmelden</h2><p class="auth-panel-lead">${escapeHtml(leadText)}</p>` : ""}
           ${showGoogle ? `<button type="button" class="btn btn-google w-100" data-google="${loginContainerId}"><span>G</span> Mit Google anmelden</button><div class="auth-divider"><span>oder</span></div>` : ""}
           ${mode === "compact" ? `<button type="button" class="btn btn-sm btn-outline-secondary" data-toggle-form="${loginContainerId}">Mit E-Mail anmelden</button>` : ""}
           <form id="${formId}" class="auth-form ${mode === "compact" ? "d-none" : ""}">
