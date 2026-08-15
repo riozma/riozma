@@ -111,6 +111,17 @@ img {
   padding: 0.4rem 0.85rem !important;
 }
 
+@media (min-width: 992px) and (max-width: 1300px) {
+  .nav-trouvo-only .nav-link {
+    padding: 0.4rem 0.6rem !important;
+    font-size: 0.85rem;
+  }
+
+  .trouvo-event-title-bar {
+    font-size: 0.95rem;
+  }
+}
+
 .nav-trouvo-only .nav-link:not(.active):hover {
   background: rgba(61, 79, 58, 0.1);
   color: var(--color-primary-dark) !important;
@@ -2546,18 +2557,36 @@ dialog.guest-register-dialog h2 {
   position: relative;
 }
 
+@media (min-width: 992px) {
+  .trouvo-navbar.navbar {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+  }
+
+  .trouvo-navbar .navbar-brand {
+    flex: 0 0 auto;
+  }
+
+  .trouvo-navbar .navbar-collapse {
+    flex: 0 0 auto;
+  }
+
+  .trouvo-navbar .navbar-nav {
+    flex-wrap: nowrap;
+  }
+}
+
 .trouvo-event-title-bar {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: center;
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--color-primary-dark);
-  max-width: 40%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  pointer-events: none;
+  padding: 0 0.5rem;
 }
 
 .trouvo-event-title-bar-mobile {
