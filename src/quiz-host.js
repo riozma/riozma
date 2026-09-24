@@ -7,6 +7,8 @@ let quizHost = {
   renderedKey: null,
   timerInterval: null,
   answerPollInterval: null,
+  totalPlayers: 0,
+  revealTriggered: false,
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -93,6 +95,12 @@ async function revealAnswers() {
   await updateSession({ status: "reveal" });
 }
 
+async function triggerAutoReveal() {
+  if (quizHost.revealTriggered || quizHost.session.status !== "question") return;
+  quizHost.revealTriggered = true;
+  await revealAnswers();
+}
+
 async function showLeaderboardStep() {
   await updateSession({ status: "leaderboard" });
 }
@@ -134,6 +142,7 @@ async function renderHostState(session) {
   if (session.status === "question") {
     showHostSection("host-question");
     if (isNewState) {
+      quizHost.revealTriggered = false;
       renderHostQuestion(quizHost.questions[session.current_question_index]);
       startTimer(session.question_started_at, quizHost.questions[session.current_question_index].time_limit_sec);
       startAnswerPoll();
@@ -151,7 +160,7 @@ async function renderHostState(session) {
 
   if (session.status === "leaderboard") {
     showHostSection("host-leaderboard");
-    await renderHostLeaderboard("host-leaderboard-list");
+    await renderHostLeaderboard("host-leaderboard-list", 10);
     return;
   }
 
@@ -159,7 +168,7 @@ async function renderHostState(session) {
     stopTimer();
     stopAnswerPoll();
     showHostSection("host-ended");
-    await renderHostLeaderboard("host-final-leaderboard-list");
+    await renderHostLeaderboard("host-final-leaderboard-list", null);
   }
 }
 
@@ -209,18 +218,28 @@ function renderHostQuestion(question) {
   document.getElementById("host-answer-count").textContent = "";
 }
 
-function startAnswerPoll() {
+async function startAnswerPoll() {
   stopAnswerPoll();
   const question = quizHost.questions[quizHost.session.current_question_index];
+
+  const { count: playerCount } = await quizHost.client
+    .from("quiz_players")
+    .select("id", { count: "exact", head: true })
+    .eq("session_id", quizHost.session.id);
+  quizHost.totalPlayers = playerCount || 0;
+
   const tick = async () => {
     const { count } = await quizHost.client
       .from("quiz_answers")
       .select("id", { count: "exact", head: true })
       .eq("question_id", question.id);
-    document.getElementById("host-answer-count").textContent = `${count || 0} Antwort(en) abgegeben`;
+    document.getElementById("host-answer-count").textContent = `${count || 0} von ${quizHost.totalPlayers} haben geantwortet`;
+    if (quizHost.totalPlayers > 0 && (count || 0) >= quizHost.totalPlayers) {
+      await triggerAutoReveal();
+    }
   };
   tick();
-  quizHost.answerPollInterval = setInterval(tick, 2000);
+  quizHost.answerPollInterval = setInterval(tick, 1500);
 }
 
 function stopAnswerPoll() {
@@ -251,9 +270,11 @@ async function renderRevealBars(question) {
   }).join("");
 }
 
-async function renderHostLeaderboard(targetId) {
-  const { data: players } = await quizHost.client
-    .from("quiz_players").select("*").eq("session_id", quizHost.session.id).order("score", { ascending: false }).limit(10);
+async function renderHostLeaderboard(targetId, limit) {
+  let query = quizHost.client
+    .from("quiz_players").select("*").eq("session_id", quizHost.session.id).order("score", { ascending: false });
+  if (limit) query = query.limit(limit);
+  const { data: players } = await query;
   document.getElementById(targetId).innerHTML = (players || []).map((p, idx) => `
     <div class="quiz-leaderboard-row">
       <span class="quiz-leaderboard-rank">${idx + 1}</span>
@@ -270,7 +291,10 @@ function startTimer(startedAt, limitSec) {
     const elapsed = (Date.now() - startMs) / 1000;
     const remaining = Math.max(0, Math.ceil(limitSec - elapsed));
     timerEl.textContent = String(remaining);
-    if (remaining <= 0) stopTimer();
+    if (remaining <= 0) {
+      stopTimer();
+      triggerAutoReveal();
+    }
   }
   tick();
   quizHost.timerInterval = setInterval(tick, 250);

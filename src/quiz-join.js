@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   quizJoin.client = getSupabase();
   quizJoin.clientToken = getQuizClientToken();
 
-  const codeFromUrl = new URLSearchParams(window.location.search).get("code");
+  const codeFromUrl = new URLSearchParams(window.location.search).get("c");
   const codeInput = document.getElementById("input-code");
   if (codeFromUrl) codeInput.value = codeFromUrl.replace(/\D/g, "").slice(0, 6);
 

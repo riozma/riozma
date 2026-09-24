@@ -35,7 +35,9 @@ function quizImageUrl(path) {
 }
 
 function quizJoinUrl(code) {
-  return siteUrl(`/quiz/join.html?code=${encodeURIComponent(code)}`);
+  // Param must not be named/contain "code" — site-init.js treats any "?...code=..." as an
+  // OAuth PKCE return and redirects away before this page's own script can read it.
+  return siteUrl(`/quiz/join.html?c=${encodeURIComponent(code)}`);
 }
 
 const QUIZ_POINTS_MODE_LABELS = {
