@@ -249,6 +249,7 @@ async function startAnswerPoll() {
     const { count } = await quizHost.client
       .from("quiz_answers")
       .select("id", { count: "exact", head: true })
+      .eq("session_id", quizHost.session.id)
       .eq("question_id", question.id);
     document.getElementById("host-answer-count").textContent = `${count || 0} von ${quizHost.totalPlayers} haben geantwortet`;
     if (quizHost.totalPlayers > 0 && (count || 0) >= quizHost.totalPlayers) {
