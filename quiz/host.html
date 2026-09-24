@@ -18,6 +18,7 @@
       <a href="/quiz/library.html" class="quiz-back-link" aria-label="Zurück">←</a>
       <span class="quiz-topbar-title" id="host-quiz-title"></span>
       <span class="quiz-topbar-code d-none" id="host-topbar-code"></span>
+      <button type="button" class="quiz-topbar-end-btn d-none" id="btn-end-quiz">Quiz beenden</button>
     </div>
 
     <section class="quiz-host-stage">
@@ -39,12 +40,13 @@
       </div>
 
       <div id="host-question" class="d-none" style="display:flex;flex-direction:column;align-items:center;gap:1rem;">
-        <div class="quiz-timer-badge" id="host-timer">--</div>
+        <div class="quiz-timer-badge d-none" id="host-timer">--</div>
         <p class="quiz-question-text" id="host-question-text"></p>
         <img id="host-question-image" class="quiz-question-image d-none">
-        <div class="quiz-answer-grid" id="host-answer-grid" style="max-width:640px;"></div>
+        <p class="quiz-waiting-banner d-none" id="host-intro-caption">Antworten erscheinen gleich …</p>
+        <div class="quiz-answer-grid d-none" id="host-answer-grid" style="max-width:640px;"></div>
         <p class="quiz-host-progress" id="host-answer-count"></p>
-        <div class="quiz-toolbar">
+        <div class="quiz-toolbar d-none" id="host-reveal-toolbar">
           <button type="button" class="quiz-btn quiz-btn-primary" id="btn-reveal">Antworten anzeigen</button>
         </div>
       </div>
@@ -72,10 +74,6 @@
           <button type="button" class="quiz-btn quiz-btn-primary" id="btn-restart-quiz" style="max-width:280px;">Neu starten (frische Runde)</button>
           <a class="quiz-btn quiz-btn-secondary-outline" href="/quiz/library.html" style="max-width:280px;">Zurück zu meinen Quizzes</a>
         </div>
-      </div>
-
-      <div class="quiz-toolbar" id="host-end-toolbar">
-        <button type="button" class="quiz-btn quiz-btn-danger" id="btn-end-quiz" style="max-width:200px;">Quiz beenden</button>
       </div>
     </section>
   </div>

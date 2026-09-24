@@ -64,6 +64,7 @@ async function loadQuiz() {
   document.getElementById("settings-max-players").value = quiz.max_players ?? "";
   document.getElementById("settings-points-mode").value = quiz.points_mode;
   document.getElementById("settings-points-value").value = quiz.points_per_question;
+  document.getElementById("settings-no-projector").checked = !!quiz.no_projector_mode;
 
   await loadQuestions();
 }
@@ -228,6 +229,7 @@ async function saveSettings() {
     max_players: maxPlayersRaw ? Number(maxPlayersRaw) : null,
     points_mode: document.getElementById("settings-points-mode").value,
     points_per_question: Number(document.getElementById("settings-points-value").value) || 0,
+    no_projector_mode: document.getElementById("settings-no-projector").checked,
   };
   const { error } = await client.from("quizzes").update(payload).eq("id", quizEditId);
   if (!error) {

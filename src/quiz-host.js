@@ -9,6 +9,7 @@ let quizHost = {
   answerPollInterval: null,
   totalPlayers: 0,
   revealTriggered: false,
+  introTimeout: null,
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -103,12 +104,16 @@ async function updateSession(patch) {
 }
 
 async function startQuiz() {
-  await updateSession({ status: "question", current_question_index: 0, question_started_at: new Date().toISOString() });
+  await updateSession({
+    status: "question", current_question_index: 0,
+    question_started_at: new Date().toISOString(), answer_started_at: null,
+  });
 }
 
 async function revealAnswers() {
   stopTimer();
   stopAnswerPoll();
+  stopIntroTimer();
   await updateSession({ status: "reveal" });
 }
 
@@ -128,24 +133,28 @@ async function nextQuestion() {
     await updateSession({ status: "ended", ended_at: new Date().toISOString() });
     return;
   }
-  await updateSession({ status: "question", current_question_index: next, question_started_at: new Date().toISOString() });
+  await updateSession({
+    status: "question", current_question_index: next,
+    question_started_at: new Date().toISOString(), answer_started_at: null,
+  });
 }
 
 async function endQuiz() {
   if (!confirm("Quiz jetzt beenden?")) return;
   stopTimer();
   stopAnswerPoll();
+  stopIntroTimer();
   await updateSession({ status: "ended", ended_at: new Date().toISOString() });
 }
 
 function showHostSection(...ids) {
   ["host-lobby", "host-players-wrap", "host-question", "host-reveal", "host-leaderboard", "host-ended"]
     .forEach((sid) => document.getElementById(sid).classList.toggle("d-none", !ids.includes(sid)));
-  document.getElementById("host-end-toolbar").classList.toggle("d-none", ids.includes("host-ended"));
+  document.getElementById("btn-end-quiz").classList.toggle("d-none", ids.includes("host-ended"));
 }
 
 async function renderHostState(session) {
-  const key = `${session.status}:${session.current_question_index}`;
+  const key = `${session.status}:${session.current_question_index}:${session.answer_started_at ? "open" : "intro"}`;
   const isNewState = key !== quizHost.renderedKey;
   quizHost.renderedKey = key;
 
@@ -158,10 +167,31 @@ async function renderHostState(session) {
 
   if (session.status === "question") {
     showHostSection("host-question");
+    const question = quizHost.questions[session.current_question_index];
+
+    if (!session.answer_started_at) {
+      if (isNewState) {
+        quizHost.revealTriggered = false;
+        renderHostQuestionText(question);
+        document.getElementById("host-timer").classList.add("d-none");
+        document.getElementById("host-answer-grid").classList.add("d-none");
+        document.getElementById("host-reveal-toolbar").classList.add("d-none");
+        document.getElementById("host-intro-caption").classList.remove("d-none");
+        document.getElementById("host-answer-count").textContent = "";
+      }
+      scheduleIntroReveal(session, question);
+      return;
+    }
+
     if (isNewState) {
-      quizHost.revealTriggered = false;
-      renderHostQuestion(quizHost.questions[session.current_question_index]);
-      startTimer(session.question_started_at, quizHost.questions[session.current_question_index].time_limit_sec);
+      stopIntroTimer();
+      renderHostQuestionText(question);
+      renderHostAnswerGrid(question);
+      document.getElementById("host-timer").classList.remove("d-none");
+      document.getElementById("host-answer-grid").classList.remove("d-none");
+      document.getElementById("host-reveal-toolbar").classList.remove("d-none");
+      document.getElementById("host-intro-caption").classList.add("d-none");
+      startTimer(session.answer_started_at, question.time_limit_sec);
       startAnswerPoll();
     }
     return;
@@ -170,6 +200,7 @@ async function renderHostState(session) {
   if (session.status === "reveal") {
     stopTimer();
     stopAnswerPoll();
+    stopIntroTimer();
     showHostSection("host-reveal");
     await renderRevealBars(quizHost.questions[session.current_question_index]);
     return;
@@ -184,9 +215,31 @@ async function renderHostState(session) {
   if (session.status === "ended") {
     stopTimer();
     stopAnswerPoll();
+    stopIntroTimer();
     showHostSection("host-ended");
     await renderHostLeaderboard("host-final-leaderboard-list", null);
   }
+}
+
+function scheduleIntroReveal(session, question) {
+  if (quizHost.introTimeout) return;
+  const delayMs = quizIntroDelaySec(question.question_text) * 1000;
+  const targetMs = new Date(session.question_started_at).getTime() + delayMs;
+  const remaining = Math.max(0, targetMs - Date.now());
+  quizHost.introTimeout = setTimeout(openAnswering, remaining);
+}
+
+function stopIntroTimer() {
+  if (quizHost.introTimeout) {
+    clearTimeout(quizHost.introTimeout);
+    quizHost.introTimeout = null;
+  }
+}
+
+async function openAnswering() {
+  quizHost.introTimeout = null;
+  if (quizHost.session.status !== "question" || quizHost.session.answer_started_at) return;
+  await updateSession({ answer_started_at: new Date().toISOString() });
 }
 
 function renderQrAndCode() {
@@ -215,13 +268,15 @@ function escapeHtmlLocalHost(str) {
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-function renderHostQuestion(question) {
+function renderHostQuestionText(question) {
   document.getElementById("host-question-text").textContent = question.question_text;
   const img = document.getElementById("host-question-image");
   const url = question.image_path ? quizImageUrl(question.image_path) : "";
   img.src = url;
   img.classList.toggle("d-none", !url);
+}
 
+function renderHostAnswerGrid(question) {
   const grid = document.getElementById("host-answer-grid");
   grid.innerHTML = question.quiz_question_options.map((opt) => {
     const tile = QUIZ_TILE_STYLES[opt.sort_order];

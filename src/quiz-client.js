@@ -49,3 +49,10 @@ const QUIZ_POINTS_MODE_LABELS = {
 function quizFormatScore(n) {
   return new Intl.NumberFormat("de-CH").format(Math.round(n || 0));
 }
+
+function quizIntroDelaySec(questionText) {
+  const len = (questionText || "").trim().length;
+  if (len <= 40) return 3;
+  if (len <= 90) return 4;
+  return 5;
+}

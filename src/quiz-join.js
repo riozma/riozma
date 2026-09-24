@@ -113,12 +113,12 @@ function subscribeSession() {
 }
 
 function showGameSection(id) {
-  ["game-lobby", "game-question", "game-answered", "game-reveal", "game-leaderboard", "game-ended"]
+  ["game-lobby", "game-intro", "game-question", "game-answered", "game-reveal", "game-leaderboard", "game-ended"]
     .forEach((sid) => document.getElementById(sid).classList.toggle("d-none", sid !== id));
 }
 
 async function renderGameState(session) {
-  const key = `${session.status}:${session.current_question_index}`;
+  const key = `${session.status}:${session.current_question_index}:${session.answer_started_at ? "open" : "intro"}`;
   const isNewState = key !== quizJoin.renderedKey;
   quizJoin.renderedKey = key;
 
@@ -129,11 +129,14 @@ async function renderGameState(session) {
   }
 
   if (session.status === "question") {
-    if (isNewState) {
+    if (!isNewState) return;
+    if (!session.answer_started_at) {
       quizJoin.answered = false;
       quizJoin.lastResult = null;
-      await loadCurrentQuestion(session);
+      await loadQuestionIntro();
+      return;
     }
+    await loadCurrentQuestion(session);
     return;
   }
 
@@ -189,14 +192,44 @@ function escapeHtmlLocal(str) {
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-async function loadCurrentQuestion(session) {
+async function fetchCurrentQuestion() {
   const { data, error } = await quizJoin.client.rpc("get_quiz_current_question", {
     p_session_id: quizJoin.sessionId,
     p_client_token: quizJoin.clientToken,
   });
-  if (error || !data || !data.length) return;
+  if (error || !data || !data.length) return null;
   const q = Array.isArray(data) ? data[0] : data;
   quizJoin.questionMeta = q;
+  return q;
+}
+
+async function loadQuestionIntro() {
+  const q = await fetchCurrentQuestion();
+  if (!q) return;
+
+  const textEl = document.getElementById("intro-question-text");
+  const imgEl = document.getElementById("intro-question-image");
+  const captionEl = document.getElementById("intro-caption");
+
+  if (q.no_projector_mode) {
+    textEl.textContent = q.question_text;
+    textEl.classList.remove("d-none");
+    const url = q.image_path ? quizImageUrl(q.image_path) : "";
+    imgEl.src = url;
+    imgEl.classList.toggle("d-none", !url);
+    captionEl.textContent = "Antworten erscheinen gleich …";
+  } else {
+    textEl.classList.add("d-none");
+    imgEl.classList.add("d-none");
+    captionEl.textContent = "📺 Schau auf den Beamer – die Frage wird gleich angezeigt!";
+  }
+
+  showGameSection("game-intro");
+}
+
+async function loadCurrentQuestion(session) {
+  const q = await fetchCurrentQuestion();
+  if (!q) return;
 
   if (q.already_answered) {
     quizJoin.answered = true;
@@ -206,7 +239,7 @@ async function loadCurrentQuestion(session) {
 
   renderAnswerGrid(q);
   showGameSection("game-question");
-  startTimer(q.question_started_at, q.time_limit_sec);
+  startTimer(q.answer_started_at || session.answer_started_at, q.time_limit_sec);
 }
 
 function renderAnswerGrid(q) {
@@ -220,6 +253,7 @@ function renderAnswerGrid(q) {
     return `
       <button type="button" class="quiz-answer-tile" data-option-id="${opt.id}" style="background:${tile.color}">
         <span class="quiz-answer-tile-icon">${quizShapeSvg(tile.shape)}</span>
+        ${q.no_projector_mode ? `<span class="quiz-answer-tile-label">${escapeHtmlLocal(opt.option_text)}</span>` : ""}
       </button>`;
   }).join("");
 
