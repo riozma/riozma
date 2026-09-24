@@ -209,6 +209,7 @@ async function renderHostState(session) {
       const url = question.image_path ? quizImageUrl(question.image_path) : "";
       img.src = url;
       img.classList.toggle("d-none", !url);
+      document.getElementById("host-collect").classList.toggle("has-image", !!url);
     }
     startCollectPoll(question);
     return;
@@ -331,6 +332,7 @@ function renderHostQuestionText(question) {
   const url = question.image_path ? quizImageUrl(question.image_path) : "";
   img.src = url;
   img.classList.toggle("d-none", !url);
+  document.getElementById("host-question").classList.toggle("has-image", !!url);
 }
 
 function renderHostAnswerGrid(question) {

@@ -39,26 +39,34 @@
         <div class="quiz-host-players" id="host-players"></div>
       </div>
 
-      <div id="host-collect" class="d-none" style="display:flex;flex-direction:column;align-items:center;gap:1rem;">
-        <p class="quiz-question-text" id="host-collect-text"></p>
-        <img id="host-collect-image" class="quiz-question-image d-none">
-        <p class="quiz-waiting-banner">Alle schreiben ihre Antwort auf dem Handy …</p>
-        <p class="quiz-host-progress" id="host-collect-count"></p>
-        <div class="quiz-toolbar">
-          <button type="button" class="quiz-btn quiz-btn-primary" id="btn-collect-next">Weiter zur Abstimmung</button>
+      <div id="host-collect" class="d-none quiz-host-media-stage">
+        <div class="quiz-host-media-top" id="host-collect-media-top">
+          <img id="host-collect-image" class="d-none">
+        </div>
+        <div class="quiz-host-media-bottom" id="host-collect-media-bottom">
+          <p class="quiz-question-text" id="host-collect-text"></p>
+          <p class="quiz-waiting-banner">Alle schreiben ihre Antwort auf dem Handy …</p>
+          <p class="quiz-host-progress" id="host-collect-count"></p>
+          <div class="quiz-toolbar">
+            <button type="button" class="quiz-btn quiz-btn-primary" id="btn-collect-next">Weiter zur Abstimmung</button>
+          </div>
         </div>
       </div>
 
-      <div id="host-question" class="d-none" style="display:flex;flex-direction:column;align-items:center;gap:1rem;">
-        <div class="quiz-timer-badge d-none" id="host-timer">--</div>
-        <p class="quiz-question-text" id="host-question-text"></p>
-        <img id="host-question-image" class="quiz-question-image d-none">
-        <p class="quiz-waiting-banner d-none" id="host-intro-caption">Antworten erscheinen gleich …</p>
-        <p class="quiz-waiting-banner d-none" id="host-vote-caption">Abstimmung läuft auf den Handys …</p>
-        <div class="quiz-answer-grid d-none" id="host-answer-grid" style="max-width:640px;"></div>
-        <p class="quiz-host-progress" id="host-answer-count"></p>
-        <div class="quiz-toolbar d-none" id="host-reveal-toolbar">
-          <button type="button" class="quiz-btn quiz-btn-primary" id="btn-reveal">Antworten anzeigen</button>
+      <div id="host-question" class="d-none quiz-host-media-stage">
+        <div class="quiz-host-media-top" id="host-question-media-top">
+          <div class="quiz-timer-badge d-none" id="host-timer">--</div>
+          <img id="host-question-image" class="d-none">
+        </div>
+        <div class="quiz-host-media-bottom" id="host-question-media-bottom">
+          <p class="quiz-question-text" id="host-question-text"></p>
+          <p class="quiz-waiting-banner d-none" id="host-intro-caption">Antworten erscheinen gleich …</p>
+          <p class="quiz-waiting-banner d-none" id="host-vote-caption">Abstimmung läuft auf den Handys …</p>
+          <div class="quiz-answer-grid d-none" id="host-answer-grid"></div>
+          <p class="quiz-host-progress" id="host-answer-count"></p>
+          <div class="quiz-toolbar d-none" id="host-reveal-toolbar">
+            <button type="button" class="quiz-btn quiz-btn-primary" id="btn-reveal">Antworten anzeigen</button>
+          </div>
         </div>
       </div>
 
