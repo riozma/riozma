@@ -573,6 +573,15 @@ body.quiz-body {
   flex-shrink: 0;
 }
 
+.quiz-host-bar-label {
+  min-width: 5.5rem;
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
 .quiz-host-bar-track {
   flex: 1;
   background: var(--quiz-surface-soft);

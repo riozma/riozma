@@ -482,6 +482,7 @@ async function renderRevealBars(question) {
     return `
       <div class="quiz-host-bar-row ${s.is_correct ? "is-correct" : ""}">
         <span class="quiz-host-bar-icon" style="color:${tile.color}">${quizShapeSvg(tile.shape)}</span>
+        <span class="quiz-host-bar-label">${escapeHtmlLocalHost(s.option_text)}</span>
         <div class="quiz-host-bar-track"><div class="quiz-host-bar-fill" style="width:${pct}%;background:${tile.color}"></div></div>
         <span class="quiz-host-bar-count">${s.answer_count}</span>
       </div>`;
