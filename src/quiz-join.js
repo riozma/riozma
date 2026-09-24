@@ -1,5 +1,3 @@
-const QUIZ_JOIN_STORAGE_KEY = "quiz_player_state";
-
 let quizJoin = {
   client: null,
   sessionId: null,
@@ -24,32 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   bindCodeStep();
   bindNameStep();
-
-  await tryRestoreSession();
 });
-
-async function tryRestoreSession() {
-  const raw = sessionStorage.getItem(QUIZ_JOIN_STORAGE_KEY);
-  if (!raw) return;
-  try {
-    const saved = JSON.parse(raw);
-    if (!saved.sessionId || !saved.playerId) return;
-    const { data: session } = await quizJoin.client
-      .from("quiz_sessions").select("*").eq("id", saved.sessionId).maybeSingle();
-    if (!session || session.status === "ended") {
-      sessionStorage.removeItem(QUIZ_JOIN_STORAGE_KEY);
-      return;
-    }
-    quizJoin.sessionId = saved.sessionId;
-    quizJoin.playerId = saved.playerId;
-    quizJoin.joinCode = saved.joinCode;
-    enterGameStep();
-    subscribeSession();
-    renderGameState(session);
-  } catch (_) {
-    sessionStorage.removeItem(QUIZ_JOIN_STORAGE_KEY);
-  }
-}
 
 function bindCodeStep() {
   const input = document.getElementById("input-code");
@@ -101,11 +74,6 @@ function bindNameStep() {
       const row = Array.isArray(data) ? data[0] : data;
       quizJoin.sessionId = row.session_id;
       quizJoin.playerId = row.player_id;
-      sessionStorage.setItem(QUIZ_JOIN_STORAGE_KEY, JSON.stringify({
-        sessionId: quizJoin.sessionId,
-        playerId: quizJoin.playerId,
-        joinCode: quizJoin.joinCode,
-      }));
       enterGameStep();
       subscribeSession();
       const { data: session } = await quizJoin.client
@@ -197,7 +165,6 @@ async function renderGameState(session) {
     stopTimer();
     await renderLeaderboard("final-leaderboard-list");
     showGameSection("game-ended");
-    sessionStorage.removeItem(QUIZ_JOIN_STORAGE_KEY);
   }
 }
 
