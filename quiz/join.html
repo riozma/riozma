@@ -40,8 +40,28 @@
       </section>
 
       <section id="step-game" class="quiz-main d-none" style="padding:0;">
-        <div id="game-lobby" class="d-none">
+        <div id="game-lobby" class="d-none" style="display:flex;flex-direction:column;align-items:center;gap:1rem;width:100%;">
           <p class="quiz-waiting-banner">Bitte warten – das Quiz startet bald</p>
+          <div id="pq-box" class="quiz-card d-none">
+            <h2>Eigene Frage erstellen</h2>
+            <p id="pq-status" class="form-text"></p>
+            <div class="quiz-form-group">
+              <textarea id="pq-text" class="quiz-input" rows="2" maxlength="300" placeholder="Deine Frage"></textarea>
+            </div>
+            <div class="quiz-form-group">
+              <label>Antworten – Punkt = richtige Antwort</label>
+              <div class="pq-option"><input type="radio" name="pq-correct" value="0" checked><input type="text" class="quiz-input" id="pq-opt-0" maxlength="120" placeholder="Antwort 1"></div>
+              <div class="pq-option"><input type="radio" name="pq-correct" value="1"><input type="text" class="quiz-input" id="pq-opt-1" maxlength="120" placeholder="Antwort 2"></div>
+              <div class="pq-option"><input type="radio" name="pq-correct" value="2"><input type="text" class="quiz-input" id="pq-opt-2" maxlength="120" placeholder="Antwort 3"></div>
+              <div class="pq-option"><input type="radio" name="pq-correct" value="3"><input type="text" class="quiz-input" id="pq-opt-3" maxlength="120" placeholder="Antwort 4"></div>
+            </div>
+            <p id="pq-error" class="quiz-error"></p>
+            <button type="button" class="quiz-btn quiz-btn-primary" id="btn-pq-submit">Frage hinzufügen</button>
+          </div>
+        </div>
+
+        <div id="game-own" class="d-none">
+          <p class="quiz-waiting-banner">Das ist deine Frage – du antwortest nicht. Bitte warten …</p>
         </div>
 
         <div id="game-intro" class="d-none quiz-intro-stage">

@@ -527,6 +527,7 @@ body.quiz-body {
   align-self: stretch;
   flex: 1 1 auto;
   min-height: 0;
+  height: calc(100dvh - 7rem);
   width: 100%;
   max-width: none;
   display: flex;
@@ -536,7 +537,8 @@ body.quiz-body {
 
 .quiz-host-media-stage.has-image .quiz-host-media-top {
   display: flex;
-  flex: 3 1 0;
+  flex: 1 1 0;
+  max-height: 62vh;
   min-height: 0;
   align-items: center;
   justify-content: center;
@@ -575,14 +577,12 @@ body.quiz-body {
 
 .quiz-host-media-stage.has-image .quiz-host-media-bottom {
   display: flex;
-  flex: 1 1 0;
-  min-height: 0;
+  flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  padding: 0.5rem 1.5rem 1rem;
-  overflow: hidden;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem 0.5rem;
   width: 100%;
 }
 
@@ -905,4 +905,30 @@ body.quiz-body {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+}
+
+.pq-option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.pq-option .quiz-input {
+  flex: 1;
+  font-size: 1rem;
+  padding: 0.55rem 0.75rem;
+}
+
+/* Host answer tiles: always the same wide size, with or without image */
+.quiz-host-media-stage .quiz-answer-grid {
+  max-width: 900px;
+  width: 100%;
+  grid-template-columns: 1fr 1fr;
+}
+
+.quiz-host-media-stage .quiz-answer-grid .quiz-answer-tile {
+  min-height: 56px;
+  padding: 0.6rem 1.2rem;
+  font-size: 1.05rem;
 }

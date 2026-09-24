@@ -43,15 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   topbarCode.textContent = `Code: ${session.join_code}`;
   topbarCode.classList.remove("d-none");
 
-  const { data: questions } = await quizHost.client
-    .from("quiz_questions")
-    .select("*, quiz_question_options(*)")
-    .eq("quiz_id", session.quiz_id)
-    .order("sort_order", { ascending: true });
-  quizHost.questions = (questions || []).map((q) => ({
-    ...q,
-    quiz_question_options: (q.quiz_question_options || []).sort((a, b) => a.sort_order - b.sort_order),
-  }));
+  await loadHostQuestions();
 
   bindHostActions();
   subscribeRealtime();
@@ -82,6 +74,20 @@ function bindHostActions() {
 function bindImageZoom(img) {
   if (!img) return;
   img.addEventListener("click", () => img.classList.toggle("is-zoomed"));
+}
+
+async function loadHostQuestions() {
+  const { data: questions } = await quizHost.client
+    .from("quiz_questions")
+    .select("*, quiz_question_options(*)")
+    .eq("quiz_id", quizHost.session.quiz_id)
+    .or(`session_id.is.null,session_id.eq.${quizHost.session.id}`)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+  quizHost.questions = (questions || []).map((q) => ({
+    ...q,
+    quiz_question_options: (q.quiz_question_options || []).sort((a, b) => a.sort_order - b.sort_order),
+  }));
 }
 
 function currentQuestion() {
@@ -120,6 +126,7 @@ function statusForQuestion(question) {
 }
 
 async function startQuiz() {
+  await loadHostQuestions();
   const question = quizHost.questions[0];
   await updateSession({
     status: statusForQuestion(question), current_question_index: 0,
@@ -379,7 +386,7 @@ async function startAnswerPoll(question) {
     .from("quiz_players")
     .select("id", { count: "exact", head: true })
     .eq("session_id", quizHost.session.id);
-  quizHost.totalPlayers = playerCount || 0;
+  quizHost.totalPlayers = Math.max(0, (playerCount || 0) - (question.author_player_id ? 1 : 0));
 
   const table = ANSWER_TABLE_BY_TYPE[question.question_type] || "quiz_answers";
   const label = question.question_type === "vote_player" || question.question_type === "open_text"

@@ -62,6 +62,11 @@
         <label for="settings-points-value">Punkte pro Frage (max.)</label>
         <input type="number" min="0" id="settings-points-value" class="form-control" value="1000">
       </div>
+      <div class="quiz-form-group" style="max-width: 420px;">
+        <label for="settings-player-questions">Fragen pro Spieler</label>
+        <input type="number" min="0" max="10" id="settings-player-questions" class="form-control" value="0">
+        <div class="form-text">0 = aus. Sonst erstellen die Spieler in der Lobby selbst so viele Fragen (mit 4 Antworten); ihre eigene Frage können sie nicht beantworten.</div>
+      </div>
       <div class="quiz-form-group form-check" style="max-width: 420px;">
         <input type="checkbox" class="form-check-input" id="settings-no-projector">
         <label class="form-check-label" for="settings-no-projector">Ohne Beamer spielen</label>

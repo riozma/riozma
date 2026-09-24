@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   bindCodeStep();
   bindNameStep();
   bindCollectForm();
+  bindPlayerQuestionForm();
 });
 
 function bindCodeStep() {
@@ -113,7 +114,7 @@ function subscribeSession() {
 }
 
 function showGameSection(id) {
-  ["game-lobby", "game-collect", "game-intro", "game-question", "game-answered", "game-reveal", "game-leaderboard", "game-ended"]
+  ["game-lobby", "game-own", "game-collect", "game-intro", "game-question", "game-answered", "game-reveal", "game-leaderboard", "game-ended"]
     .forEach((sid) => document.getElementById(sid).classList.toggle("d-none", sid !== id));
 }
 
@@ -125,6 +126,7 @@ async function renderGameState(session) {
   if (session.status === "lobby") {
     stopTimer();
     showGameSection("game-lobby");
+    refreshPlayerQuestionBox();
     return;
   }
 
@@ -183,6 +185,12 @@ async function renderRevealFeedback() {
   });
   const result = error ? null : (Array.isArray(data) ? data[0] : data);
 
+  if (quizJoin.questionMeta?.is_own_question) {
+    feedback.textContent = "Das war deine Frage";
+    feedback.className = "quiz-feedback";
+    return;
+  }
+
   if (!result || !result.answered) {
     feedback.textContent = "Keine Antwort abgegeben";
     feedback.className = "quiz-feedback";
@@ -238,6 +246,10 @@ async function fetchCurrentQuestion() {
 async function loadQuestionIntro() {
   const q = await fetchCurrentQuestion();
   if (!q) return;
+  if (q.is_own_question) {
+    showGameSection("game-own");
+    return;
+  }
 
   const textEl = document.getElementById("intro-question-text");
   const imgEl = document.getElementById("intro-question-image");
@@ -268,6 +280,10 @@ async function loadQuestionIntro() {
 async function loadCurrentQuestion(session) {
   const q = await fetchCurrentQuestion();
   if (!q) return;
+  if (q.is_own_question) {
+    showGameSection("game-own");
+    return;
+  }
 
   if (q.already_answered) {
     quizJoin.answered = true;
@@ -420,4 +436,54 @@ function stopTimer() {
     clearInterval(quizJoin.timerInterval);
     quizJoin.timerInterval = null;
   }
+}
+
+async function refreshPlayerQuestionBox() {
+  const box = document.getElementById("pq-box");
+  const { data, error } = await quizJoin.client.rpc("get_player_question_info", {
+    p_session_id: quizJoin.sessionId, p_client_token: quizJoin.clientToken,
+  });
+  const info = error ? null : (Array.isArray(data) ? data[0] : data);
+  if (!info || !info.allowed_count) {
+    box.classList.add("d-none");
+    return;
+  }
+  const remaining = info.allowed_count - info.created_count;
+  document.getElementById("pq-status").textContent =
+    `${info.created_count} von ${info.allowed_count} Fragen erstellt. Deine eigenen Fragen kannst du selbst nicht beantworten.`;
+  box.classList.toggle("d-none", remaining <= 0);
+  if (remaining <= 0) {
+    document.querySelector("#game-lobby .quiz-waiting-banner").textContent =
+      "Alle deine Fragen sind erstellt – bitte warten, das Quiz startet bald";
+  }
+}
+
+function bindPlayerQuestionForm() {
+  const btn = document.getElementById("btn-pq-submit");
+  const err = document.getElementById("pq-error");
+  btn.addEventListener("click", async () => {
+    err.textContent = "";
+    const text = document.getElementById("pq-text").value.trim();
+    const options = [0, 1, 2, 3].map((i) => document.getElementById(`pq-opt-${i}`).value.trim());
+    const correct = Number(document.querySelector('input[name="pq-correct"]:checked')?.value ?? 0);
+    if (!text || options.some((o) => !o)) {
+      err.textContent = "Bitte Frage und alle vier Antworten ausfüllen.";
+      return;
+    }
+    btn.disabled = true;
+    try {
+      const { error } = await quizJoin.client.rpc("submit_player_question", {
+        p_session_id: quizJoin.sessionId, p_client_token: quizJoin.clientToken,
+        p_question_text: text, p_options: options, p_correct_index: correct,
+      });
+      if (error) throw new Error(error.message);
+      document.getElementById("pq-text").value = "";
+      [0, 1, 2, 3].forEach((i) => { document.getElementById(`pq-opt-${i}`).value = ""; });
+      await refreshPlayerQuestionBox();
+    } catch (e) {
+      err.textContent = e.message || "Frage konnte nicht gespeichert werden.";
+    } finally {
+      btn.disabled = false;
+    }
+  });
 }

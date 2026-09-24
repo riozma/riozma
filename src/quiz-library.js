@@ -74,6 +74,7 @@ async function loadQuizzes() {
   const { data: counts } = await client
     .from("quiz_questions")
     .select("quiz_id")
+    .is("session_id", null)
     .in("quiz_id", quizzes.map((q) => q.id));
   const countMap = {};
   (counts || []).forEach((r) => {

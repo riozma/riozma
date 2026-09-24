@@ -65,6 +65,7 @@ async function loadQuiz() {
   document.getElementById("settings-points-mode").value = quiz.points_mode;
   document.getElementById("settings-points-value").value = quiz.points_per_question;
   document.getElementById("settings-no-projector").checked = !!quiz.no_projector_mode;
+  document.getElementById("settings-player-questions").value = quiz.player_questions_per_player || 0;
 
   await loadQuestions();
 }
@@ -75,6 +76,7 @@ async function loadQuestions() {
     .from("quiz_questions")
     .select("*, quiz_question_options(*)")
     .eq("quiz_id", quizEditId)
+    .is("session_id", null)
     .order("sort_order", { ascending: true });
 
   if (error) {
@@ -235,6 +237,7 @@ async function saveSettings() {
     points_mode: document.getElementById("settings-points-mode").value,
     points_per_question: Number(document.getElementById("settings-points-value").value) || 0,
     no_projector_mode: document.getElementById("settings-no-projector").checked,
+    player_questions_per_player: Math.max(0, Number(document.getElementById("settings-player-questions").value) || 0),
   };
   const { error } = await client.from("quizzes").update(payload).eq("id", quizEditId);
   if (!error) {
