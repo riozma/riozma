@@ -72,6 +72,23 @@ function bindHostActions() {
   document.getElementById("btn-to-leaderboard").addEventListener("click", showLeaderboardStep);
   document.getElementById("btn-next-question").addEventListener("click", nextQuestion);
   document.getElementById("btn-end-quiz").addEventListener("click", endQuiz);
+  document.getElementById("btn-restart-quiz").addEventListener("click", restartQuiz);
+}
+
+async function restartQuiz(e) {
+  const btn = e.currentTarget;
+  btn.disabled = true;
+  btn.textContent = "Starte…";
+  const { data, error } = await quizHost.client.rpc("create_quiz_session", { p_quiz_id: quizHost.quiz.id });
+  if (error) {
+    alert(error.message);
+    btn.disabled = false;
+    btn.textContent = "Neu starten (frische Runde)";
+    return;
+  }
+  // Full navigation (not a state reset) guarantees a completely fresh session:
+  // new join code, zero players, question index back at -1.
+  window.location.href = `/quiz/host.html?session=${encodeURIComponent(data.id)}`;
 }
 
 async function updateSession(patch) {

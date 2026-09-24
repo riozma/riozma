@@ -7,7 +7,6 @@ let quizJoin = {
   joinCode: null,
   clientToken: null,
   channel: null,
-  selected: new Set(),
   answered: false,
   lastResult: null,
   renderedKey: null,
@@ -163,7 +162,6 @@ async function renderGameState(session) {
 
   if (session.status === "question") {
     if (isNewState) {
-      quizJoin.selected = new Set();
       quizJoin.answered = false;
       quizJoin.lastResult = null;
       await loadCurrentQuestion(session);
@@ -246,11 +244,11 @@ async function loadCurrentQuestion(session) {
 
 function renderAnswerGrid(q) {
   const grid = document.getElementById("answer-grid");
-  const confirmBtn = document.getElementById("btn-confirm-answer");
-  quizJoin.selected = new Set();
-  confirmBtn.classList.add("d-none");
+  const options = q.options || [];
+  grid.style.gridTemplateColumns = "1fr 1fr";
+  grid.style.gridTemplateRows = options.length > 2 ? "1fr 1fr" : "1fr";
 
-  grid.innerHTML = (q.options || []).map((opt) => {
+  grid.innerHTML = options.map((opt) => {
     const tile = QUIZ_TILE_STYLES[opt.sort_order];
     return `
       <button type="button" class="quiz-answer-tile" data-option-id="${opt.id}" style="background:${tile.color}">
@@ -259,41 +257,30 @@ function renderAnswerGrid(q) {
   }).join("");
 
   grid.querySelectorAll("[data-option-id]").forEach((tile) => {
-    tile.addEventListener("click", () => {
-      const id = tile.dataset.optionId;
-      if (quizJoin.selected.has(id)) {
-        quizJoin.selected.delete(id);
-        tile.classList.remove("is-selected");
-      } else {
-        quizJoin.selected.add(id);
-        tile.classList.add("is-selected");
-      }
-      confirmBtn.classList.toggle("d-none", quizJoin.selected.size === 0);
-    });
+    tile.addEventListener("click", () => submitAnswer(tile.dataset.optionId), { once: true });
   });
-
-  confirmBtn.onclick = submitAnswer;
 }
 
-async function submitAnswer() {
-  if (quizJoin.answered || !quizJoin.selected.size) return;
+async function submitAnswer(optionId) {
+  if (quizJoin.answered) return;
   quizJoin.answered = true;
   stopTimer();
-  const confirmBtn = document.getElementById("btn-confirm-answer");
-  confirmBtn.disabled = true;
+  document.querySelectorAll("#answer-grid [data-option-id]").forEach((t) => {
+    t.disabled = true;
+    t.classList.toggle("is-selected", t.dataset.optionId === optionId);
+  });
 
   try {
     const { data, error } = await quizJoin.client.rpc("submit_quiz_answer", {
       p_session_id: quizJoin.sessionId,
       p_client_token: quizJoin.clientToken,
-      p_option_ids: Array.from(quizJoin.selected),
+      p_option_ids: [optionId],
     });
     if (error) throw new Error(error.message);
     quizJoin.lastResult = Array.isArray(data) ? data[0] : data;
   } catch (_) {
     quizJoin.lastResult = null;
   }
-  confirmBtn.disabled = false;
   showGameSection("game-answered");
 }
 

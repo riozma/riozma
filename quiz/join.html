@@ -44,10 +44,9 @@
           <p class="quiz-waiting-banner">Bitte warten – das Quiz startet bald</p>
         </div>
 
-        <div id="game-question" class="d-none" style="display:flex;flex-direction:column;align-items:center;gap:1rem;">
-          <div class="quiz-timer-badge" id="question-timer">--</div>
-          <div class="quiz-answer-grid" id="answer-grid"></div>
-          <button type="button" class="quiz-btn quiz-btn-primary d-none" id="btn-confirm-answer" style="max-width:320px;">Antwort abgeben</button>
+        <div id="game-question" class="d-none quiz-fullscreen-question">
+          <div class="quiz-timer-badge quiz-timer-badge-float" id="question-timer">--</div>
+          <div class="quiz-answer-grid quiz-answer-grid-fullscreen" id="answer-grid"></div>
         </div>
 
         <div id="game-answered" class="d-none">
