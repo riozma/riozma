@@ -229,7 +229,13 @@ async function renderHostState(session) {
         document.getElementById("host-reveal-toolbar").classList.add("d-none");
         document.getElementById("host-vote-caption").classList.add("d-none");
         document.getElementById("host-intro-caption").classList.remove("d-none");
+        document.getElementById("host-intro-ring").classList.remove("d-none");
         document.getElementById("host-answer-count").textContent = "";
+        quizStartRingCountdown(
+          document.getElementById("host-intro-ring"),
+          session.question_started_at,
+          quizIntroDelaySec(question.question_text),
+        );
       }
       scheduleIntroReveal(session, question);
       return;
@@ -241,6 +247,7 @@ async function renderHostState(session) {
       document.getElementById("host-timer").classList.remove("d-none");
       document.getElementById("host-reveal-toolbar").classList.remove("d-none");
       document.getElementById("host-intro-caption").classList.add("d-none");
+      document.getElementById("host-intro-ring").classList.add("d-none");
       if (isTileType) {
         renderHostAnswerGrid(question);
         document.getElementById("host-answer-grid").classList.remove("d-none");

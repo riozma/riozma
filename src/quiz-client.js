@@ -63,3 +63,34 @@ function quizIntroDelaySec(questionText) {
   if (len <= 90) return 4;
   return 5;
 }
+
+const QUIZ_RING_RADIUS = 18;
+const QUIZ_RING_CIRCUMFERENCE = 2 * Math.PI * QUIZ_RING_RADIUS;
+
+function quizRingSvg() {
+  return `
+    <svg class="quiz-intro-ring" viewBox="0 0 44 44">
+      <circle class="quiz-intro-ring-bg" cx="22" cy="22" r="${QUIZ_RING_RADIUS}"></circle>
+      <circle class="quiz-intro-ring-fg" cx="22" cy="22" r="${QUIZ_RING_RADIUS}"></circle>
+    </svg>`;
+}
+
+// Draws a countdown ring that empties from "now" until totalSec after startedAt.
+// Safe to call again after a reload — it resumes at the correct remaining fraction.
+function quizStartRingCountdown(container, startedAt, totalSec) {
+  if (!container || !totalSec) return;
+  container.innerHTML = quizRingSvg();
+  const fg = container.querySelector(".quiz-intro-ring-fg");
+  const elapsedSec = startedAt ? (Date.now() - new Date(startedAt).getTime()) / 1000 : 0;
+  const remainingSec = Math.max(0, totalSec - elapsedSec);
+  const elapsedFrac = Math.min(1, Math.max(0, 1 - remainingSec / totalSec));
+
+  fg.style.strokeDasharray = `${QUIZ_RING_CIRCUMFERENCE}`;
+  fg.style.transition = "none";
+  fg.style.strokeDashoffset = `${QUIZ_RING_CIRCUMFERENCE * elapsedFrac}`;
+  void fg.getBoundingClientRect();
+  fg.style.transition = `stroke-dashoffset ${remainingSec}s linear`;
+  requestAnimationFrame(() => {
+    fg.style.strokeDashoffset = `${QUIZ_RING_CIRCUMFERENCE}`;
+  });
+}

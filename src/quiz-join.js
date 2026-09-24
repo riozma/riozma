@@ -256,6 +256,12 @@ async function loadQuestionIntro() {
     captionEl.textContent = "📺 Schau auf den Beamer – die Frage wird gleich angezeigt!";
   }
 
+  quizStartRingCountdown(
+    document.getElementById("intro-ring"),
+    q.question_started_at,
+    quizIntroDelaySec(q.question_text),
+  );
+
   showGameSection("game-intro");
 }
 
