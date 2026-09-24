@@ -36,6 +36,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   quizHost.quiz = quiz;
   document.getElementById("host-quiz-title").textContent = quiz?.title || "";
 
+  const topbarCode = document.getElementById("host-topbar-code");
+  topbarCode.textContent = `Code: ${session.join_code}`;
+  topbarCode.classList.remove("d-none");
+
   const { data: questions } = await quizHost.client
     .from("quiz_questions")
     .select("*, quiz_question_options(*)")
@@ -162,9 +166,13 @@ async function renderHostState(session) {
 function renderQrAndCode() {
   document.getElementById("host-code").textContent = quizHost.session.join_code;
   const canvas = document.getElementById("host-qr");
-  if (window.QRCode) {
-    QRCode.toCanvas(canvas, quizJoinUrl(quizHost.session.join_code), { width: 220 });
+  if (!window.QRCode) {
+    console.error("QRCode-Bibliothek nicht geladen.");
+    return;
   }
+  QRCode.toCanvas(canvas, quizJoinUrl(quizHost.session.join_code), { width: 220 }, (err) => {
+    if (err) console.error("QR-Code konnte nicht erzeugt werden:", err);
+  });
 }
 
 async function refreshLobbyIfVisible() {

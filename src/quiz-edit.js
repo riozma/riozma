@@ -60,6 +60,7 @@ async function loadQuiz() {
   }
   quizEditData = quiz;
   document.getElementById("quiz-title-input").value = quiz.title || "";
+  document.getElementById("settings-title").value = quiz.title || "";
   document.getElementById("settings-max-players").value = quiz.max_players ?? "";
   document.getElementById("settings-points-mode").value = quiz.points_mode;
   document.getElementById("settings-points-value").value = quiz.points_per_question;
@@ -212,6 +213,8 @@ async function openQuestionDialog(questionId) {
 async function saveTitle() {
   const client = getSupabase();
   const title = document.getElementById("quiz-title-input").value.trim() || "Ohne Titel";
+  document.getElementById("quiz-title-input").value = title;
+  document.getElementById("settings-title").value = title;
   await client.from("quizzes").update({ title }).eq("id", quizEditId);
 }
 
@@ -219,12 +222,18 @@ async function saveSettings() {
   const client = getSupabase();
   const msg = document.getElementById("settings-message");
   const maxPlayersRaw = document.getElementById("settings-max-players").value;
+  const title = document.getElementById("settings-title").value.trim() || "Ohne Titel";
   const payload = {
+    title,
     max_players: maxPlayersRaw ? Number(maxPlayersRaw) : null,
     points_mode: document.getElementById("settings-points-mode").value,
     points_per_question: Number(document.getElementById("settings-points-value").value) || 0,
   };
   const { error } = await client.from("quizzes").update(payload).eq("id", quizEditId);
+  if (!error) {
+    document.getElementById("quiz-title-input").value = title;
+    document.getElementById("settings-title").value = title;
+  }
   showStatus(msg, error ? error.message : "✓ Gespeichert", error ? "error" : "success");
 }
 
