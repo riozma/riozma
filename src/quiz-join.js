@@ -6,7 +6,6 @@ let quizJoin = {
   clientToken: null,
   channel: null,
   answered: false,
-  lastResult: null,
   renderedKey: null,
   timerInterval: null,
   questionMeta: null,
@@ -22,6 +21,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   bindCodeStep();
   bindNameStep();
+  bindCollectForm();
 });
 
 function bindCodeStep() {
@@ -113,7 +113,7 @@ function subscribeSession() {
 }
 
 function showGameSection(id) {
-  ["game-lobby", "game-intro", "game-question", "game-answered", "game-reveal", "game-leaderboard", "game-ended"]
+  ["game-lobby", "game-collect", "game-intro", "game-question", "game-answered", "game-reveal", "game-leaderboard", "game-ended"]
     .forEach((sid) => document.getElementById(sid).classList.toggle("d-none", sid !== id));
 }
 
@@ -128,11 +128,17 @@ async function renderGameState(session) {
     return;
   }
 
+  if (session.status === "collect") {
+    if (!isNewState) return;
+    quizJoin.answered = false;
+    await loadCollectPhase();
+    return;
+  }
+
   if (session.status === "question") {
     if (!isNewState) return;
     if (!session.answer_started_at) {
       quizJoin.answered = false;
-      quizJoin.lastResult = null;
       await loadQuestionIntro();
       return;
     }
@@ -142,17 +148,7 @@ async function renderGameState(session) {
 
   if (session.status === "reveal") {
     stopTimer();
-    const feedback = document.getElementById("reveal-feedback");
-    if (!quizJoin.answered) {
-      feedback.textContent = "Keine Antwort abgegeben";
-      feedback.className = "quiz-feedback";
-    } else if (quizJoin.lastResult?.is_correct) {
-      feedback.textContent = `Richtig! +${quizFormatScore(quizJoin.lastResult.points_awarded)} Punkte`;
-      feedback.className = "quiz-feedback is-correct";
-    } else {
-      feedback.textContent = "Leider falsch";
-      feedback.className = "quiz-feedback is-wrong";
-    }
+    await renderRevealFeedback();
     showGameSection("game-reveal");
     return;
   }
@@ -168,6 +164,42 @@ async function renderGameState(session) {
     stopTimer();
     await renderLeaderboard("final-leaderboard-list");
     showGameSection("game-ended");
+  }
+}
+
+async function renderRevealFeedback() {
+  const feedback = document.getElementById("reveal-feedback");
+  const questionId = quizJoin.questionMeta?.question_id;
+  const questionType = quizJoin.questionMeta?.question_type;
+
+  if (!questionId) {
+    feedback.textContent = "";
+    feedback.className = "quiz-feedback";
+    return;
+  }
+
+  const { data, error } = await quizJoin.client.rpc("get_my_question_result", {
+    p_session_id: quizJoin.sessionId, p_client_token: quizJoin.clientToken, p_question_id: questionId,
+  });
+  const result = error ? null : (Array.isArray(data) ? data[0] : data);
+
+  if (!result || !result.answered) {
+    feedback.textContent = "Keine Antwort abgegeben";
+    feedback.className = "quiz-feedback";
+    return;
+  }
+
+  if (result.is_correct) {
+    const suffix = result.points_awarded ? ` +${quizFormatScore(result.points_awarded)} Punkte` : "";
+    if (questionType === "vote_player") feedback.textContent = `Deine Wahl war die meistgewählte!${suffix}`;
+    else if (questionType === "open_text") feedback.textContent = `Deine Antwort kam gut an!${suffix}`;
+    else feedback.textContent = `Richtig!${suffix}`;
+    feedback.className = "quiz-feedback is-correct";
+  } else {
+    if (questionType === "vote_player") feedback.textContent = "Nicht die meistgewählte Person";
+    else if (questionType === "open_text") feedback.textContent = "Keine Stimmen erhalten";
+    else feedback.textContent = "Leider falsch";
+    feedback.className = "quiz-feedback is-wrong";
   }
 }
 
@@ -237,7 +269,12 @@ async function loadCurrentQuestion(session) {
     return;
   }
 
-  renderAnswerGrid(q);
+  const isTileType = q.question_type === "standard" || q.question_type === "majority";
+  document.getElementById("answer-grid").classList.toggle("d-none", !isTileType);
+  document.getElementById("answer-list").classList.toggle("d-none", isTileType);
+  if (isTileType) renderAnswerGrid(q);
+  else renderAnswerList(q);
+
   showGameSection("game-question");
   startTimer(q.answer_started_at || session.answer_started_at, q.time_limit_sec);
 }
@@ -258,31 +295,103 @@ function renderAnswerGrid(q) {
   }).join("");
 
   grid.querySelectorAll("[data-option-id]").forEach((tile) => {
-    tile.addEventListener("click", () => submitAnswer(tile.dataset.optionId), { once: true });
+    tile.addEventListener("click", () => submitAnswer(q, tile.dataset.optionId), { once: true });
   });
 }
 
-async function submitAnswer(optionId) {
+function renderAnswerList(q) {
+  const list = document.getElementById("answer-list");
+  const options = q.options || [];
+  if (!options.length) {
+    list.innerHTML = `<p class="quiz-waiting-banner">Keine Auswahl verfügbar.</p>`;
+    return;
+  }
+  list.innerHTML = options.map((opt) => `
+    <button type="button" class="quiz-choice-btn" data-option-id="${opt.id}">${escapeHtmlLocal(opt.option_text)}</button>
+  `).join("");
+
+  list.querySelectorAll("[data-option-id]").forEach((btn) => {
+    btn.addEventListener("click", () => submitAnswer(q, btn.dataset.optionId), { once: true });
+  });
+}
+
+async function submitAnswer(q, optionId) {
   if (quizJoin.answered) return;
   quizJoin.answered = true;
   stopTimer();
-  document.querySelectorAll("#answer-grid [data-option-id]").forEach((t) => {
+  document.querySelectorAll("#answer-grid [data-option-id], #answer-list [data-option-id]").forEach((t) => {
     t.disabled = true;
     t.classList.toggle("is-selected", t.dataset.optionId === optionId);
   });
 
   try {
-    const { data, error } = await quizJoin.client.rpc("submit_quiz_answer", {
-      p_session_id: quizJoin.sessionId,
-      p_client_token: quizJoin.clientToken,
-      p_option_ids: [optionId],
-    });
-    if (error) throw new Error(error.message);
-    quizJoin.lastResult = Array.isArray(data) ? data[0] : data;
+    if (q.question_type === "vote_player") {
+      const { error } = await quizJoin.client.rpc("submit_player_vote", {
+        p_session_id: quizJoin.sessionId, p_client_token: quizJoin.clientToken, p_voted_player_id: optionId,
+      });
+      if (error) throw new Error(error.message);
+    } else if (q.question_type === "open_text") {
+      const { error } = await quizJoin.client.rpc("submit_open_text_vote", {
+        p_session_id: quizJoin.sessionId, p_client_token: quizJoin.clientToken, p_voted_answer_id: optionId,
+      });
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await quizJoin.client.rpc("submit_quiz_answer", {
+        p_session_id: quizJoin.sessionId,
+        p_client_token: quizJoin.clientToken,
+        p_option_ids: [optionId],
+      });
+      if (error) throw new Error(error.message);
+    }
   } catch (_) {
-    quizJoin.lastResult = null;
+    /* still show the waiting screen; get_my_question_result at reveal is authoritative */
   }
   showGameSection("game-answered");
+}
+
+async function loadCollectPhase() {
+  const q = await fetchCurrentQuestion();
+  if (!q) return;
+
+  document.getElementById("collect-question-text").textContent = q.question_text;
+  const imgEl = document.getElementById("collect-question-image");
+  const url = q.image_path ? quizImageUrl(q.image_path) : "";
+  imgEl.src = url;
+  imgEl.classList.toggle("d-none", !url);
+
+  document.getElementById("collect-input").value = "";
+  document.getElementById("collect-error").textContent = "";
+  document.getElementById("collect-form").classList.remove("d-none");
+  document.getElementById("collect-submitted-banner").classList.add("d-none");
+
+  showGameSection("game-collect");
+}
+
+function bindCollectForm() {
+  const btn = document.getElementById("btn-collect-submit");
+  const input = document.getElementById("collect-input");
+  const err = document.getElementById("collect-error");
+
+  btn.addEventListener("click", async () => {
+    const text = input.value.trim();
+    if (!text) {
+      err.textContent = "Bitte eine Antwort eingeben.";
+      return;
+    }
+    btn.disabled = true;
+    try {
+      const { error } = await quizJoin.client.rpc("submit_open_text_answer", {
+        p_session_id: quizJoin.sessionId, p_client_token: quizJoin.clientToken, p_answer_text: text,
+      });
+      if (error) throw new Error(error.message);
+      document.getElementById("collect-form").classList.add("d-none");
+      document.getElementById("collect-submitted-banner").classList.remove("d-none");
+    } catch (e) {
+      err.textContent = e.message || "Antwort konnte nicht gespeichert werden.";
+    } finally {
+      btn.disabled = false;
+    }
+  });
 }
 
 function startTimer(startedAt, limitSec) {

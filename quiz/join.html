@@ -50,9 +50,21 @@
           <p class="quiz-waiting-banner" id="intro-caption">Antworten erscheinen gleich …</p>
         </div>
 
+        <div id="game-collect" class="d-none quiz-intro-stage">
+          <p class="quiz-question-text" id="collect-question-text"></p>
+          <img id="collect-question-image" class="quiz-question-image d-none">
+          <div id="collect-form" class="quiz-form-group" style="width:100%;max-width:420px;">
+            <textarea id="collect-input" class="quiz-input" rows="3" maxlength="280" placeholder="Deine Antwort …"></textarea>
+            <p id="collect-error" class="quiz-error"></p>
+            <button type="button" class="quiz-btn quiz-btn-primary" id="btn-collect-submit">Absenden</button>
+          </div>
+          <p id="collect-submitted-banner" class="quiz-waiting-banner d-none">Eingereicht – bitte warten</p>
+        </div>
+
         <div id="game-question" class="d-none quiz-fullscreen-question">
           <div class="quiz-timer-badge quiz-timer-badge-float" id="question-timer">--</div>
           <div class="quiz-answer-grid quiz-answer-grid-fullscreen" id="answer-grid"></div>
+          <div class="quiz-choice-list d-none" id="answer-list"></div>
         </div>
 
         <div id="game-answered" class="d-none">

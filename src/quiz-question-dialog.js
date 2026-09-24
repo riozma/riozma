@@ -2,6 +2,7 @@ function showQuizQuestionDialog({ quizId, question, options }) {
   return new Promise((resolve) => {
     const client = getSupabase();
     const isEdit = !!question;
+    const initialType = question?.question_type || "standard";
     const initialMode = question?.answer_mode || "four";
     const initialOptions = options && options.length
       ? options
@@ -19,18 +20,25 @@ function showQuizQuestionDialog({ quizId, question, options }) {
     overlay.setAttribute("role", "dialog");
     overlay.setAttribute("aria-modal", "true");
 
-    function optionRowHtml(opt, idx, mode) {
+    function optionRowHtml(opt, idx, mode, showCorrect) {
       const visible = mode === "two" ? idx < 2 : true;
       const tile = QUIZ_TILE_STYLES[idx];
       return `
         <div class="quiz-option-row" data-option-row="${idx}" ${visible ? "" : "hidden"}>
           <span class="quiz-option-color" style="background:${tile.color}">${quizShapeSvg(tile.shape)}</span>
           <input type="text" class="form-control" data-option-text="${idx}" placeholder="Antwort ${idx + 1}" value="${escapeHtml(opt.option_text || "")}">
+          ${showCorrect ? `
           <div class="form-check">
             <input class="form-check-input" type="checkbox" data-option-correct="${idx}" id="quiz-opt-correct-${idx}" ${opt.is_correct ? "checked" : ""}>
             <label class="form-check-label small" for="quiz-opt-correct-${idx}">richtig</label>
-          </div>
+          </div>` : ""}
         </div>`;
+    }
+
+    function typeOptionsHtml() {
+      return Object.entries(QUIZ_QUESTION_TYPES)
+        .map(([value, def]) => `<option value="${value}" ${value === initialType ? "selected" : ""}>${escapeHtml(def.label)}</option>`)
+        .join("");
     }
 
     overlay.innerHTML = `
@@ -38,7 +46,12 @@ function showQuizQuestionDialog({ quizId, question, options }) {
         <h2 class="trouvo-dialog-title">${isEdit ? "Frage bearbeiten" : "Neue Frage"}</h2>
 
         <div class="mb-3">
-          <label class="form-label">Frage</label>
+          <label class="form-label">Fragetyp</label>
+          <select class="form-select" id="quiz-q-type">${typeOptionsHtml()}</select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" id="quiz-q-text-label">Frage</label>
           <textarea class="form-control" id="quiz-q-text" rows="2" placeholder="Fragetext">${escapeHtml(question?.question_text || "")}</textarea>
         </div>
 
@@ -50,7 +63,7 @@ function showQuizQuestionDialog({ quizId, question, options }) {
         </div>
 
         <div class="row g-2 mb-3">
-          <div class="col-6">
+          <div class="col-6" id="quiz-q-mode-wrap">
             <label class="form-label">Antwortmodus</label>
             <select class="form-select" id="quiz-q-mode">
               <option value="four" ${initialMode === "four" ? "selected" : ""}>4 Antworten</option>
@@ -58,14 +71,16 @@ function showQuizQuestionDialog({ quizId, question, options }) {
             </select>
           </div>
           <div class="col-6">
-            <label class="form-label">Zeit (Sek.)</label>
+            <label class="form-label" id="quiz-q-time-label">Zeit (Sek.)</label>
             <input type="number" min="5" max="120" class="form-control" id="quiz-q-time" value="${question?.time_limit_sec || 20}">
           </div>
         </div>
 
         <div id="quiz-q-options">
-          ${initialOptions.map((o, i) => optionRowHtml(o, i, initialMode)).join("")}
+          ${initialOptions.map((o, i) => optionRowHtml(o, i, initialMode, initialType === "standard")).join("")}
         </div>
+
+        <p id="quiz-q-type-hint" class="form-text"></p>
 
         <p id="quiz-q-error" class="quiz-error"></p>
 
@@ -86,9 +101,35 @@ function showQuizQuestionDialog({ quizId, question, options }) {
       resolve(result);
     }
 
+    function rerenderOptions(mode, type) {
+      const optionsWrap = overlay.querySelector("#quiz-q-options");
+      optionsWrap.innerHTML = initialOptions.map((o, i) => optionRowHtml(o, i, mode, type === "standard")).join("");
+    }
+
+    function applyTypeUI(type) {
+      const needsOptions = type === "standard" || type === "majority";
+      overlay.querySelector("#quiz-q-mode-wrap").classList.toggle("d-none", !needsOptions);
+      overlay.querySelector("#quiz-q-options").classList.toggle("d-none", !needsOptions);
+      overlay.querySelector("#quiz-q-text-label").textContent = type === "open_text" ? "Aufgabe (z.B. \"Schreibe einen Witz\")" : "Frage";
+      overlay.querySelector("#quiz-q-time-label").textContent = type === "open_text" ? "Zeit für Abstimmung (Sek.)" : "Zeit (Sek.)";
+      const hint = overlay.querySelector("#quiz-q-type-hint");
+      if (type === "vote_player") {
+        hint.textContent = "Die Mitspieler wählen live jemanden aus allen Beigetretenen aus — keine Antwortoptionen nötig.";
+      } else if (type === "open_text") {
+        hint.textContent = "Alle schreiben eine eigene Antwort, danach stimmen alle über die Antworten der anderen ab. Punkte proportional zu erhaltenen Stimmen.";
+      } else if (type === "majority") {
+        hint.textContent = "Keine vorgegebene richtige Antwort — die Option mit den meisten Stimmen zählt als richtig.";
+      } else {
+        hint.textContent = "";
+      }
+      if (needsOptions) rerenderOptions(overlay.querySelector("#quiz-q-mode").value, type);
+    }
+
     overlay.addEventListener("click", (e) => {
       if (e.target === overlay) close(null);
     });
+
+    overlay.querySelector("#quiz-q-type").addEventListener("change", (e) => applyTypeUI(e.target.value));
 
     overlay.querySelector("#quiz-q-mode").addEventListener("change", (e) => {
       const mode = e.target.value;
@@ -138,42 +179,48 @@ function showQuizQuestionDialog({ quizId, question, options }) {
         }
 
         const errorEl = overlay.querySelector("#quiz-q-error");
+        const type = overlay.querySelector("#quiz-q-type").value;
         const text = overlay.querySelector("#quiz-q-text").value.trim();
         const mode = overlay.querySelector("#quiz-q-mode").value;
         const timeLimit = Number(overlay.querySelector("#quiz-q-time").value) || 20;
+        const needsOptions = type === "standard" || type === "majority";
         const optionCount = mode === "two" ? 2 : 4;
 
-        const opts = [];
-        for (let i = 0; i < optionCount; i++) {
-          const optText = overlay.querySelector(`[data-option-text="${i}"]`).value.trim();
-          const isCorrect = overlay.querySelector(`[data-option-correct="${i}"]`).checked;
-          opts.push({ sort_order: i, option_text: optText, is_correct: isCorrect });
+        if (!text) {
+          errorEl.textContent = type === "open_text" ? "Bitte eine Aufgabe eingeben." : "Bitte einen Fragetext eingeben.";
+          return;
         }
 
-        if (!text) {
-          errorEl.textContent = "Bitte einen Fragetext eingeben.";
-          return;
-        }
-        if (opts.some((o) => !o.option_text)) {
-          errorEl.textContent = "Bitte alle Antwortfelder ausfüllen.";
-          return;
-        }
-        if (!opts.some((o) => o.is_correct)) {
-          errorEl.textContent = "Bitte mindestens eine richtige Antwort markieren.";
-          return;
+        let opts = [];
+        if (needsOptions) {
+          for (let i = 0; i < optionCount; i++) {
+            const optText = overlay.querySelector(`[data-option-text="${i}"]`).value.trim();
+            const isCorrect = type === "standard" ? overlay.querySelector(`[data-option-correct="${i}"]`).checked : false;
+            opts.push({ sort_order: i, option_text: optText, is_correct: isCorrect });
+          }
+          if (opts.some((o) => !o.option_text)) {
+            errorEl.textContent = "Bitte alle Antwortfelder ausfüllen.";
+            return;
+          }
+          if (type === "standard" && !opts.some((o) => o.is_correct)) {
+            errorEl.textContent = "Bitte mindestens eine richtige Antwort markieren.";
+            return;
+          }
         }
 
         close({
           action: "save",
+          question_type: type,
           question_text: text,
           image_path: currentImagePath,
-          answer_mode: mode,
+          answer_mode: needsOptions ? mode : "four",
           time_limit_sec: timeLimit,
           options: opts,
         });
       });
     });
 
+    applyTypeUI(initialType);
     document.body.classList.add("trouvo-dialog-open");
     document.body.appendChild(overlay);
     overlay.querySelector("#quiz-q-text")?.focus();

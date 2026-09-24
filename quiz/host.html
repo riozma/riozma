@@ -39,11 +39,22 @@
         <div class="quiz-host-players" id="host-players"></div>
       </div>
 
+      <div id="host-collect" class="d-none" style="display:flex;flex-direction:column;align-items:center;gap:1rem;">
+        <p class="quiz-question-text" id="host-collect-text"></p>
+        <img id="host-collect-image" class="quiz-question-image d-none">
+        <p class="quiz-waiting-banner">Alle schreiben ihre Antwort auf dem Handy …</p>
+        <p class="quiz-host-progress" id="host-collect-count"></p>
+        <div class="quiz-toolbar">
+          <button type="button" class="quiz-btn quiz-btn-primary" id="btn-collect-next">Weiter zur Abstimmung</button>
+        </div>
+      </div>
+
       <div id="host-question" class="d-none" style="display:flex;flex-direction:column;align-items:center;gap:1rem;">
         <div class="quiz-timer-badge d-none" id="host-timer">--</div>
         <p class="quiz-question-text" id="host-question-text"></p>
         <img id="host-question-image" class="quiz-question-image d-none">
         <p class="quiz-waiting-banner d-none" id="host-intro-caption">Antworten erscheinen gleich …</p>
+        <p class="quiz-waiting-banner d-none" id="host-vote-caption">Abstimmung läuft auf den Handys …</p>
         <div class="quiz-answer-grid d-none" id="host-answer-grid" style="max-width:640px;"></div>
         <p class="quiz-host-progress" id="host-answer-count"></p>
         <div class="quiz-toolbar d-none" id="host-reveal-toolbar">
@@ -53,7 +64,8 @@
 
       <div id="host-reveal" class="d-none" style="display:flex;flex-direction:column;align-items:center;gap:1rem;">
         <p class="quiz-question-text" id="host-reveal-text"></p>
-        <div class="quiz-host-bars" id="host-bars"></div>
+        <div class="quiz-host-bars d-none" id="host-bars"></div>
+        <div class="quiz-leaderboard d-none" id="host-reveal-list"></div>
         <div class="quiz-toolbar">
           <button type="button" class="quiz-btn quiz-btn-primary" id="btn-to-leaderboard">Weiter zur Rangliste</button>
         </div>

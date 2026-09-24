@@ -101,6 +101,7 @@ function renderQuestionList() {
     <div class="quiz-question-row" data-question-id="${q.id}">
       <span class="quiz-question-row-index">${idx + 1}.</span>
       <span class="quiz-question-row-text">${escapeHtml(q.question_text || "(ohne Text)")}</span>
+      ${q.question_type && q.question_type !== "standard" ? `<span class="quiz-question-row-type">${escapeHtml(QUIZ_QUESTION_TYPES[q.question_type]?.label.split(" (")[0] || q.question_type)}</span>` : ""}
       <div class="quiz-question-row-actions">
         <button type="button" data-move-up="${q.id}" title="Nach oben" ${idx === 0 ? "disabled" : ""}>↑</button>
         <button type="button" data-move-down="${q.id}" title="Nach unten" ${idx === quizEditQuestions.length - 1 ? "disabled" : ""}>↓</button>
@@ -176,6 +177,7 @@ async function openQuestionDialog(questionId) {
     let qId = questionId;
     if (existing) {
       const { error } = await client.from("quiz_questions").update({
+        question_type: result.question_type,
         question_text: result.question_text,
         image_path: result.image_path,
         answer_mode: result.answer_mode,
@@ -191,6 +193,7 @@ async function openQuestionDialog(questionId) {
       const { data, error } = await client.from("quiz_questions").insert({
         quiz_id: quizEditId,
         sort_order: nextOrder,
+        question_type: result.question_type,
         question_text: result.question_text,
         image_path: result.image_path,
         answer_mode: result.answer_mode,
@@ -200,10 +203,12 @@ async function openQuestionDialog(questionId) {
       qId = data.id;
     }
 
-    const { error: optErr } = await client.from("quiz_question_options").insert(
-      result.options.map((o) => ({ ...o, question_id: qId })),
-    );
-    if (optErr) throw new Error(optErr.message);
+    if (result.options.length) {
+      const { error: optErr } = await client.from("quiz_question_options").insert(
+        result.options.map((o) => ({ ...o, question_id: qId })),
+      );
+      if (optErr) throw new Error(optErr.message);
+    }
 
     await loadQuestions();
   } catch (err) {

@@ -50,6 +50,13 @@ function quizFormatScore(n) {
   return new Intl.NumberFormat("de-CH").format(Math.round(n || 0));
 }
 
+const QUIZ_QUESTION_TYPES = {
+  standard: { label: "Standard (richtig/falsch vorgegeben)" },
+  majority: { label: "Mehrheitsfrage (Mehrheit entscheidet)" },
+  vote_player: { label: "Wer würde eher … (Spieler wählen)" },
+  open_text: { label: "Freitext + Publikumswahl" },
+};
+
 function quizIntroDelaySec(questionText) {
   const len = (questionText || "").trim().length;
   if (len <= 40) return 3;
