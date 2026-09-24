@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/src/site-init.js"></script>
+  <title>Quiz bearbeiten</title>
+  <link rel="icon" href="/src/img/favicon.svg">
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="/src/quiz.css">
+</head>
+<body class="site-body quiz-light-body">
+  <header class="quiz-light-topbar">
+    <div class="quiz-light-topbar-inner d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <a href="/quiz/library.html" class="trouvo-brand-link"><span class="quiz-wordmark-sm">← Meine Quizzes</span></a>
+      <div id="auth-container-dashboard"></div>
+    </div>
+  </header>
+
+  <main class="trouvo-main">
+    <div class="trouvo-dashboard-header">
+      <div>
+        <input type="text" id="quiz-title-input" class="form-control form-control-lg fw-bold border-0 bg-transparent p-0" value="" placeholder="Quizname" style="max-width: 480px;">
+      </div>
+      <div class="trouvo-header-actions">
+        <button type="button" class="btn btn-primary" id="btn-start-from-edit">Starten</button>
+      </div>
+    </div>
+
+    <p id="edit-message" class="admin-message"></p>
+
+    <div class="quiz-editor-tabs">
+      <button type="button" class="quiz-editor-tab is-active" data-tab="overview">Übersicht</button>
+      <button type="button" class="quiz-editor-tab" data-tab="settings">Einstellungen</button>
+    </div>
+
+    <section id="tab-overview">
+      <div id="quiz-question-list" class="quiz-question-list"></div>
+      <button type="button" class="btn btn-outline-primary mt-3 quiz-add-question-btn" id="btn-add-question">+ Neue Frage</button>
+    </section>
+
+    <section id="tab-settings" class="d-none">
+      <div class="quiz-form-group" style="max-width: 420px;">
+        <label for="settings-max-players">Maximale Anzahl Teilnehmer</label>
+        <input type="number" min="1" id="settings-max-players" class="form-control" placeholder="Unbegrenzt">
+      </div>
+      <div class="quiz-form-group" style="max-width: 420px;">
+        <label for="settings-points-mode">Punkteart</label>
+        <select id="settings-points-mode" class="form-select">
+          <option value="speed">Geschwindigkeit (wie Kahoot)</option>
+          <option value="fixed">Fixe Punktzahl</option>
+          <option value="none">Keine Punkte (nur richtig/falsch)</option>
+        </select>
+      </div>
+      <div class="quiz-form-group" style="max-width: 420px;">
+        <label for="settings-points-value">Punkte pro Frage (max.)</label>
+        <input type="number" min="0" id="settings-points-value" class="form-control" value="1000">
+      </div>
+      <button type="button" class="btn btn-primary" id="btn-save-settings">Speichern</button>
+      <span id="settings-message" class="admin-message"></span>
+    </section>
+  </main>
+
+  <footer class="site-footer"><p>© Manuel Rio Zeltner</p></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/src/supabase-config.js"></script>
+  <script src="/src/supabase-client.js"></script>
+  <script src="/src/ui-feedback.js"></script>
+  <script src="/src/auth-ui.js"></script>
+  <script src="/src/image-upload.js"></script>
+  <script src="/src/quiz-client.js"></script>
+  <script src="/src/quiz-question-dialog.js"></script>
+  <script src="/src/quiz-edit.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+</body>
+</html>

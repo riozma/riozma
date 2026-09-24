@@ -53,6 +53,12 @@
         return false;
       },
     },
+    {
+      id: "quiz",
+      href: "/quiz/",
+      label: "Quiz",
+      activeWhen: (path) => path === "/quiz" || path.startsWith("/quiz/"),
+    },
   ];
 
   const TROUVO_ITEMS = [
