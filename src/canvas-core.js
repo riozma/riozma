@@ -174,13 +174,15 @@ function canvasItemBounds(item) {
 
 class CanvasView {
   // Die Welt ist 1600 Einheiten breit und so hoch wie die Seite; scrollPx ist die Scrollposition in CSS-Pixeln.
-  constructor(el, { overlay = null, layoutWidth = null } = {}) {
+  // page: true = Canvas so gross wie die ganze Seite, scrollt nativ mit (kein Neuzeichnen beim Scrollen)
+  constructor(el, { overlay = null, layoutWidth = null, page = false } = {}) {
     this.el = el;
+    this.page = page;
     this.ctx = el.getContext("2d");
     this.overlay = overlay;
     this.octx = overlay ? overlay.getContext("2d") : null;
-    this.layer = document.createElement("canvas");
-    this.lctx = this.layer.getContext("2d");
+    this.layer = page ? el : document.createElement("canvas");
+    this.lctx = page ? this.ctx : this.layer.getContext("2d");
     this.layoutWidth = layoutWidth || (() => document.documentElement.clientWidth || window.innerWidth);
     this.items = [];
     this.ownNonces = new Set();
@@ -190,13 +192,24 @@ class CanvasView {
     this._raf = 0;
     this._raf2 = 0;
     window.addEventListener("resize", () => this.resize());
+    if (page && window.ResizeObserver) {
+      let t = 0;
+      new ResizeObserver(() => { clearTimeout(t); t = setTimeout(() => this.resize(), 150); }).observe(document.body);
+    }
     this.resize();
   }
 
   resize() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const w = this.el.clientWidth || window.innerWidth;
-    const h = this.el.clientHeight || window.innerHeight;
+    let w = this.el.clientWidth || window.innerWidth;
+    let h = this.el.clientHeight || window.innerHeight;
+    if (this.page) {
+      this.el.style.height = "0px";
+      w = document.documentElement.clientWidth || window.innerWidth;
+      h = Math.max(document.documentElement.scrollHeight, window.innerHeight);
+      this.el.style.width = `${w}px`;
+      this.el.style.height = `${h}px`;
+    }
+    const dpr = Math.min(window.devicePixelRatio || 1, 2, this.page ? 8000 / h : 2);
     this.cssW = w;
     this.cssH = h;
     this.dpr = dpr;
@@ -244,17 +257,9 @@ class CanvasView {
   }
 
   composite() {
+    if (this.page) return;
     cancelAnimationFrame(this._raf2);
-    this._raf2 = requestAnimationFrame(() => {
-      const ctx = this.ctx;
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      const g = ctx.createLinearGradient(0, 0, 0, this.el.height);
-      g.addColorStop(0, CANVAS_BG_TOP);
-      g.addColorStop(1, CANVAS_BG_BOTTOM);
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, this.el.width, this.el.height);
-      ctx.drawImage(this.layer, 0, 0);
-    });
+    this._raf2 = requestAnimationFrame(() => this._compose());
   }
 
   redraw() {
@@ -267,12 +272,26 @@ class CanvasView {
       const top = this.scrollPx / this.scale;
       const bottom = (this.scrollPx + this.cssH / this.zoom) / this.scale;
       for (const it of this.items) {
-        const b = canvasItemBounds(it);
-        if (b[1] < top || b[0] > bottom) continue;
+        if (!this.page) {
+          const b = canvasItemBounds(it);
+          if (b[1] < top || b[0] > bottom) continue;
+        }
         canvasDrawItem(ctx, it);
       }
-      this.composite();
+      this._compose();
     });
+  }
+
+  _compose() {
+    if (this.page) return;
+    const ctx = this.ctx;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    const g = ctx.createLinearGradient(0, 0, 0, this.el.height);
+    g.addColorStop(0, CANVAS_BG_TOP);
+    g.addColorStop(1, CANVAS_BG_BOTTOM);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, this.el.width, this.el.height);
+    ctx.drawImage(this.layer, 0, 0);
   }
 
   clearOverlay() {

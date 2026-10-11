@@ -4056,11 +4056,9 @@ body.landing-body .landing-brand { color: #1f5a2c; }
 }
 
 .landing-canvas {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
+  position: absolute;
+  top: 0;
+  left: 0;
   z-index: -1;
   display: block;
   pointer-events: none;
