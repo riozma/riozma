@@ -59,6 +59,12 @@
       label: "Quiz",
       activeWhen: (path) => path === "/quiz" || path.startsWith("/quiz/"),
     },
+    {
+      id: "about",
+      href: "/about/",
+      label: "Über mich",
+      activeWhen: (path) => path === "/about" || path.startsWith("/about/"),
+    },
   ];
 
   const TROUVO_ITEMS = [

@@ -1,6 +1,3 @@
-const ARTWORKS_JSON = "/src/artworks.json";
-const LOCAL_IMG_BASE = "/src/img/artManuel";
-
 let showAvailable = false;
 let allArtworks = [];
 let currentSession = null;
@@ -40,47 +37,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   bindDeleteButtons();
   bindAvailabilityToggles();
 });
-
-async function loadAllArtworks() {
-  const local = await fetch(ARTWORKS_JSON)
-    .then((r) => r.json())
-    .catch(() => []);
-
-  const localMapped = local.map((a) => ({
-    ...a,
-    source: "local",
-    available: a.available === "True" || a.available === true,
-    image_url: `${LOCAL_IMG_BASE}/lowRes/${a.id}-min.jpg`,
-    high_res_url: `${LOCAL_IMG_BASE}/highRes/${a.id}.jpg`,
-  }));
-
-  const client = getSupabase();
-  if (!client) return localMapped;
-
-  const { data, error } = await client.from("artworks").select("*").order("sort_order", { ascending: true });
-  if (error || !data) return localMapped;
-
-  const remote = data.map((a) => ({
-    id: a.id,
-    title: a.title,
-    year: a.year,
-    size: a.size,
-    medium: a.medium,
-    available: a.available,
-    source: a.source,
-    image_path: a.image_path,
-    thumb_path: a.thumb_path,
-    image_url: a.source === "local"
-      ? `${LOCAL_IMG_BASE}/lowRes/${a.id}-min.jpg`
-      : storagePublicUrl("artworks", a.thumb_path || a.image_path),
-    high_res_url: a.source === "local"
-      ? `${LOCAL_IMG_BASE}/highRes/${a.id}.jpg`
-      : storagePublicUrl("artworks", a.image_path),
-  }));
-
-  const remoteIds = new Set(remote.map((a) => a.id));
-  return [...remote, ...localMapped.filter((a) => !remoteIds.has(a.id))];
-}
 
 function renderGallery(data) {
   const container = document.getElementById("artwork-preview");
@@ -138,38 +94,7 @@ function bindArtCards() {
     artCard.dataset.bound = "1";
     artCard.addEventListener("click", (e) => {
       if (e.target.closest("[data-delete-art]") || e.target.closest("[data-toggle-avail]")) return;
-      const dialog = document.getElementById("artwork-modal");
-      ["title", "year", "size", "medium"].forEach((attr) => {
-        document.getElementById(`artwork-${attr}`).innerHTML = artCard.getAttribute(attr);
-      });
-      const id = artCard.id;
-      const item = allArtworks.find((a) => a.id === id);
-      const highRes = item?.high_res_url || `${LOCAL_IMG_BASE}/highRes/${id}.jpg`;
-      dialog.querySelector("img").src = highRes;
-      document.getElementById("artwork-download").href = highRes;
-      document.getElementById("artwork-download").download = `${id}.jpg`;
-
-      const deleteBtn = document.getElementById("artwork-delete");
-      if (deleteBtn) {
-        const showDelete = currentSession && isSiteAdmin(currentSession) && item?.source === "supabase";
-        deleteBtn.classList.toggle("d-none", !showDelete);
-        deleteBtn.dataset.artworkId = showDelete ? id : "";
-      }
-
-      const availWrap = document.getElementById("artwork-avail-wrap");
-      const availInput = document.getElementById("artwork-avail-input");
-      if (availWrap && availInput) {
-        const showAvail = currentSession && isSiteAdmin(currentSession) && item?.source === "supabase";
-        const isAvail = item?.available === true || item?.available === "True";
-        availWrap.classList.toggle("d-none", !showAvail);
-        availInput.checked = isAvail;
-        availInput.dataset.artworkId = showAvail ? id : "";
-        availInput.onchange = showAvail ? () => setArtworkAvailability(id, availInput.checked) : null;
-      }
-
-      new Image().src = highRes;
-      dialog.showModal();
-      document.getElementById("blackBox").style.display = "block";
+      window.location.href = artworkPageUrl(artCard.id);
     });
   });
 }
@@ -183,14 +108,6 @@ function bindDeleteButtons() {
       deleteArtwork(btn.dataset.deleteArt, btn);
     });
   });
-
-  const modalDelete = document.getElementById("artwork-delete");
-  if (modalDelete && !modalDelete.dataset.deleteBound) {
-    modalDelete.dataset.deleteBound = "1";
-    modalDelete.addEventListener("click", () => {
-      if (modalDelete.dataset.artworkId) deleteArtwork(modalDelete.dataset.artworkId, modalDelete);
-    });
-  }
 }
 
 function bindAvailabilityToggles() {
@@ -259,7 +176,6 @@ async function deleteArtwork(id, triggerBtn) {
       return true;
     },
     onSuccess: async () => {
-      closeModal();
       allArtworks = await loadAllArtworks();
       renderGallery(showAvailable ? allArtworks.filter((a) => a.available === true || a.available === "True") : allArtworks);
     },
@@ -343,9 +259,4 @@ function setupArtworkUpload() {
       },
     });
   });
-}
-
-function closeModal() {
-  document.getElementById("blackBox").style.display = "none";
-  document.getElementById("artwork-modal").close();
 }

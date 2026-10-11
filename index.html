@@ -6,124 +6,85 @@
   <script src="/src/site-init.js"></script>
   <title>Manuel Rio Zeltner</title>
   <link rel="icon" href="/src/img/favicon.svg">
-  <meta name="description" content="Persönliche Webseite von Manuel Rio Zeltner – Kunst, Politik und Trouvo.">
+  <meta name="description" content="Persönliche Webseite von Manuel Rio Zeltner – Kunst, Politik, Trouvo, Reisen und Quiz.">
   <meta name="author" content="Manuel Rio Zeltner">
   <meta name="theme-color" content="#dbedd8">
   <link rel="canonical" href="https://riozma.ch/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Manuel Rio Zeltner">
-  <meta property="og:description" content="Persönliche Webseite – Kunst, Politik und Trouvo.">
+  <meta property="og:description" content="Persönliche Webseite – Kunst, Politik, Trouvo, Reisen und Quiz.">
   <meta property="og:url" content="https://riozma.ch/">
   <meta property="og:site_name" content="riozma.ch">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
     integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
   <link rel="stylesheet" href="/src/style.css">
 </head>
-<body class="site-body">
-  <header class="site-header" data-site-header data-header-context="main"></header>
+<body class="site-body landing-body">
+  <button type="button" class="landing-burger" id="landing-burger" aria-label="Menü" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <nav class="landing-menu" id="landing-menu" aria-label="Hauptmenü">
+    <a href="/">Home</a>
+    <a href="/kunst/">Kunst</a>
+    <a href="/politik/">Politik</a>
+    <a href="/trouvo/">Trouvo</a>
+    <a href="/reisen/">Reisen</a>
+    <a href="/quiz/">Quiz</a>
+    <a href="/about/">Über mich</a>
+  </nav>
 
-  <main class="landing-main">
-    <section id="allgemeines" class="profile-hero">
-      <div class="profile-hero-text">
-        <p class="eyebrow">Allgemeines</p>
-        <h1 class="hero-title">Weil wir es gemeinsam besser können.</h1>
-        <p class="hero-lead">Manuel Rio Zeltner – Student Bauingenieur ETH, Zuchwil SO</p>
+  <div class="landing-banner" aria-hidden="true">
+    <div class="landing-banner-title">Manuel Rio Zeltner</div>
+  </div>
 
-        <dl class="info-list">
-          <div class="info-row"><dt>Geburtsdatum</dt><dd>13.08.2002</dd></div>
-          <div class="info-row"><dt>Wohnort</dt><dd>Zuchwil, Kanton Solothurn</dd></div>
-          <div class="info-row"><dt>Beruf</dt><dd>Student Bauingenieur ETH</dd></div>
-        </dl>
-
-        <div class="social-links">
-          <a href="https://www.instagram.com/riozma/" target="_blank" rel="noopener" class="social-link">
-            <img src="/src/img/Instagram_Glyph_Black.png" alt=""> Instagram
-          </a>
-          <a href="https://www.linkedin.com/in/manuel-rio-zeltner-8883a4226/" target="_blank" rel="noopener" class="social-link">
-            <img src="/src/img/LI-In-Bug.png" alt=""> LinkedIn
-          </a>
-        </div>
+  <main class="landing-home">
+    <section class="home-carousel-section" aria-label="Kunst">
+      <div class="home-carousel" id="home-carousel" aria-live="off">
+        <div class="home-carousel-track" id="home-carousel-track"></div>
+        <button type="button" class="home-carousel-btn home-carousel-prev" id="carousel-prev" aria-label="Vorheriges Bild">‹</button>
+        <button type="button" class="home-carousel-btn home-carousel-next" id="carousel-next" aria-label="Nächstes Bild">›</button>
+        <div class="home-carousel-caption" id="carousel-caption"></div>
       </div>
-      <div class="profile-hero-image">
-        <img src="/src/img/glpSO_NRW23_Manuel-Zeltner.jpg" alt="Manuel Rio Zeltner" class="profile-image">
-      </div>
+      <a href="/kunst/" class="home-arrow" aria-label="Zur Kunst">
+        <span class="home-arrow-label">Kunst</span>
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </a>
     </section>
 
-    <section class="content-section">
-      <h2 class="section-heading">Aktuelle Artikel</h2>
-      <div class="article-cards">
-        <article class="article-card">
-          <div class="article-card-image">
-            <img src="https://img.chmedia.ch/2023/08/14/c8a77f82-c062-4ef8-b92e-75bf72cedd5f.jpeg?width=480&height=270&fit=bounds&quality=75&auto=webp&crop=1600,900,x0,y0" alt="">
-          </div>
-          <div class="article-card-body">
-            <h3><a href="https://www.solothurnerzeitung.ch/solothurn/kanton-solothurn/manuel-zeltner-im-kandidatenportraet-fuer-die-wahlen-2023-ld.2499016">Porträt in der Solothurner Zeitung</a></h3>
-            <p>Hier geht es zum Porträt in der Solothurner Zeitung.</p>
-          </div>
-        </article>
-        <article class="article-card">
-          <div class="article-card-image">
-            <img src="https://ugc.production.linktr.ee/MGE0RlQYQxa7xFpQg0ks_5A5I3Eqv1lqMOLYi" alt="">
-          </div>
-          <div class="article-card-body">
-            <h3><a href="https://esschlohtoeufi.ch" target="_blank" rel="noopener">Podcast „Es schloht öufi“</a></h3>
-            <p>Höre die neuesten Folgen Sebastians und meines Podcasts.</p>
-          </div>
-        </article>
-        <article class="article-card">
-          <div class="article-card-image">
-            <img src="https://apidata.so.jglp.ch/uploads/medium_Solothurn_logo_jglp_60f0bbd7be.png" alt="">
-          </div>
-          <div class="article-card-body">
-            <h3><a href="https://solothurn.jungegrunliberale.ch/portfolio-posts/manuel-zeltner/">Porträt auf der JGLP-Website</a></h3>
-            <p>Erfahre mehr über meine Positionen im Porträt auf der JGLP-Website.</p>
-          </div>
-        </article>
-      </div>
+    <section class="home-politik-section" aria-label="Politik">
+      <h2 class="home-section-title">Politik</h2>
+      <div class="home-politik-cards" id="home-politik-cards"></div>
+      <a href="/politik/" class="home-arrow" aria-label="Zur Politik">
+        <span class="home-arrow-label">Politik</span>
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </a>
     </section>
 
-    <section class="content-section">
-      <h2 class="section-heading">Vereine</h2>
-      <p class="section-description">Ich bin aktives Mitglied verschiedener Vereine:</p>
-      <div class="org-grid">
-        <div class="org-card">
-          <img src="https://traeffpunktfestival.ch/wp-content/uploads/2023/05/cropped-RZ_Logo_Traeffpunkt_weiss_Punkt_rot_RGB-04.png" alt="Träffpunktverein" class="org-logo org-logo-dark">
-          <h3>Träffpunktverein</h3>
-          <p>Mitglied und Mitgründer, Organisation <a href="https://traeffpunktfestival.ch/events/" target="_blank" rel="noopener">Jampunkt</a></p>
-        </div>
-        <div class="org-card">
-          <img src="https://apidata.so.jglp.ch/uploads/medium_Solothurn_logo_jglp_60f0bbd7be.png" alt="JGLP" class="org-logo">
-          <h3>Junge Grünliberale</h3>
-          <p>Mitglied</p>
-        </div>
-        <div class="org-card">
-          <img src="https://lh3.googleusercontent.com/-xj3G4iNrxwU/AAAAAAAAAAI/AAAAAAAAAAA/FeAFWQXP9vM/s44-w44-h44-p-k-no-ns-nd/photo.jpg" alt="CEVI" class="org-logo">
-          <h3>CEVI Zuchwil</h3>
-          <p>Gruppenleiter</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="hub-section">
-      <h2 class="section-heading">Projekte</h2>
-      <div class="hub-grid">
-        <a href="/kunst/" class="hub-card">
-          <span class="hub-card-icon" aria-hidden="true">🎨</span>
-          <h3>Kunst</h3>
-          <p>riozmart – Gemälde und Zeichnungen.</p>
-          <span class="hub-card-link">Zur Galerie →</span>
-        </a>
-        <a href="/politik/" class="hub-card">
-          <span class="hub-card-icon" aria-hidden="true">🏛️</span>
-          <h3>Politik</h3>
-          <p>Beiträge und Gedanken – Blog im Zeitungsstil.</p>
-          <span class="hub-card-link">Zum Blog →</span>
-        </a>
+    <section class="hub-section" aria-label="Weitere Bereiche">
+      <div class="hub-grid hub-grid-4">
         <a href="/trouvo/" class="hub-card">
           <span class="hub-card-icon" aria-hidden="true">📅</span>
           <h3>Trouvo</h3>
-          <p>Eventplanungs-App – Events organisieren, Anmeldelinks teilen.</p>
+          <p>Eventplanung – Events organisieren, Anmeldelinks teilen.</p>
           <span class="hub-card-link">Zu Trouvo →</span>
+        </a>
+        <a href="/reisen/" class="hub-card">
+          <span class="hub-card-icon" aria-hidden="true">🚲</span>
+          <h3>Reisen</h3>
+          <p>Gemeinsam Fahrradtouren planen – Route, Finanzen, Packliste.</p>
+          <span class="hub-card-link">Zu Reisen →</span>
+        </a>
+        <a href="/quiz/" class="hub-card">
+          <span class="hub-card-icon" aria-hidden="true">❓</span>
+          <h3>Quiz</h3>
+          <p>Live-Quiz erstellen und mit Code oder QR spielen.</p>
+          <span class="hub-card-link">Zum Quiz →</span>
+        </a>
+        <a href="/about/" class="hub-card">
+          <span class="hub-card-icon" aria-hidden="true">👤</span>
+          <h3>Über mich</h3>
+          <p>Wer ich bin, wo ich aktiv bin und wie du mich erreichst.</p>
+          <span class="hub-card-link">Mehr erfahren →</span>
         </a>
       </div>
     </section>
@@ -133,8 +94,10 @@
     <p>© Manuel Rio Zeltner</p>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-  <script src="/src/site-header.js"></script>
-  <script src="/src/site-nav.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/src/supabase-config.js"></script>
+  <script src="/src/supabase-client.js"></script>
+  <script src="/src/artworks-data.js"></script>
+  <script src="/src/landing.js"></script>
 </body>
 </html>
