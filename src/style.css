@@ -3541,7 +3541,7 @@ body.site-body :where(button, input, textarea, select, .btn, .form-control, .nav
     left: 50%;
     transform: translateX(-50%);
     z-index: 5;
-    font: 600 1.7rem/1 Helvetica, "Helvetica Neue", Arial, sans-serif;
+    font: 600 2.3rem/1 Helvetica, "Helvetica Neue", Arial, sans-serif;
     letter-spacing: 0.04em;
     color: #2e7d32;
     text-decoration: none;
@@ -4001,3 +4001,31 @@ body.site-body :where(button, input, textarea, select, .btn, .form-control, .nav
   font-size: 0.9rem;
   font-style: italic;
 }
+
+/* Landing: dunkles Grün-Farbschema */
+body.landing-body {
+  background: linear-gradient(180deg, #2c3a2b 0%, #35503a 55%, #43674a 100%) fixed;
+  color: #eaf3e8;
+}
+body.landing-body .home-section-title,
+body.landing-body .home-more-link,
+body.landing-body .site-footer,
+body.landing-body .site-footer p {
+  color: #e6f0e3;
+}
+body.landing-body .home-more-link:hover { color: #fff; }
+body.landing-body .hero-slider {
+  background: linear-gradient(135deg, #243424 0%, #3c5f44 100%);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+body.landing-body .hub-card {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: none;
+}
+body.landing-body .hub-card h3,
+body.landing-body .hub-card p { color: #eaf3e8; }
+body.landing-body .hub-card .hub-card-link { color: #a8d98f; }
+body.landing-body .hub-card:hover { background: rgba(255, 255, 255, 0.13); }
+body.landing-body .landing-brand { font-size: 2.3rem; color: #8fd46f; }
+body.landing-body .site-footer { background: transparent; border-color: rgba(255, 255, 255, 0.15); }
