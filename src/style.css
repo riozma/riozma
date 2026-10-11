@@ -3517,7 +3517,6 @@ body.site-body :where(button, input, textarea, select, .btn, .form-control, .nav
 
 /* ===== New landing page ===== */
 .landing-banner,
-.landing-brand,
 .landing-burger,
 .landing-menu {
   display: none;
@@ -4029,3 +4028,24 @@ body.landing-body .hub-card .hub-card-link { color: #a8d98f; }
 body.landing-body .hub-card:hover { background: rgba(255, 255, 255, 0.13); }
 body.landing-body .landing-brand { font-size: 2.3rem; color: #8fd46f; }
 body.landing-body .site-footer { background: transparent; border-color: rgba(255, 255, 255, 0.15); }
+
+body.landing-body { overflow-x: hidden; }
+main.landing-home, .home-art-section, .art-strip-wrap, .home-politik-section, .hub-section { min-width: 0; width: 100%; box-sizing: border-box; }
+.art-strip { max-width: 100%; }
+body.landing-body .landing-brand {
+  display: block;
+  position: absolute;
+  top: 0.9rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  font: 600 1.9rem/1 Helvetica, "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+@media (min-width: 992px) {
+  body.landing-body .landing-brand { top: 5.5rem; font-size: 2.3rem; }
+}
+@media (max-width: 991.98px) {
+  main.landing-home { padding-top: 4.5rem; }
+}
