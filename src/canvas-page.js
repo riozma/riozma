@@ -1,0 +1,313 @@
+(function () {
+  const mainEl = document.getElementById("cv-main");
+  const overlayEl = document.getElementById("cv-overlay");
+  const pal = document.getElementById("cv-palette");
+  const handle = document.getElementById("cv-handle");
+  const textInput = document.getElementById("cv-text-input");
+  const view = new CanvasView(mainEl, { mode: "contain", overlay: overlayEl });
+  const token = canvasOwnerToken();
+  const client = getSupabase();
+
+  const SIZES = {
+    pen: [4, 10, 22],
+    shape: [4, 9, 16],
+    stamp: [70, 130, 230],
+    text: [36, 64, 110],
+  };
+
+  const state = { tool: "pen", color: CANVAS_COLORS[1], size: 1, shape: "rect", fill: true, stamp: "flower" };
+  const mine = [];
+
+  // ---------- Palette-Aufbau ----------
+  const colorsEl = document.getElementById("cv-colors");
+  CANVAS_COLORS.forEach((c, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.style.setProperty("--c", c);
+    b.title = CANVAS_COLOR_NAMES[i];
+    b.setAttribute("aria-label", CANVAS_COLOR_NAMES[i]);
+    if (c === state.color) b.classList.add("active");
+    b.addEventListener("click", () => {
+      state.color = c;
+      colorsEl.querySelectorAll("button").forEach((x) => x.classList.toggle("active", x === b));
+      if (!textInput.classList.contains("d-none")) styleTextInput();
+      refreshStampIcons();
+    });
+    colorsEl.appendChild(b);
+  });
+
+  const stampsEl = document.getElementById("cv-sub-stamp");
+  Object.keys(CANVAS_STAMPS).forEach((name) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.dataset.stamp = name;
+    b.title = CANVAS_STAMP_NAMES[name];
+    if (name === state.stamp) b.classList.add("active");
+    const c = document.createElement("canvas");
+    c.width = c.height = 28;
+    b.appendChild(c);
+    b.addEventListener("click", () => {
+      state.stamp = name;
+      stampsEl.querySelectorAll("button").forEach((x) => x.classList.toggle("active", x === b));
+    });
+    stampsEl.appendChild(b);
+  });
+
+  function refreshStampIcons() {
+    stampsEl.querySelectorAll("button").forEach((b) => {
+      const c = b.firstChild;
+      const ctx = c.getContext("2d");
+      ctx.clearRect(0, 0, 28, 28);
+      const active = b.classList.contains("active");
+      ctx.save();
+      canvasDrawStamp(ctx, b.dataset.stamp, 14, 14, 24, active ? "#14414f" : state.color);
+      ctx.restore();
+    });
+  }
+  stampsEl.addEventListener("click", refreshStampIcons);
+  refreshStampIcons();
+
+  const subShape = document.getElementById("cv-sub-shape");
+  const subStamp = document.getElementById("cv-sub-stamp");
+  const fillBtn = document.getElementById("cv-fill");
+
+  function syncUi() {
+    document.querySelectorAll("#cv-tools button").forEach((b) => b.classList.toggle("active", b.dataset.tool === state.tool));
+    subShape.hidden = state.tool !== "shape";
+    subStamp.hidden = state.tool !== "stamp";
+    overlayEl.style.cursor = state.tool === "text" ? "text" : "crosshair";
+    layoutPalette();
+  }
+
+  document.getElementById("cv-tools").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-tool]");
+    if (!b) return;
+    state.tool = b.dataset.tool;
+    commitText();
+    syncUi();
+  });
+  document.getElementById("cv-sizes").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-size]");
+    if (!b) return;
+    state.size = Number(b.dataset.size);
+    document.querySelectorAll("#cv-sizes button").forEach((x) => x.classList.toggle("active", x === b));
+    if (!textInput.classList.contains("d-none")) styleTextInput();
+  });
+  subShape.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-shape]");
+    if (!b) return;
+    state.shape = b.dataset.shape;
+    subShape.querySelectorAll("button[data-shape]").forEach((x) => x.classList.toggle("active", x === b));
+  });
+  fillBtn.addEventListener("click", () => {
+    state.fill = !state.fill;
+    fillBtn.setAttribute("aria-pressed", state.fill ? "true" : "false");
+  });
+
+  // ---------- Speichern / Rückgängig ----------
+  function nonce() {
+    const n = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+    view.ownNonces.add(n);
+    return n;
+  }
+
+  function commit(kind, data) {
+    data.n = nonce();
+    const item = { kind, data };
+    view.addItem(item);
+    mine.push(item);
+    item.ready = client
+      ? client.rpc("canvas_add", { p_kind: kind, p_data: data, p_token: token }).then(({ data: id, error }) => {
+        if (error) {
+          view.items = view.items.filter((i) => i !== item);
+          const k = mine.indexOf(item);
+          if (k >= 0) mine.splice(k, 1);
+          view.redraw();
+          console.warn("canvas_add fehlgeschlagen", error.message);
+          return;
+        }
+        if (!item.id) item.id = id;
+      })
+      : Promise.resolve();
+  }
+
+  document.getElementById("cv-undo").addEventListener("click", async () => {
+    const item = mine.pop();
+    if (!item) return;
+    view.items = view.items.filter((i) => i !== item);
+    view.redraw();
+    await item.ready;
+    if (item.id && client) await client.rpc("canvas_undo", { p_id: item.id, p_token: token });
+  });
+
+  // ---------- Zeichnen ----------
+  let drawing = null;
+  const round = (v) => Math.round(v * 10) / 10;
+
+  overlayEl.addEventListener("pointerdown", (e) => {
+    if (e.button > 0) return;
+    const p = view.toWorld(e.clientX, e.clientY);
+    if (state.tool === "text") {
+      commitText();
+      startText(e.clientX, e.clientY, p);
+      return;
+    }
+    commitText();
+    overlayEl.setPointerCapture(e.pointerId);
+    if (state.tool === "stamp") {
+      commit("stamp", { s: state.stamp, c: state.color, x: round(p.x), y: round(p.y), size: SIZES.stamp[state.size] });
+      return;
+    }
+    if (state.tool === "pen") drawing = { type: "pen", pts: [round(p.x), round(p.y)] };
+    else if (state.tool === "shape") drawing = { type: "shape", x0: p.x, y0: p.y, x1: p.x, y1: p.y };
+    if (drawing) previewDrawing();
+  });
+
+  overlayEl.addEventListener("pointermove", (e) => {
+    if (!drawing) return;
+    const p = view.toWorld(e.clientX, e.clientY);
+    if (drawing.type === "pen") {
+      const n = drawing.pts.length;
+      const dx = p.x - drawing.pts[n - 2];
+      const dy = p.y - drawing.pts[n - 1];
+      if (dx * dx + dy * dy < 9) return;
+      if (n < 9000) drawing.pts.push(round(p.x), round(p.y));
+    } else {
+      drawing.x1 = p.x;
+      drawing.y1 = p.y;
+    }
+    previewDrawing();
+  });
+
+  function endDrawing() {
+    if (!drawing) return;
+    const d = drawing;
+    drawing = null;
+    view.clearOverlay();
+    if (d.type === "pen") {
+      commit("stroke", { c: state.color, w: SIZES.pen[state.size], p: d.pts });
+    } else {
+      let x = Math.min(d.x0, d.x1);
+      let y = Math.min(d.y0, d.y1);
+      let w = Math.abs(d.x1 - d.x0);
+      let h = Math.abs(d.y1 - d.y0);
+      if (state.shape === "line") {
+        x = d.x0; y = d.y0; w = d.x1 - d.x0; h = d.y1 - d.y0;
+      }
+      if (Math.abs(w) < 6 && Math.abs(h) < 6) {
+        w = h = SIZES.stamp[state.size] * 0.8;
+        x = d.x0 - w / 2;
+        y = d.y0 - h / 2;
+      }
+      commit("shape", { f: state.shape, c: state.color, x: round(x), y: round(y), w: round(w), h: round(h), fill: state.fill, sw: SIZES.shape[state.size] });
+    }
+  }
+  overlayEl.addEventListener("pointerup", endDrawing);
+  overlayEl.addEventListener("pointercancel", endDrawing);
+
+  function previewDrawing() {
+    if (!drawing) return;
+    if (drawing.type === "pen") {
+      view.drawPreview({ kind: "stroke", data: { c: state.color, w: SIZES.pen[state.size], p: drawing.pts } });
+    } else {
+      const d = drawing;
+      let x = Math.min(d.x0, d.x1), y = Math.min(d.y0, d.y1);
+      let w = Math.abs(d.x1 - d.x0), h = Math.abs(d.y1 - d.y0);
+      if (state.shape === "line") { x = d.x0; y = d.y0; w = d.x1 - d.x0; h = d.y1 - d.y0; }
+      view.drawPreview({ kind: "shape", data: { f: state.shape, c: state.color, x, y, w, h, fill: state.fill, sw: SIZES.shape[state.size] } });
+    }
+  }
+
+  // ---------- Text ----------
+  let textAt = null;
+  function styleTextInput() {
+    const px = SIZES.text[state.size] * view.scale;
+    textInput.style.fontSize = `${Math.max(14, px)}px`;
+    textInput.style.color = state.color;
+  }
+  function startText(clientX, clientY, world) {
+    textAt = world;
+    textInput.value = "";
+    textInput.style.left = `${clientX}px`;
+    textInput.style.top = `${clientY}px`;
+    textInput.classList.remove("d-none");
+    styleTextInput();
+    setTimeout(() => textInput.focus(), 0);
+  }
+  function commitText() {
+    if (textInput.classList.contains("d-none")) return;
+    const t = textInput.value.trim();
+    textInput.classList.add("d-none");
+    if (t && textAt) commit("text", { t, c: state.color, x: round(textAt.x), y: round(textAt.y), size: SIZES.text[state.size] });
+    textAt = null;
+  }
+  textInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") commitText();
+    if (e.key === "Escape") { textInput.value = ""; commitText(); }
+  });
+  textInput.addEventListener("blur", () => setTimeout(commitText, 100));
+
+  // ---------- Verschiebbare Palette ----------
+  const POS_KEY = "canvas_palette";
+  let dock = { side: window.innerWidth < 700 ? "bottom" : "left", frac: 0.5 };
+  try {
+    const saved = JSON.parse(localStorage.getItem(POS_KEY) || "null");
+    if (saved && ["top", "bottom", "left", "right"].includes(saved.side)) dock = saved;
+  } catch (e) { /* ignore */ }
+
+  function layoutPalette() {
+    pal.classList.remove("dock-top", "dock-bottom", "dock-left", "dock-right");
+    pal.classList.add(`dock-${dock.side}`);
+    pal.style.left = pal.style.right = pal.style.top = pal.style.bottom = "auto";
+    const m = 10;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const w = pal.offsetWidth;
+    const h = pal.offsetHeight;
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+    if (dock.side === "bottom" || dock.side === "top") {
+      pal.style.left = `${clamp(dock.frac * vw - w / 2, m, Math.max(m, vw - w - m))}px`;
+      pal.style[dock.side] = `${m}px`;
+    } else {
+      pal.style.top = `${clamp(dock.frac * vh - h / 2, 56, Math.max(56, vh - h - m))}px`;
+      pal.style[dock.side] = `${m}px`;
+    }
+  }
+
+  let drag = null;
+  handle.addEventListener("pointerdown", (e) => {
+    const r = pal.getBoundingClientRect();
+    drag = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+    handle.setPointerCapture(e.pointerId);
+    handle.classList.add("dragging");
+  });
+  handle.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    pal.style.right = pal.style.bottom = "auto";
+    pal.style.left = `${e.clientX - drag.dx}px`;
+    pal.style.top = `${e.clientY - drag.dy}px`;
+  });
+  function endDrag() {
+    if (!drag) return;
+    drag = null;
+    handle.classList.remove("dragging");
+    const r = pal.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const dists = { left: cx, right: vw - cx, top: cy, bottom: vh - cy };
+    const side = Object.keys(dists).sort((a, b) => dists[a] - dists[b])[0];
+    dock = { side, frac: side === "left" || side === "right" ? cy / vh : cx / vw };
+    layoutPalette();
+    try { localStorage.setItem(POS_KEY, JSON.stringify(dock)); } catch (e) { /* ignore */ }
+  }
+  handle.addEventListener("pointerup", endDrag);
+  handle.addEventListener("pointercancel", endDrag);
+  window.addEventListener("resize", layoutPalette);
+
+  syncUi();
+
+  // ---------- Daten laden + Live ----------
+  view.load().then(() => view.subscribe());
+})();

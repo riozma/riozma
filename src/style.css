@@ -4054,3 +4054,30 @@ body.landing-body .landing-brand { color: #1f5a2c; }
 @media (max-width: 991.98px) {
   body.landing-body .landing-brand { background: rgba(255, 255, 255, 0.88); padding: 0.35rem 0.9rem; border-radius: 999px; font-size: 1.5rem; }
 }
+
+.landing-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: -1;
+  display: block;
+  pointer-events: none;
+}
+body.landing-body .hub-card,
+body.landing-body .hero-slider { backdrop-filter: blur(6px); }
+body.landing-body .hub-card { background: rgba(20, 30, 20, 0.5); }
+.hub-canvas-btn {
+  display: block;
+  margin: 1rem auto 0;
+  max-width: 520px;
+  text-align: center;
+  padding: 0.9rem 1.2rem;
+  border-radius: 14px;
+  background: #dccfc3;
+  color: #14414f;
+  font-weight: 700;
+  text-decoration: none;
+}
+.hub-canvas-btn:hover { background: #fff; color: #14414f; }

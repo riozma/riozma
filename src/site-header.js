@@ -60,6 +60,12 @@
       activeWhen: (path) => path === "/quiz" || path.startsWith("/quiz/"),
     },
     {
+      id: "canvas",
+      href: "/canvas/",
+      label: "Canvas",
+      activeWhen: (path) => path === "/canvas" || path.startsWith("/canvas/"),
+    },
+    {
       id: "about",
       href: "/about/",
       label: "Über mich",

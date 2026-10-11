@@ -21,6 +21,7 @@
   <link rel="preload" as="image" href="/src/img/bernina.jpg" media="(min-width: 992px)">
 </head>
 <body class="site-body landing-body">
+  <canvas id="landing-canvas" class="landing-canvas" aria-hidden="true"></canvas>
   <button type="button" class="landing-burger" id="landing-burger" aria-label="Menü" aria-expanded="false">
     <span></span><span></span><span></span>
   </button>
@@ -31,6 +32,7 @@
     <a href="/trouvo/">Trouvo</a>
     <a href="/reisen/">Reisen</a>
     <a href="/quiz/">Quiz</a>
+    <a href="/canvas/">Canvas</a>
     <a href="/about/">Über mich</a>
   </nav>
 
@@ -88,6 +90,7 @@
           <span class="hub-card-link">Mehr erfahren →</span>
         </a>
       </div>
+      <a href="/canvas/" class="hub-canvas-btn">🎨 Canvas – gestalte den Hintergrund mit! <span aria-hidden="true">→</span></a>
     </section>
   </main>
 
@@ -99,6 +102,7 @@
   <script src="/src/supabase-config.js"></script>
   <script src="/src/supabase-client.js"></script>
   <script src="/src/artworks-data.js"></script>
+  <script src="/src/canvas-core.js"></script>
   <script src="/src/landing.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
   <script src="/src/site-header.js"></script>

@@ -3,7 +3,15 @@ document.addEventListener("DOMContentLoaded", () => {
   setupHeaderOnScroll();
   setupArtStrip();
   setupHeroSlider();
+  setupCanvasBackground();
 });
+
+function setupCanvasBackground() {
+  const el = document.getElementById("landing-canvas");
+  if (!el || typeof CanvasView === "undefined") return;
+  const view = new CanvasView(el, { mode: "cover" });
+  view.load().then(() => view.subscribe());
+}
 
 function setupBurger() {
   const burger = document.getElementById("landing-burger");
