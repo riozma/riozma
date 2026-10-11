@@ -9,7 +9,12 @@ document.addEventListener("DOMContentLoaded", () => {
 function setupCanvasBackground() {
   const el = document.getElementById("landing-canvas");
   if (!el || typeof CanvasView === "undefined") return;
-  const view = new CanvasView(el, { mode: "cover" });
+  if (document.documentElement.classList.contains("embed")) return;
+  const view = new CanvasView(el);
+  const onScroll = () => view.setScroll(window.scrollY);
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("load", () => view.relayout());
+  onScroll();
   view.load().then(() => view.subscribe());
 }
 

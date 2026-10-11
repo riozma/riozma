@@ -71,6 +71,9 @@ html, body.canvas-body {
 .cv-palette.dock-right { flex-direction: column; width: 184px; }
 .cv-palette[hidden] { display: none; }
 
+.cv-top { display: flex; gap: 6px; align-items: stretch; }
+.dock-left .cv-top, .dock-right .cv-top { width: 100%; }
+.dock-left .cv-handle, .dock-right .cv-handle { flex: 1; }
 .cv-handle {
   display: flex;
   gap: 3px;
@@ -139,3 +142,76 @@ html, body.canvas-body {
 }
 .cv-palette [hidden] { display: none !important; }
 .cv-ghost { position: fixed; pointer-events: none; z-index: 15; }
+
+.cv-page-ghost {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  border: 0;
+  opacity: 0.2;
+  pointer-events: none;
+  background: transparent;
+  z-index: 5;
+}
+.cv-page-ghost.off { display: none; }
+.cv-scrollbar {
+  position: fixed;
+  top: 60px;
+  bottom: 12px;
+  right: 4px;
+  width: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  z-index: 12;
+  pointer-events: none;
+}
+.cv-scrollbar i { position: absolute; left: 0; right: 0; border-radius: 3px; background: rgba(220, 207, 195, 0.6); }
+
+.cv-collapse { min-width: 36px !important; height: auto !important; align-self: stretch; }
+.cv-palette.collapsed .cv-section { display: none; }
+.cv-zoom {
+  position: fixed;
+  top: 12px;
+  right: 14px;
+  z-index: 20;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(20, 28, 20, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+.cv-zoom button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #dccfc3;
+  min-width: 38px;
+  height: 34px;
+  border-radius: 999px;
+  font-size: 1.15rem;
+  cursor: pointer;
+}
+.cv-zoom button:hover { background: rgba(255, 255, 255, 0.14); }
+#cv-zoom-reset { font-size: 0.78rem; min-width: 52px; }
+.cv-scrollbar { right: 2px; }
+
+@media (max-width: 700px) {
+  .cv-palette { padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)); }
+  .cv-palette.dock-top, .cv-palette.dock-bottom {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    width: calc(100vw - 16px);
+    box-sizing: border-box;
+    scrollbar-width: none;
+  }
+  .cv-palette.dock-top .cv-section, .cv-palette.dock-bottom .cv-section { flex-wrap: nowrap; flex: 0 0 auto; }
+  .cv-palette.dock-top .cv-top, .cv-palette.dock-bottom .cv-top { flex: 0 0 auto; }
+  .cv-palette.dock-top::-webkit-scrollbar, .cv-palette.dock-bottom::-webkit-scrollbar { display: none; }
+  .cv-palette.collapsed { width: auto; }
+  .cv-home { top: 8px; left: 8px; padding: 0.3rem 0.7rem; font-size: 0.85rem; }
+  .cv-zoom { top: 8px; right: 8px; }
+}

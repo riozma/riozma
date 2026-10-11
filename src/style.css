@@ -4081,3 +4081,15 @@ body.landing-body .hub-card { background: rgba(20, 30, 20, 0.5); }
   text-decoration: none;
 }
 .hub-canvas-btn:hover { background: #fff; color: #14414f; }
+
+/* Vorschau im Canvas-Editor: Inhalt bleibt im Layout, Hintergrund etc. unsichtbar */
+html.embed, html.embed body.landing-body { background: transparent !important; }
+html.embed .landing-canvas,
+html.embed .landing-banner,
+html.embed .landing-brand,
+html.embed .landing-burger,
+html.embed .landing-menu,
+html.embed .landing-header { visibility: hidden !important; }
+html.embed ::-webkit-scrollbar { width: 0; height: 0; }
+html.embed { scrollbar-width: none; }
+html.embed .hub-card, html.embed .hero-slider { backdrop-filter: none; }

@@ -4,12 +4,18 @@
   const pal = document.getElementById("cv-palette");
   const handle = document.getElementById("cv-handle");
   const textInput = document.getElementById("cv-text-input");
-  const view = new CanvasView(mainEl, { mode: "contain", overlay: overlayEl });
+  const ghostFrame = document.getElementById("cv-page-ghost");
+  const frameDoc = () => { try { return ghostFrame.contentDocument.documentElement; } catch (e) { return null; } };
+  const view = new CanvasView(mainEl, {
+    overlay: overlayEl,
+    layoutWidth: () => { const d = frameDoc(); return d && d.clientWidth ? d.clientWidth : window.innerWidth; },
+  });
   const token = canvasOwnerToken();
   const client = getSupabase();
 
   const SIZES = {
     pen: [4, 10, 22],
+    erase: [18, 44, 96],
     shape: [4, 9, 16],
     stamp: [70, 130, 230],
     text: [36, 64, 110],
@@ -83,6 +89,8 @@
     if (!b) return;
     state.tool = b.dataset.tool;
     commitText();
+    drawing = null;
+    view.clearOverlay();
     syncUi();
   });
   document.getElementById("cv-sizes").addEventListener("click", (e) => {
@@ -143,8 +151,91 @@
   let drawing = null;
   const round = (v) => Math.round(v * 10) / 10;
 
+  // ---------- Scrollen ----------
+  const touches = new Map();
+  let pan = null;
+  let pinch = null;
+  const touchInfo = () => {
+    const pts = [...touches.values()];
+    const dx = pts[0].x - pts[1].x;
+    const dy = pts[0].y - pts[1].y;
+    return { cx: (pts[0].x + pts[1].x) / 2, cy: (pts[0].y + pts[1].y) / 2, dist: Math.hypot(dx, dy) || 1 };
+  };
+  const pageH = () => { const d = frameDoc(); return d && d.scrollHeight ? d.scrollHeight : 3000; };
+  const layoutW = () => { const d = frameDoc(); return d && d.clientWidth ? d.clientWidth : window.innerWidth; };
+  const maxScroll = () => Math.max(0, pageH() - window.innerHeight / view.zoom);
+  const maxPan = () => Math.max(0, layoutW() - window.innerWidth / view.zoom);
+  const zoomLabel = document.getElementById("cv-zoom-reset");
+  const thumb = document.querySelector("#cv-scrollbar i");
+  function updateThumb() {
+    const total = pageH();
+    const vh = window.innerHeight;
+    const frac = Math.min(1, vh / total);
+    thumb.style.height = `${frac * 100}%`;
+    thumb.style.top = `${(total > vh ? view.scrollPx / (total - vh) : 0) * (1 - frac) * 100}%`;
+    document.getElementById("cv-scrollbar").style.display = total > vh + 4 ? "block" : "none";
+  }
+  // Ansicht setzen: Zoom (1–5), horizontale Verschiebung und Scrollposition (Seiten-Pixel)
+  function setView(zoom, panX, scrollPx) {
+    const z = Math.max(1, Math.min(5, zoom));
+    view.zoom = z;
+    const sy = Math.max(0, Math.min(maxScroll(), scrollPx));
+    const sx = Math.max(0, Math.min(maxPan(), panX));
+    view.setView(z, sx, sy);
+    ghostFrame.style.width = `${layoutW()}px`;
+    ghostFrame.style.height = `${window.innerHeight / z}px`;
+    ghostFrame.style.transformOrigin = "0 0";
+    ghostFrame.style.transform = `scale(${z}) translateX(${-sx}px)`;
+    try { ghostFrame.contentWindow.scrollTo(0, sy); } catch (e) { /* ignore */ }
+    zoomLabel.textContent = `${Math.round(z * 100)}%`;
+    updateThumb();
+  }
+  function scrollTo(px) { setView(view.zoom, view.panX, px); }
+  function zoomAt(newZoom, cx, cy) {
+    const z0 = view.zoom;
+    const z1 = Math.max(1, Math.min(5, newZoom));
+    // Punkt unter (cx, cy) bleibt stehen
+    const pageX = cx / z0 + view.panX;
+    const pageY = cy / z0 + view.scrollPx;
+    setView(z1, pageX - cx / z1, pageY - cy / z1);
+  }
+  document.getElementById("cv-zoom-in").addEventListener("click", () => zoomAt(view.zoom * 1.4, window.innerWidth / 2, window.innerHeight / 2));
+  document.getElementById("cv-zoom-out").addEventListener("click", () => zoomAt(view.zoom / 1.4, window.innerWidth / 2, window.innerHeight / 2));
+  zoomLabel.addEventListener("click", () => setView(1, 0, view.scrollPx));
+  ghostFrame.addEventListener("load", () => { view.relayout(); setView(view.zoom, view.panX, view.scrollPx); });
+  setInterval(() => { view.relayout(); updateThumb(); }, 2500);
+  window.addEventListener("resize", () => setTimeout(() => { view.relayout(); setView(view.zoom, view.panX, view.scrollPx); }, 50));
+  window.addEventListener("keydown", (e) => {
+    if (e.target && e.target.tagName === "INPUT") return;
+    const step = window.innerHeight * 0.8;
+    if (e.key === "ArrowDown") scrollTo(view.scrollPx + 120);
+    else if (e.key === "ArrowUp") scrollTo(view.scrollPx - 120);
+    else if (e.key === "PageDown") scrollTo(view.scrollPx + step);
+    else if (e.key === "PageUp") scrollTo(view.scrollPx - step);
+    else if (e.key === "Home") scrollTo(0);
+    else if (e.key === "End") scrollTo(maxScroll());
+    else if (e.key === "+" || e.key === "=") zoomAt(view.zoom * 1.25, window.innerWidth / 2, window.innerHeight / 2);
+    else if (e.key === "-") zoomAt(view.zoom / 1.25, window.innerWidth / 2, window.innerHeight / 2);
+    else if (e.key === "0") setView(1, 0, view.scrollPx);
+  });
+
   overlayEl.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "touch") {
+      touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (touches.size === 2) {
+        drawing = null;
+        view.clearOverlay();
+        const t = touchInfo();
+        pinch = { dist: t.dist, zoom: view.zoom, cx: t.cx, cy: t.cy, panX: view.panX, scroll: view.scrollPx };
+        return;
+      }
+    }
     if (e.button > 0) return;
+    if (state.tool === "hand") {
+      overlayEl.setPointerCapture(e.pointerId);
+      pan = { x: e.clientX, y: e.clientY, scroll: view.scrollPx, panX: view.panX };
+      return;
+    }
     const p = view.toWorld(e.clientX, e.clientY);
     if (state.tool === "text") {
       commitText();
@@ -157,15 +248,30 @@
       commit("stamp", { s: state.stamp, c: state.color, x: round(p.x), y: round(p.y), size: SIZES.stamp[state.size], r: Math.round(state.rot * 1000) / 1000 });
       return;
     }
-    if (state.tool === "pen") drawing = { type: "pen", pts: [round(p.x), round(p.y)] };
+    if (state.tool === "pen" || state.tool === "erase") drawing = { type: state.tool, pts: [round(p.x), round(p.y)] };
     else if (state.tool === "shape") drawing = { type: "shape", x0: p.x, y0: p.y, x1: p.x, y1: p.y };
     if (drawing) previewDrawing();
   });
 
   overlayEl.addEventListener("pointermove", (e) => {
+    if (e.pointerType === "touch" && touches.has(e.pointerId)) {
+      touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (touches.size === 2 && pinch) {
+        const t = touchInfo();
+        const z1 = Math.max(1, Math.min(5, pinch.zoom * (t.dist / pinch.dist)));
+        const pageX = pinch.cx / pinch.zoom + pinch.panX;
+        const pageY = pinch.cy / pinch.zoom + pinch.scroll;
+        setView(z1, pageX - t.cx / z1, pageY - t.cy / z1);
+        return;
+      }
+    }
+    if (pan && state.tool === "hand") {
+      setView(view.zoom, pan.panX - (e.clientX - pan.x) / view.zoom, pan.scroll - (e.clientY - pan.y) / view.zoom);
+      return;
+    }
     if (!drawing) return;
     const p = view.toWorld(e.clientX, e.clientY);
-    if (drawing.type === "pen") {
+    if (drawing.type === "pen" || drawing.type === "erase") {
       const n = drawing.pts.length;
       const dx = p.x - drawing.pts[n - 2];
       const dy = p.y - drawing.pts[n - 1];
@@ -178,13 +284,18 @@
     previewDrawing();
   });
 
-  function endDrawing() {
+  function endDrawing(e) {
+    if (e && e.pointerId !== undefined) touches.delete(e.pointerId);
+    if (touches.size < 2) pinch = null;
+    pan = null;
     if (!drawing) return;
     const d = drawing;
     drawing = null;
     view.clearOverlay();
     if (d.type === "pen") {
       commit("stroke", { c: state.color, w: SIZES.pen[state.size], p: d.pts });
+    } else if (d.type === "erase") {
+      commit("stroke", { e: true, w: SIZES.erase[state.size], p: d.pts });
     } else {
       let x = Math.min(d.x0, d.x1);
       let y = Math.min(d.y0, d.y1);
@@ -208,6 +319,8 @@
     if (!drawing) return;
     if (drawing.type === "pen") {
       view.drawPreview({ kind: "stroke", data: { c: state.color, w: SIZES.pen[state.size], p: drawing.pts } });
+    } else if (drawing.type === "erase") {
+      view.drawPreview({ kind: "stroke", data: { c: "rgba(255,255,255,0.35)", w: SIZES.erase[state.size], p: drawing.pts } });
     } else {
       const d = drawing;
       let x = Math.min(d.x0, d.x1), y = Math.min(d.y0, d.y1);
@@ -223,7 +336,7 @@
   document.body.appendChild(ghost);
   let lastPt = null;
   function drawGhost() {
-    const px = Math.max(24, SIZES.stamp[state.size] * view.scale);
+    const px = Math.max(24, SIZES.stamp[state.size] * view.scale * view.zoom);
     const pad = Math.ceil(px * 0.45);
     const side = Math.ceil(px + pad * 2);
     ghost.width = ghost.height = side;
@@ -237,7 +350,7 @@
   function updateGhost() {
     const on = state.tool === "stamp" && lastPt;
     ghost.classList.toggle("d-none", !on);
-    overlayEl.style.cursor = state.tool === "stamp" ? "none" : state.tool === "text" ? "text" : "crosshair";
+    overlayEl.style.cursor = state.tool === "stamp" ? "none" : state.tool === "text" ? "text" : state.tool === "hand" ? "grab" : "crosshair";
     if (on) {
       drawGhost();
       ghost.style.left = `${lastPt.x}px`;
@@ -255,10 +368,17 @@
   });
   overlayEl.addEventListener("pointerleave", () => ghost.classList.add("d-none"));
   overlayEl.addEventListener("wheel", (e) => {
-    if (state.tool !== "stamp") return;
     e.preventDefault();
-    state.rot += (e.deltaY > 0 ? 1 : -1) * (Math.PI / 12);
-    updateGhost();
+    if (e.ctrlKey || e.metaKey) {
+      zoomAt(view.zoom * Math.exp(-e.deltaY * 0.01), e.clientX, e.clientY);
+    } else if (state.tool === "stamp" && !e.altKey) {
+      state.rot += (e.deltaY > 0 ? 1 : -1) * (Math.PI / 12);
+      updateGhost();
+    } else if (e.shiftKey) {
+      setView(view.zoom, view.panX + e.deltaY / view.zoom, view.scrollPx);
+    } else {
+      setView(view.zoom, view.panX + e.deltaX / view.zoom, view.scrollPx + e.deltaY / view.zoom);
+    }
   }, { passive: false });
   const origSyncUi = syncUi;
   syncUi = function () { origSyncUi(); updateGhost(); };
@@ -268,7 +388,7 @@
   // ---------- Text ----------
   let textAt = null;
   function styleTextInput() {
-    const px = SIZES.text[state.size] * view.scale;
+    const px = SIZES.text[state.size] * view.scale * view.zoom;
     textInput.style.fontSize = `${Math.max(14, px)}px`;
     textInput.style.color = state.color;
   }
@@ -353,7 +473,46 @@
   handle.addEventListener("pointercancel", endDrag);
   window.addEventListener("resize", layoutPalette);
 
+  // ---------- Inhalt-Schatten & Admin-Reset ----------
+  const ghostBtn = document.getElementById("cv-ghost-toggle");
+  const setGhost = (on) => {
+    ghostFrame.classList.toggle("off", !on);
+    ghostBtn.classList.toggle("active", on);
+    try { localStorage.setItem("canvas_ghost", on ? "1" : "0"); } catch (e) { /* ignore */ }
+  };
+  try { if (localStorage.getItem("canvas_ghost") === "0") setGhost(false); } catch (e) { /* ignore */ }
+  ghostBtn.addEventListener("click", () => setGhost(ghostFrame.classList.contains("off")));
+
+  const ADMIN_EMAIL = "manuelzeltner@gmail.com";
+  const resetBtn = document.getElementById("cv-reset");
+  function refreshAdmin(session) {
+    const mail = session && session.user && session.user.email;
+    resetBtn.hidden = mail !== ADMIN_EMAIL;
+    layoutPalette();
+  }
+  if (client) {
+    client.auth.getSession().then(({ data }) => refreshAdmin(data.session));
+    client.auth.onAuthStateChange((_e, session) => refreshAdmin(session));
+  }
+  resetBtn.addEventListener("click", async () => {
+    if (!confirm("Den ganzen Canvas für ALLE zurücksetzen? Das kann nicht rückgängig gemacht werden.")) return;
+    const { error } = await client.rpc("canvas_reset");
+    if (error) { alert("Zurücksetzen nicht möglich: " + error.message); return; }
+    view.items = [];
+    mine.length = 0;
+    view.redraw();
+  });
+
+  const collapseBtn = document.getElementById("cv-collapse");
+  collapseBtn.addEventListener("click", () => {
+    const c = pal.classList.toggle("collapsed");
+    collapseBtn.textContent = c ? "▴" : "▾";
+    collapseBtn.setAttribute("aria-expanded", c ? "false" : "true");
+    layoutPalette();
+  });
+
   syncUi();
+  updateThumb();
 
   // ---------- Daten laden + Live ----------
   view.load().then(() => view.subscribe());

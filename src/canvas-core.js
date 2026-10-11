@@ -86,8 +86,9 @@ function canvasDrawStroke(ctx, d) {
   const p = d.p || [];
   if (p.length < 2) return;
   ctx.save();
-  ctx.strokeStyle = d.c;
-  ctx.fillStyle = d.c;
+  if (d.e) ctx.globalCompositeOperation = "destination-out";
+  ctx.strokeStyle = d.c || "#000";
+  ctx.fillStyle = d.c || "#000";
   ctx.lineWidth = d.w;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
@@ -152,20 +153,42 @@ function canvasDrawItem(ctx, item) {
   else if (item.kind === "text") canvasDrawText(ctx, d);
 }
 
+function canvasItemBounds(item) {
+  if (item._b) return item._b;
+  const d = item.data || {};
+  let b = [-1e9, 1e9];
+  if (item.kind === "stroke" && d.p && d.p.length >= 2) {
+    let lo = Infinity, hi = -Infinity;
+    for (let i = 1; i < d.p.length; i += 2) { if (d.p[i] < lo) lo = d.p[i]; if (d.p[i] > hi) hi = d.p[i]; }
+    b = [lo - d.w, hi + d.w];
+  } else if (item.kind === "stamp") {
+    b = [d.y - d.size, d.y + d.size];
+  } else if (item.kind === "shape") {
+    b = [Math.min(d.y, d.y + d.h) - (d.sw || 6), Math.max(d.y, d.y + d.h) + (d.sw || 6)];
+  } else if (item.kind === "text") {
+    b = [d.y - d.size, d.y + d.size];
+  }
+  item._b = b;
+  return b;
+}
+
 class CanvasView {
-  // mode: "cover" (Hintergrund) oder "contain" (Zeichenseite)
-  constructor(el, { mode = "cover", overlay = null } = {}) {
+  // Die Welt ist 1600 Einheiten breit und so hoch wie die Seite; scrollPx ist die Scrollposition in CSS-Pixeln.
+  constructor(el, { overlay = null, layoutWidth = null } = {}) {
     this.el = el;
     this.ctx = el.getContext("2d");
     this.overlay = overlay;
     this.octx = overlay ? overlay.getContext("2d") : null;
-    this.mode = mode;
+    this.layer = document.createElement("canvas");
+    this.lctx = this.layer.getContext("2d");
+    this.layoutWidth = layoutWidth || (() => document.documentElement.clientWidth || window.innerWidth);
     this.items = [];
     this.ownNonces = new Set();
-    this.scale = 1;
-    this.ox = 0;
-    this.oy = 0;
+    this.scrollPx = 0;
+    this.panX = 0;
+    this.zoom = 1;
     this._raf = 0;
+    this._raf2 = 0;
     window.addEventListener("resize", () => this.resize());
     this.resize();
   }
@@ -177,62 +200,78 @@ class CanvasView {
     this.cssW = w;
     this.cssH = h;
     this.dpr = dpr;
-    for (const c of [this.el, this.overlay]) {
+    for (const c of [this.el, this.overlay, this.layer]) {
       if (!c) continue;
       c.width = Math.round(w * dpr);
       c.height = Math.round(h * dpr);
     }
-    const sx = w / CANVAS_W;
-    const sy = h / CANVAS_H;
-    this.scale = this.mode === "cover" ? Math.max(sx, sy) : Math.min(sx, sy);
-    this.ox = (w - CANVAS_W * this.scale) / 2;
-    this.oy = (h - CANVAS_H * this.scale) / 2;
+    this.relayout();
+  }
+
+  relayout() {
+    const lw = this.layoutWidth() || this.cssW;
+    this.scale = Math.max(lw / CANVAS_W, 0.5);
+    this.ox = (lw - CANVAS_W * this.scale) / 2;
+    this.redraw();
+  }
+
+  setScroll(px) {
+    if (px === this.scrollPx) return;
+    this.scrollPx = px;
+    this.redraw();
+  }
+
+  setView(zoom, panX, scrollPx) {
+    this.zoom = zoom;
+    this.panX = panX;
+    this.scrollPx = scrollPx;
     this.redraw();
   }
 
   toWorld(clientX, clientY) {
     const r = this.el.getBoundingClientRect();
     return {
-      x: (clientX - r.left - this.ox) / this.scale,
-      y: (clientY - r.top - this.oy) / this.scale,
+      x: ((clientX - r.left) / this.zoom + this.panX - this.ox) / this.scale,
+      y: ((clientY - r.top) / this.zoom + this.scrollPx) / this.scale,
     };
   }
 
   applyTransform(ctx) {
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    ctx.translate(this.ox, this.oy);
+    ctx.scale(this.zoom, this.zoom);
+    ctx.translate(this.ox - this.panX, -this.scrollPx);
     ctx.scale(this.scale, this.scale);
   }
 
-  drawBackground() {
-    const ctx = this.ctx;
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    const g = ctx.createLinearGradient(0, 0, 0, this.el.height);
-    g.addColorStop(0, CANVAS_BG_TOP);
-    g.addColorStop(1, CANVAS_BG_BOTTOM);
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, this.el.width, this.el.height);
-    if (this.mode === "contain") {
-      this.applyTransform(ctx);
-      ctx.strokeStyle = "rgba(255,255,255,0.12)";
-      ctx.lineWidth = 2 / this.scale;
-      ctx.strokeRect(0, 0, CANVAS_W, CANVAS_H);
-    }
+  composite() {
+    cancelAnimationFrame(this._raf2);
+    this._raf2 = requestAnimationFrame(() => {
+      const ctx = this.ctx;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      const g = ctx.createLinearGradient(0, 0, 0, this.el.height);
+      g.addColorStop(0, CANVAS_BG_TOP);
+      g.addColorStop(1, CANVAS_BG_BOTTOM);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, this.el.width, this.el.height);
+      ctx.drawImage(this.layer, 0, 0);
+    });
   }
 
   redraw() {
     cancelAnimationFrame(this._raf);
     this._raf = requestAnimationFrame(() => {
-      this.drawBackground();
-      this.applyTransform(this.ctx);
-      if (this.mode === "contain") {
-        this.ctx.save();
-        this.ctx.beginPath();
-        this.ctx.rect(0, 0, CANVAS_W, CANVAS_H);
-        this.ctx.clip();
+      const ctx = this.lctx;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, this.layer.width, this.layer.height);
+      this.applyTransform(ctx);
+      const top = this.scrollPx / this.scale;
+      const bottom = (this.scrollPx + this.cssH / this.zoom) / this.scale;
+      for (const it of this.items) {
+        const b = canvasItemBounds(it);
+        if (b[1] < top || b[0] > bottom) continue;
+        canvasDrawItem(ctx, it);
       }
-      for (const it of this.items) canvasDrawItem(this.ctx, it);
-      if (this.mode === "contain") this.ctx.restore();
+      this.composite();
     });
   }
 
@@ -250,8 +289,9 @@ class CanvasView {
 
   addItem(item) {
     this.items.push(item);
-    this.applyTransform(this.ctx);
-    canvasDrawItem(this.ctx, item);
+    this.applyTransform(this.lctx);
+    canvasDrawItem(this.lctx, item);
+    this.composite();
   }
 
   removeById(id) {
@@ -292,13 +332,13 @@ class CanvasView {
           const mine = this.items.find((it) => it.data && row.data && it.data.n && it.data.n === row.data.n);
           if (mine) {
             mine.id = row.id;
-            if (this.onOwnId) this.onOwnId(mine);
             return;
           }
           if (this.items.some((it) => it.id === row.id)) return;
           this.addItem({ id: row.id, kind: row.kind, data: row.data });
         } else if (payload.eventType === "DELETE") {
-          this.removeById(payload.old.id);
+          if (payload.old && payload.old.id) this.removeById(payload.old.id);
+          else this.load();
         }
       })
       .subscribe();
