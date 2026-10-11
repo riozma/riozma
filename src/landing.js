@@ -12,7 +12,7 @@ function setupCanvasBackground() {
   if (document.documentElement.classList.contains("embed")) return;
   const view = new CanvasView(el, { page: true });
   window.addEventListener("load", () => view.resize());
-  view.load().then(() => view.subscribe());
+  view.load();
 }
 
 function setupBurger() {
