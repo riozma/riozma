@@ -1,0 +1,2 @@
+-- get_question_gains(session, question): Punkte pro Spieler in einer Frage (alle Fragetypen).
+-- Siehe angewendete Migration "quiz_question_gains".

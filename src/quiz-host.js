@@ -253,7 +253,7 @@ async function endQuiz() {
 }
 
 function showHostSection(...ids) {
-  ["host-lobby", "host-players-wrap", "host-explain", "host-collect", "host-question", "host-reveal", "host-leaderboard", "host-ended"]
+  ["host-lobby", "host-players-wrap", "host-pq-note", "host-explain", "host-collect", "host-question", "host-reveal", "host-leaderboard", "host-ended"]
     .forEach((sid) => document.getElementById(sid).classList.toggle("d-none", !ids.includes(sid)));
   document.getElementById("btn-end-quiz").classList.toggle("d-none", ids.includes("host-ended"));
 }
@@ -264,7 +264,7 @@ async function renderHostState(session) {
   quizHost.renderedKey = key;
 
   if (session.status === "lobby") {
-    showHostSection("host-lobby", "host-players-wrap");
+    showHostSection("host-lobby", "host-players-wrap", "host-pq-note");
     renderQrAndCode();
     await refreshLobbyIfVisible();
     if (!quizHost.lobbyPoll) quizHost.lobbyPoll = setInterval(refreshLobbyIfVisible, 2500);
@@ -362,7 +362,7 @@ async function renderHostState(session) {
 
   if (session.status === "leaderboard") {
     showHostSection("host-leaderboard");
-    await renderHostLeaderboard("host-leaderboard-list", 10);
+    await renderHostLeaderboard("host-leaderboard-list", 10, true);
     return;
   }
 
@@ -600,7 +600,15 @@ async function renderRevealBars(question) {
   }).join("");
 }
 
-async function renderHostLeaderboard(targetId, limit) {
+async function fetchGains(sessionId, questionId) {
+  const { data } = await quizHost.client.rpc("get_question_gains", { p_session_id: sessionId, p_question_id: questionId });
+  const map = {};
+  (data || []).forEach((r) => { map[r.player_id] = r.gained; });
+  return map;
+}
+
+async function renderHostLeaderboard(targetId, limit, showGains) {
+  const gains = showGains && currentQuestion() ? await fetchGains(quizHost.session.id, currentQuestion().id) : {};
   let query = quizHost.client
     .from("quiz_players").select("*").eq("session_id", quizHost.session.id).order("score", { ascending: false });
   if (limit) query = query.limit(limit);
@@ -610,6 +618,7 @@ async function renderHostLeaderboard(targetId, limit) {
       <span class="quiz-leaderboard-rank">${idx + 1}</span>
       <span class="quiz-leaderboard-name">${escapeHtmlLocalHost(p.name)}</span>
       <span>${quizFormatScore(p.score)}</span>
+      ${showGains ? `<span class="quiz-gain">${gains[p.id] > 0 ? `+${quizFormatScore(gains[p.id])}` : ""}</span>` : ""}
     </div>`).join("");
 }
 

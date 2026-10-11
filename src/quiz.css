@@ -670,8 +670,7 @@ body.quiz-body {
 }
 
 .quiz-host-bars {
-  width: 100%;
-  max-width: 640px;
+  width: min(520px, 92vw);
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -1062,4 +1061,64 @@ body.quiz-body {
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
+}
+
+.quiz-gain {
+  min-width: 3.4rem;
+  text-align: right;
+  color: #7bdc7b;
+  font-weight: 800;
+}
+
+.quiz-leaderboard-row.is-me .quiz-gain {
+  color: #1a6b3a;
+}
+
+.quiz-host-bar-label {
+  text-align: left;
+}
+
+.quiz-player-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.4rem;
+  z-index: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 0.9rem;
+  background: rgba(20, 5, 40, 0.92);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.quiz-player-header .ph-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quiz-player-header .ph-score {
+  color: var(--quiz-accent);
+}
+
+body.has-player-header .quiz-topbar {
+  display: none;
+}
+
+body.has-player-header .quiz-app-shell {
+  padding-top: 2.4rem;
+}
+
+body.has-player-header .quiz-fullscreen-question:not(.d-none) {
+  inset: 2.4rem 0 0 0;
+}
+
+body.has-player-header .quiz-intro-stage {
+  inset: 2.4rem 0 0 0;
 }

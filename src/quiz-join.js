@@ -73,6 +73,7 @@ function bindNameStep() {
       });
       if (error) throw new Error(error.message);
       const row = Array.isArray(data) ? data[0] : data;
+      quizJoin.playerName = name;
       quizJoin.sessionId = row.session_id;
       quizJoin.playerId = row.player_id;
       enterGameStep();
@@ -101,6 +102,8 @@ function enterGameStep() {
   document.getElementById("step-code").classList.add("d-none");
   document.getElementById("step-name").classList.add("d-none");
   document.getElementById("step-game").classList.remove("d-none");
+  document.getElementById("player-header").classList.remove("d-none");
+  document.body.classList.add("has-player-header");
 }
 
 function subscribeSession() {
@@ -118,7 +121,19 @@ function showGameSection(id) {
     .forEach((sid) => document.getElementById(sid).classList.toggle("d-none", sid !== id));
 }
 
+async function updatePlayerHeader() {
+  const { data: players } = await quizJoin.client
+    .from("quiz_players").select("id,score").eq("session_id", quizJoin.sessionId).order("score", { ascending: false });
+  const list = players || [];
+  const idx = list.findIndex((p) => p.id === quizJoin.playerId);
+  if (idx < 0) return;
+  document.getElementById("ph-name").textContent = quizJoin.playerName || "";
+  document.getElementById("ph-rank").textContent = `Rang ${idx + 1}/${list.length}`;
+  document.getElementById("ph-score").textContent = `${quizFormatScore(list[idx].score)} Pkt`;
+}
+
 async function renderGameState(session) {
+  updatePlayerHeader();
   const key = `${session.status}:${session.current_question_index}:${session.answer_started_at ? "open" : "intro"}`;
   const isNewState = key !== quizJoin.renderedKey;
   quizJoin.renderedKey = key;
@@ -163,7 +178,7 @@ async function renderGameState(session) {
 
   if (session.status === "leaderboard") {
     stopTimer();
-    await renderLeaderboard("leaderboard-list");
+    await renderLeaderboard("leaderboard-list", true);
     showGameSection("game-leaderboard");
     return;
   }
@@ -217,7 +232,13 @@ async function renderRevealFeedback() {
   }
 }
 
-async function renderLeaderboard(targetId) {
+async function renderLeaderboard(targetId, showGains) {
+  let gains = {};
+  const qid = quizJoin.questionMeta?.question_id;
+  if (showGains && qid) {
+    const { data: g } = await quizJoin.client.rpc("get_question_gains", { p_session_id: quizJoin.sessionId, p_question_id: qid });
+    (g || []).forEach((r) => { gains[r.player_id] = r.gained; });
+  }
   const { data: players } = await quizJoin.client
     .from("quiz_players")
     .select("*")
@@ -230,6 +251,7 @@ async function renderLeaderboard(targetId) {
       <span class="quiz-leaderboard-rank">${idx + 1}</span>
       <span class="quiz-leaderboard-name">${escapeHtmlLocal(p.name)}</span>
       <span>${quizFormatScore(p.score)}</span>
+      ${showGains ? `<span class="quiz-gain">${gains[p.id] > 0 ? `+${quizFormatScore(gains[p.id])}` : ""}</span>` : ""}
     </div>`).join("");
 }
 
