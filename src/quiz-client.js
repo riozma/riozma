@@ -51,11 +51,33 @@ function quizFormatScore(n) {
 }
 
 const QUIZ_QUESTION_TYPES = {
-  standard: { label: "Standard (richtig/falsch vorgegeben)" },
-  majority: { label: "Mehrheitsfrage (Mehrheit entscheidet)" },
-  vote_player: { label: "Wer würde eher … (Spieler wählen)" },
-  open_text: { label: "Freitext + Publikumswahl" },
+  standard: {
+    label: "Standard (richtig/falsch vorgegeben)",
+    short: "Wissensfrage",
+    explain: "Wissensfrage: Wähle die richtige Antwort – je schneller, desto mehr Punkte.",
+    info: "Du legst beim Erstellen fest, welche Antwort(en) richtig sind (mehrere möglich – jede markierte Antwort zählt als richtig). Die Spieler tippen genau eine Antwort an. Richtig = Punkte (je nach Einstellung schneller = mehr Punkte).",
+  },
+  majority: {
+    label: "Mehrheitsfrage (Mehrheit entscheidet)",
+    short: "Mehrheitsfrage",
+    explain: "Mehrheitsfrage: Es gibt keine richtige Antwort – Punkte bekommen alle, die wie die Mehrheit antworten.",
+    info: "Keine Antwort ist vorgegeben richtig. Alle Spieler wählen eine Option, danach zählt die meistgewählte Option als richtig. Wer sie gewählt hat, bekommt Punkte. Gut für Meinungsfragen („Was ist besser?“).",
+  },
+  vote_player: {
+    label: "Wer würde eher … (Spieler wählen)",
+    short: "Wer würde eher …",
+    explain: "Wer würde eher …? Wähle eine Person aus der Runde – Punkte gibt es, wenn deine Wahl die meisten Stimmen bekommt.",
+    info: "Du stellst nur die Frage („Wer würde am ehesten verschlafen?“). Als Antwortmöglichkeiten erscheinen automatisch alle Mitspieler. Wer die meisten Stimmen bekommt, „gewinnt“ – alle, die für diese Person gestimmt haben, bekommen Punkte.",
+  },
+  open_text: {
+    label: "Freitext + Publikumswahl",
+    short: "Freitext + Wahl",
+    explain: "Freitext: Alle schreiben eine eigene Antwort. Danach wählt ihr die beste – Punkte gibt es für erhaltene Stimmen.",
+    info: "Phase 1: Alle schreiben auf dem Handy eine eigene Antwort auf deine Aufgabe (z.B. „Schreibe einen Witz“) – ohne Zeitlimit. Phase 2: Alle Antworten erscheinen anonym, jeder wählt seine Favoritin (nicht die eigene). Punkte gibt es proportional zu den erhaltenen Stimmen.",
+  },
 };
+
+const QUIZ_EXPLAIN_SEC = 6;
 
 function quizIntroDelaySec(questionText) {
   const len = (questionText || "").trim().length;

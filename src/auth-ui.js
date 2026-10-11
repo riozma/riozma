@@ -1,5 +1,6 @@
 const authInstances = new Map();
 let globalAuthBound = false;
+let recoveryMode = false;
 
 async function initAuthUI(options = {}) {
   const {
@@ -19,7 +20,13 @@ async function initAuthUI(options = {}) {
     return null;
   }
 
+  const hadAuthCode = new URLSearchParams(window.location.search).has("code");
   const authResult = await completeAuthFromUrl(client);
+  const pendingTs = Number(sessionStorage.getItem("auth_recovery_pending") || 0);
+  if (hadAuthCode && pendingTs && Date.now() - pendingTs < 3600_000) {
+    recoveryMode = true;
+    sessionStorage.removeItem("auth_recovery_pending");
+  }
 
   authInstances.set(loginContainerId, { container, onAuthChange, mode, showGoogle, leadText, client, pendingAuthError: authResult.error });
   container.classList.toggle("auth-container-discreet", mode === "discreet");
@@ -28,6 +35,34 @@ async function initAuthUI(options = {}) {
     const inst = authInstances.get(loginContainerId);
     if (!inst) return;
     const { container, onAuthChange, mode, showGoogle, leadText, client, pendingAuthError } = inst;
+
+    if (session && recoveryMode) {
+      container.innerHTML = `
+        <div class="auth-panel auth-panel-full">
+          <h2 class="auth-panel-title">Neues Passwort setzen</h2>
+          <form class="auth-form" id="auth-recovery-form-${loginContainerId}">
+            <div class="mb-3">
+              <label class="form-label" for="auth-newpw-${loginContainerId}">Neues Passwort (min. 6 Zeichen)</label>
+              <input type="password" class="form-control" id="auth-newpw-${loginContainerId}" autocomplete="new-password" required minlength="6">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Passwort speichern</button>
+            <p class="auth-message" id="auth-recovery-msg-${loginContainerId}"></p>
+          </form>
+        </div>`;
+      document.getElementById(`auth-recovery-form-${loginContainerId}`).addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const pw = document.getElementById(`auth-newpw-${loginContainerId}`).value;
+        const msg = document.getElementById(`auth-recovery-msg-${loginContainerId}`);
+        const { error } = await client.auth.updateUser({ password: pw });
+        if (error) {
+          showStatus(msg, error.message, "error");
+          return;
+        }
+        recoveryMode = false;
+        await renderAll(session);
+      });
+      return;
+    }
 
     if (session) {
       const logoutId = `auth-logout-${loginContainerId}`;
@@ -66,6 +101,10 @@ async function initAuthUI(options = {}) {
               <div class="auth-discreet-actions">
                 <button type="submit" class="btn btn-sm btn-primary">Einloggen</button>
               </div>
+              <div class="auth-links">
+                <button type="button" class="auth-link-btn" data-register="${loginContainerId}">Registrieren</button>
+                <button type="button" class="auth-link-btn" data-forgot="${loginContainerId}">Passwort vergessen?</button>
+              </div>
               <p id="${msgId}" class="auth-message"></p>
             </form>
           </div>
@@ -78,17 +117,18 @@ async function initAuthUI(options = {}) {
           ${showGoogle ? `<button type="button" class="btn btn-google w-100" data-google="${loginContainerId}"><span>G</span> Mit Google anmelden</button><div class="auth-divider"><span>oder</span></div>` : ""}
           ${mode === "compact" ? `<button type="button" class="btn btn-sm btn-outline-secondary" data-toggle-form="${loginContainerId}">Mit E-Mail anmelden</button>` : ""}
           <form id="${formId}" class="auth-form ${mode === "compact" ? "d-none" : ""}">
-            <div class="mb-2">
+            <div class="mb-3">
               <label class="form-label" for="auth-email-${loginContainerId}">E-Mail</label>
-              <input type="email" class="form-control" id="auth-email-${loginContainerId}" required>
+              <input type="email" class="form-control" id="auth-email-${loginContainerId}" autocomplete="email" required>
             </div>
-            <div class="mb-2">
+            <div class="mb-3">
               <label class="form-label" for="auth-password-${loginContainerId}">Passwort</label>
-              <input type="password" class="form-control" id="auth-password-${loginContainerId}" required minlength="6">
+              <input type="password" class="form-control" id="auth-password-${loginContainerId}" autocomplete="current-password" required minlength="6">
             </div>
-            <div class="auth-actions">
-              <button type="submit" class="btn btn-primary">Einloggen</button>
-              <button type="button" class="btn btn-link" data-register="${loginContainerId}">Registrieren</button>
+            <button type="submit" class="btn btn-primary w-100">Einloggen</button>
+            <div class="auth-links">
+              <button type="button" class="auth-link-btn" data-register="${loginContainerId}">Neu registrieren</button>
+              <button type="button" class="auth-link-btn" data-forgot="${loginContainerId}">Passwort vergessen?</button>
             </div>
             <p id="${msgId}" class="auth-message"></p>
           </form>
@@ -152,6 +192,24 @@ async function initAuthUI(options = {}) {
       else showStatus(msg, "Konto erstellt. Bitte E-Mail bestätigen, falls aktiviert.", "success");
     });
 
+    container.querySelector(`[data-forgot="${loginContainerId}"]`)?.addEventListener("click", async () => {
+      const email = document.getElementById(`auth-email-${loginContainerId}`).value.trim();
+      const msg = document.getElementById(msgId);
+      if (!email) {
+        showStatus(msg, "Bitte zuerst oben deine E-Mail-Adresse eintragen.", "error");
+        return;
+      }
+      storeAuthReturnTo();
+      sessionStorage.setItem("auth_recovery_pending", String(Date.now()));
+      const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo: authRedirectUrl() });
+      if (error) {
+        showStatus(msg, error.message, "error");
+        return;
+      }
+      persistPkceVerifierToCookie();
+      showStatus(msg, "Falls ein Konto existiert, wurde ein Link zum Zurücksetzen gesendet. Bitte E-Mail prüfen.", "success");
+    });
+
     if (pendingAuthError) {
       const msg = document.getElementById(msgId);
       if (msg) showStatus(msg, pendingAuthError, "error");
@@ -170,6 +228,7 @@ async function initAuthUI(options = {}) {
   if (!globalAuthBound) {
     globalAuthBound = true;
     client.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") recoveryMode = true;
       renderAll(session);
     });
   }

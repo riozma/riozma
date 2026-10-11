@@ -3458,3 +3458,59 @@ body.site-body :where(button, input, textarea, select, .btn, .form-control, .nav
   padding-left: 1.25rem;
   line-height: 1.9;
 }
+
+/* Login panel: no nested card inside panels, clearer layout */
+.auth-panel .auth-form,
+.auth-panel .auth-form.auth-form-discreet {
+  max-width: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.auth-panel-full {
+  max-width: 360px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.auth-panel .btn-google {
+  width: 100%;
+}
+
+.auth-links {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.auth-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.auth-link-btn:hover {
+  color: var(--color-primary-dark);
+}
+
+.auth-discreet-panel .auth-form.auth-form-discreet {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-width: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}

@@ -42,6 +42,7 @@
       <section id="step-game" class="quiz-main d-none" style="padding:0;">
         <div id="game-lobby" class="d-none" style="display:flex;flex-direction:column;align-items:center;gap:1rem;width:100%;">
           <p class="quiz-waiting-banner">Bitte warten – das Quiz startet bald</p>
+          <p id="pq-info" class="quiz-waiting-banner d-none"></p>
           <div id="pq-box" class="quiz-card d-none">
             <h2>Eigene Frage erstellen</h2>
             <p id="pq-status" class="form-text"></p>
@@ -60,11 +61,19 @@
           </div>
         </div>
 
+        <div id="game-explain" class="d-none quiz-intro-stage">
+          <p class="quiz-explain-title" id="explain-title"></p>
+          <p class="quiz-explain-text" id="explain-text"></p>
+          <div class="quiz-intro-ring-wrap" id="explain-ring"></div>
+        </div>
+
         <div id="game-own" class="d-none">
           <p class="quiz-waiting-banner">Das ist deine Frage – du antwortest nicht. Bitte warten …</p>
         </div>
 
         <div id="game-intro" class="d-none quiz-intro-stage">
+          <span class="quiz-mode-badge" id="intro-mode"></span>
+          <p class="quiz-author-line d-none" id="intro-author"></p>
           <p class="quiz-question-text" id="intro-question-text"></p>
           <img id="intro-question-image" class="quiz-question-image d-none">
           <div class="quiz-intro-ring-wrap" id="intro-ring"></div>
@@ -72,6 +81,7 @@
         </div>
 
         <div id="game-collect" class="d-none quiz-intro-stage">
+          <span class="quiz-mode-badge" id="collect-mode"></span>
           <p class="quiz-question-text" id="collect-question-text"></p>
           <img id="collect-question-image" class="quiz-question-image d-none">
           <div id="collect-form" class="quiz-form-group" style="width:100%;max-width:420px;">
@@ -83,6 +93,7 @@
         </div>
 
         <div id="game-question" class="d-none quiz-fullscreen-question">
+          <span class="quiz-mode-badge quiz-mode-badge-float" id="question-mode"></span>
           <div class="quiz-timer-badge quiz-timer-badge-float" id="question-timer">--</div>
           <div class="quiz-answer-grid quiz-answer-grid-fullscreen" id="answer-grid"></div>
           <div class="quiz-choice-list d-none" id="answer-list"></div>

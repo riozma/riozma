@@ -46,8 +46,12 @@ function showQuizQuestionDialog({ quizId, question, options }) {
         <h2 class="trouvo-dialog-title">${isEdit ? "Frage bearbeiten" : "Neue Frage"}</h2>
 
         <div class="mb-3">
-          <label class="form-label">Fragetyp</label>
+          <label class="form-label">Fragetyp <button type="button" class="quiz-info-btn" id="quiz-q-info-btn" aria-label="Erklärung zu den Fragetypen">i</button></label>
           <select class="form-select" id="quiz-q-type">${typeOptionsHtml()}</select>
+          <div class="quiz-info-popup d-none" id="quiz-q-info-popup">
+            ${Object.values(QUIZ_QUESTION_TYPES).map((t) => `<p><strong>${escapeHtml(t.short)}</strong><br>${escapeHtml(t.info)}</p>`).join("")}
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="quiz-q-info-close">Schliessen</button>
+          </div>
         </div>
 
         <div class="mb-3">
@@ -120,7 +124,7 @@ function showQuizQuestionDialog({ quizId, question, options }) {
       } else if (type === "majority") {
         hint.textContent = "Keine vorgegebene richtige Antwort — die Option mit den meisten Stimmen zählt als richtig.";
       } else {
-        hint.textContent = "";
+        hint.textContent = "Mehrere Antworten als richtig markieren ist möglich – jede markierte Antwort zählt als richtig.";
       }
       if (needsOptions) rerenderOptions(overlay.querySelector("#quiz-q-mode").value, type);
     }
@@ -130,6 +134,9 @@ function showQuizQuestionDialog({ quizId, question, options }) {
     });
 
     overlay.querySelector("#quiz-q-type").addEventListener("change", (e) => applyTypeUI(e.target.value));
+    const infoPopup = overlay.querySelector("#quiz-q-info-popup");
+    overlay.querySelector("#quiz-q-info-btn").addEventListener("click", () => infoPopup.classList.toggle("d-none"));
+    overlay.querySelector("#quiz-q-info-close").addEventListener("click", () => infoPopup.classList.add("d-none"));
 
     overlay.querySelector("#quiz-q-mode").addEventListener("change", (e) => {
       const mode = e.target.value;

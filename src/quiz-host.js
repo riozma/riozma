@@ -10,6 +10,9 @@ let quizHost = {
   totalPlayers: 0,
   revealTriggered: false,
   introTimeout: null,
+  explainTimeout: null,
+  playerNames: {},
+  lobbyPoll: null,
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -44,6 +47,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   topbarCode.classList.remove("d-none");
 
   await loadHostQuestions();
+  await loadPlayerNames();
 
   bindHostActions();
   subscribeRealtime();
@@ -90,6 +94,39 @@ async function loadHostQuestions() {
   }));
 }
 
+async function loadPlayerNames() {
+  const { data } = await quizHost.client.from("quiz_players").select("id,name").eq("session_id", quizHost.session.id);
+  quizHost.playerNames = {};
+  (data || []).forEach((p) => { quizHost.playerNames[p.id] = p.name; });
+}
+
+function questionTitle(question) {
+  const author = question.author_player_id ? quizHost.playerNames[question.author_player_id] : null;
+  return author ? `Frage von ${author}: ${question.question_text}` : question.question_text;
+}
+
+function modeLabel(question) {
+  return QUIZ_QUESTION_TYPES[question.question_type]?.short || "";
+}
+
+function shouldExplainMode(index) {
+  if (!quizHost.quiz?.explain_modes) return false;
+  const type = quizHost.questions[index].question_type;
+  return !quizHost.questions.slice(0, index).some((q) => q.question_type === type);
+}
+
+// Player questions are shuffled into the quiz at random spots (right after a random base question).
+async function interleavePlayerQuestions() {
+  const base = quizHost.questions.filter((q) => !q.session_id);
+  const mine = quizHost.questions.filter((q) => q.session_id);
+  if (!mine.length || !base.length) return;
+  for (const q of mine) {
+    const slot = base[Math.floor(Math.random() * base.length)];
+    await quizHost.client.from("quiz_questions").update({ sort_order: slot.sort_order }).eq("id", q.id);
+  }
+  await loadHostQuestions();
+}
+
 function currentQuestion() {
   return quizHost.questions[quizHost.session.current_question_index];
 }
@@ -125,13 +162,35 @@ function statusForQuestion(question) {
   return question.question_type === "open_text" ? "collect" : "question";
 }
 
+async function beginQuestion(index) {
+  const question = quizHost.questions[index];
+  const base = { current_question_index: index, question_started_at: new Date().toISOString(), answer_started_at: null };
+  if (shouldExplainMode(index)) {
+    await updateSession({ ...base, status: "explain" });
+    return;
+  }
+  await updateSession({ ...base, status: statusForQuestion(question) });
+}
+
 async function startQuiz() {
   await loadHostQuestions();
-  const question = quizHost.questions[0];
-  await updateSession({
-    status: statusForQuestion(question), current_question_index: 0,
-    question_started_at: new Date().toISOString(), answer_started_at: null,
-  });
+  await interleavePlayerQuestions();
+  await loadPlayerNames();
+  await beginQuestion(0);
+}
+
+function scheduleExplainEnd(session) {
+  if (quizHost.explainTimeout) return;
+  const remaining = Math.max(0, new Date(session.question_started_at).getTime() + QUIZ_EXPLAIN_SEC * 1000 - Date.now());
+  quizHost.explainTimeout = setTimeout(async () => {
+    quizHost.explainTimeout = null;
+    if (quizHost.session.status !== "explain") return;
+    const question = currentQuestion();
+    await updateSession({
+      status: statusForQuestion(question),
+      question_started_at: new Date().toISOString(), answer_started_at: null,
+    });
+  }, remaining);
 }
 
 async function goToVotingFromCollect() {
@@ -181,10 +240,7 @@ async function nextQuestion() {
     await updateSession({ status: "ended", ended_at: new Date().toISOString() });
     return;
   }
-  await updateSession({
-    status: statusForQuestion(quizHost.questions[next]), current_question_index: next,
-    question_started_at: new Date().toISOString(), answer_started_at: null,
-  });
+  await beginQuestion(next);
 }
 
 async function endQuiz() {
@@ -192,11 +248,12 @@ async function endQuiz() {
   stopTimer();
   stopAnswerPoll();
   stopIntroTimer();
+  if (quizHost.explainTimeout) { clearTimeout(quizHost.explainTimeout); quizHost.explainTimeout = null; }
   await updateSession({ status: "ended", ended_at: new Date().toISOString() });
 }
 
 function showHostSection(...ids) {
-  ["host-lobby", "host-players-wrap", "host-collect", "host-question", "host-reveal", "host-leaderboard", "host-ended"]
+  ["host-lobby", "host-players-wrap", "host-explain", "host-collect", "host-question", "host-reveal", "host-leaderboard", "host-ended"]
     .forEach((sid) => document.getElementById(sid).classList.toggle("d-none", !ids.includes(sid)));
   document.getElementById("btn-end-quiz").classList.toggle("d-none", ids.includes("host-ended"));
 }
@@ -210,6 +267,21 @@ async function renderHostState(session) {
     showHostSection("host-lobby", "host-players-wrap");
     renderQrAndCode();
     await refreshLobbyIfVisible();
+    if (!quizHost.lobbyPoll) quizHost.lobbyPoll = setInterval(refreshLobbyIfVisible, 2500);
+    return;
+  }
+
+  if (quizHost.lobbyPoll) { clearInterval(quizHost.lobbyPoll); quizHost.lobbyPoll = null; }
+
+  if (session.status === "explain") {
+    showHostSection("host-explain");
+    await loadPlayerNames();
+    const q = quizHost.questions[session.current_question_index];
+    const t = QUIZ_QUESTION_TYPES[q.question_type];
+    document.getElementById("host-explain-title").textContent = `Neue Fragenart: ${t.short}`;
+    document.getElementById("host-explain-text").textContent = t.explain;
+    if (isNewState) quizStartRingCountdown(document.getElementById("host-explain-ring"), session.question_started_at, QUIZ_EXPLAIN_SEC);
+    scheduleExplainEnd(session);
     return;
   }
 
@@ -218,7 +290,9 @@ async function renderHostState(session) {
     const question = quizHost.questions[session.current_question_index];
     if (isNewState) {
       quizHost.revealTriggered = false;
-      document.getElementById("host-collect-text").textContent = question.question_text;
+      await loadPlayerNames();
+      document.getElementById("host-collect-text").textContent = questionTitle(question);
+      document.getElementById("host-collect-mode").textContent = modeLabel(question);
       const img = document.getElementById("host-collect-image");
       const url = question.image_path ? quizImageUrl(question.image_path) : "";
       img.src = url;
@@ -339,8 +413,19 @@ async function refreshLobbyIfVisible() {
   const { data: players } = await quizHost.client
     .from("quiz_players").select("*").eq("session_id", quizHost.session.id).order("joined_at", { ascending: true });
   document.getElementById("host-player-count").textContent = `${(players || []).length} Teilnehmer beigetreten`;
+  const allowed = quizHost.quiz?.player_questions_per_player || 0;
+  const note = document.getElementById("host-pq-note");
+  note.classList.toggle("d-none", !allowed);
+  if (allowed) {
+    note.textContent = `Eigene Fragen: Jeder kann jetzt auf dem Handy ${allowed} Frage${allowed === 1 ? "" : "n"} erstellen – sie werden im Verlauf des Spiels abgefragt.`;
+  }
+  const counts = {};
+  if (allowed) {
+    const { data: qs } = await quizHost.client.from("quiz_questions").select("author_player_id").eq("session_id", quizHost.session.id);
+    (qs || []).forEach((q) => { if (q.author_player_id) counts[q.author_player_id] = (counts[q.author_player_id] || 0) + 1; });
+  }
   document.getElementById("host-players").innerHTML = (players || [])
-    .map((p) => `<span class="quiz-host-player-chip">${escapeHtmlLocalHost(p.name)}</span>`).join("");
+    .map((p) => `<span class="quiz-host-player-chip">${escapeHtmlLocalHost(p.name)}${allowed ? `<small>${counts[p.id] || 0}/${allowed}</small>` : ""}</span>`).join("");
 }
 
 function escapeHtmlLocalHost(str) {
@@ -349,7 +434,8 @@ function escapeHtmlLocalHost(str) {
 }
 
 function renderHostQuestionText(question) {
-  document.getElementById("host-question-text").textContent = question.question_text;
+  document.getElementById("host-question-text").textContent = questionTitle(question);
+  document.getElementById("host-question-mode").textContent = modeLabel(question);
   const img = document.getElementById("host-question-image");
   const url = question.image_path ? quizImageUrl(question.image_path) : "";
   img.src = url;

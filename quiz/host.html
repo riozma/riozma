@@ -34,9 +34,16 @@
           <div class="quiz-host-qr-wrap"><canvas id="host-qr"></canvas></div>
         </div>
       </div>
+      <p id="host-pq-note" class="quiz-waiting-banner d-none"></p>
       <div id="host-players-wrap" class="d-none">
         <p id="host-player-count" class="quiz-host-progress"></p>
         <div class="quiz-host-players" id="host-players"></div>
+      </div>
+
+      <div id="host-explain" class="d-none" style="display:flex;flex-direction:column;align-items:center;gap:1rem;">
+        <p class="quiz-explain-title" id="host-explain-title"></p>
+        <p class="quiz-explain-text" id="host-explain-text"></p>
+        <div class="quiz-intro-ring-wrap" id="host-explain-ring"></div>
       </div>
 
       <div id="host-collect" class="d-none quiz-host-media-stage">
@@ -44,6 +51,7 @@
           <img id="host-collect-image" class="d-none">
         </div>
         <div class="quiz-host-media-bottom" id="host-collect-media-bottom">
+          <span class="quiz-mode-badge" id="host-collect-mode"></span>
           <p class="quiz-question-text" id="host-collect-text"></p>
           <p class="quiz-waiting-banner">Alle schreiben ihre Antwort auf dem Handy …</p>
           <p class="quiz-host-progress" id="host-collect-count"></p>
@@ -59,6 +67,7 @@
           <img id="host-question-image" class="d-none">
         </div>
         <div class="quiz-host-media-bottom" id="host-question-media-bottom">
+          <span class="quiz-mode-badge" id="host-question-mode"></span>
           <p class="quiz-question-text" id="host-question-text"></p>
           <div class="quiz-intro-ring-wrap d-none" id="host-intro-ring"></div>
           <p class="quiz-waiting-banner d-none" id="host-intro-caption">Antworten erscheinen gleich …</p>

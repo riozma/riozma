@@ -114,7 +114,7 @@ function subscribeSession() {
 }
 
 function showGameSection(id) {
-  ["game-lobby", "game-own", "game-collect", "game-intro", "game-question", "game-answered", "game-reveal", "game-leaderboard", "game-ended"]
+  ["game-lobby", "game-own", "game-explain", "game-collect", "game-intro", "game-question", "game-answered", "game-reveal", "game-leaderboard", "game-ended"]
     .forEach((sid) => document.getElementById(sid).classList.toggle("d-none", sid !== id));
 }
 
@@ -127,6 +127,12 @@ async function renderGameState(session) {
     stopTimer();
     showGameSection("game-lobby");
     refreshPlayerQuestionBox();
+    return;
+  }
+
+  if (session.status === "explain") {
+    if (!isNewState) return;
+    await loadExplainPhase(session);
     return;
   }
 
@@ -243,6 +249,20 @@ async function fetchCurrentQuestion() {
   return q;
 }
 
+async function loadExplainPhase(session) {
+  const q = await fetchCurrentQuestion();
+  if (!q) return;
+  const t = QUIZ_QUESTION_TYPES[q.question_type];
+  document.getElementById("explain-title").textContent = `Neue Fragenart: ${t.short}`;
+  document.getElementById("explain-text").textContent = t.explain;
+  quizStartRingCountdown(document.getElementById("explain-ring"), session.question_started_at, QUIZ_EXPLAIN_SEC);
+  showGameSection("game-explain");
+}
+
+function quizModeText(q) {
+  return QUIZ_QUESTION_TYPES[q.question_type]?.short || "";
+}
+
 async function loadQuestionIntro() {
   const q = await fetchCurrentQuestion();
   if (!q) return;
@@ -254,6 +274,10 @@ async function loadQuestionIntro() {
   const textEl = document.getElementById("intro-question-text");
   const imgEl = document.getElementById("intro-question-image");
   const captionEl = document.getElementById("intro-caption");
+  document.getElementById("intro-mode").textContent = quizModeText(q);
+  const authorEl = document.getElementById("intro-author");
+  authorEl.textContent = q.author_name ? `Frage von ${q.author_name}` : "";
+  authorEl.classList.toggle("d-none", !q.author_name);
 
   if (q.no_projector_mode) {
     textEl.textContent = q.question_text;
@@ -297,6 +321,7 @@ async function loadCurrentQuestion(session) {
   if (isTileType) renderAnswerGrid(q);
   else renderAnswerList(q);
 
+  document.getElementById("question-mode").textContent = quizModeText(q);
   showGameSection("game-question");
   startTimer(q.answer_started_at || session.answer_started_at, q.time_limit_sec);
 }
@@ -376,6 +401,7 @@ async function loadCollectPhase() {
   if (!q) return;
 
   document.getElementById("collect-question-text").textContent = q.question_text;
+  document.getElementById("collect-mode").textContent = quizModeText(q);
   const imgEl = document.getElementById("collect-question-image");
   const url = q.image_path ? quizImageUrl(q.image_path) : "";
   imgEl.src = url;
@@ -446,9 +472,13 @@ async function refreshPlayerQuestionBox() {
   const info = error ? null : (Array.isArray(data) ? data[0] : data);
   if (!info || !info.allowed_count) {
     box.classList.add("d-none");
+    document.getElementById("pq-info").classList.add("d-none");
     return;
   }
   const remaining = info.allowed_count - info.created_count;
+  const infoEl = document.getElementById("pq-info");
+  infoEl.textContent = `Eigene Fragen: Du kannst jetzt ${info.allowed_count} Frage${info.allowed_count === 1 ? "" : "n"} erstellen – sie werden im Verlauf des Spiels abgefragt (mit deinem Namen).`;
+  infoEl.classList.remove("d-none");
   document.getElementById("pq-status").textContent =
     `${info.created_count} von ${info.allowed_count} Fragen erstellt. Deine eigenen Fragen kannst du selbst nicht beantworten.`;
   box.classList.toggle("d-none", remaining <= 0);
