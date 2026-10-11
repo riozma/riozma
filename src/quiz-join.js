@@ -480,17 +480,57 @@ async function refreshPlayerQuestionBox() {
   infoEl.textContent = `Eigene Fragen: Du kannst jetzt ${info.allowed_count} Frage${info.allowed_count === 1 ? "" : "n"} erstellen – sie werden im Verlauf des Spiels abgefragt (mit deinem Namen).`;
   infoEl.classList.remove("d-none");
   document.getElementById("pq-status").textContent =
-    `${info.created_count} von ${info.allowed_count} Fragen erstellt. Deine eigenen Fragen kannst du selbst nicht beantworten.`;
-  box.classList.toggle("d-none", remaining <= 0);
-  if (remaining <= 0) {
-    document.querySelector("#game-lobby .quiz-waiting-banner").textContent =
-      "Alle deine Fragen sind erstellt – bitte warten, das Quiz startet bald";
-  }
+    `${info.created_count} von ${info.allowed_count} Fragen erstellt. Deine eigenen Fragen kannst du selbst nicht beantworten. Bis das Spiel startet, kannst du sie noch bearbeiten.`;
+
+  const { data: mine } = await quizJoin.client.rpc("get_my_player_questions", {
+    p_session_id: quizJoin.sessionId, p_client_token: quizJoin.clientToken,
+  });
+  quizJoin.myQuestions = mine || [];
+  const list = document.getElementById("pq-list");
+  list.innerHTML = quizJoin.myQuestions.map((q, i) => `
+    <div class="pq-item">
+      <span class="pq-item-text">${i + 1}. ${escapeHtmlLocal(q.question_text)}</span>
+      <button type="button" class="pq-edit-btn" data-pq-edit="${q.question_id}">Bearbeiten</button>
+    </div>`).join("");
+  list.querySelectorAll("[data-pq-edit]").forEach((b) => b.addEventListener("click", () => startEditPlayerQuestion(b.dataset.pqEdit)));
+
+  box.classList.remove("d-none");
+  const editing = !!quizJoin.editingQuestionId;
+  document.getElementById("pq-form").classList.toggle("d-none", remaining <= 0 && !editing);
+  document.getElementById("btn-pq-submit").textContent = editing ? "Änderungen speichern" : "Frage hinzufügen";
+  document.getElementById("btn-pq-cancel").classList.toggle("d-none", !editing);
+  document.querySelector("#game-lobby .quiz-waiting-banner").textContent = remaining <= 0
+    ? "Alle deine Fragen sind erstellt – bitte warten, das Quiz startet bald"
+    : "Bitte warten – das Quiz startet bald";
+}
+
+function resetPlayerQuestionForm() {
+  quizJoin.editingQuestionId = null;
+  document.getElementById("pq-text").value = "";
+  [0, 1, 2, 3].forEach((i) => { document.getElementById(`pq-opt-${i}`).value = ""; });
+  const first = document.querySelector('input[name="pq-correct"][value="0"]');
+  if (first) first.checked = true;
+  document.getElementById("pq-error").textContent = "";
+}
+
+function startEditPlayerQuestion(questionId) {
+  const q = (quizJoin.myQuestions || []).find((x) => x.question_id === questionId);
+  if (!q) return;
+  quizJoin.editingQuestionId = questionId;
+  document.getElementById("pq-text").value = q.question_text;
+  (q.options || []).forEach((o, i) => { document.getElementById(`pq-opt-${i}`).value = o; });
+  const radio = document.querySelector(`input[name="pq-correct"][value="${q.correct_index ?? 0}"]`);
+  if (radio) radio.checked = true;
+  refreshPlayerQuestionBox();
 }
 
 function bindPlayerQuestionForm() {
   const btn = document.getElementById("btn-pq-submit");
   const err = document.getElementById("pq-error");
+  document.getElementById("btn-pq-cancel").addEventListener("click", () => {
+    resetPlayerQuestionForm();
+    refreshPlayerQuestionBox();
+  });
   btn.addEventListener("click", async () => {
     err.textContent = "";
     const text = document.getElementById("pq-text").value.trim();
@@ -502,13 +542,15 @@ function bindPlayerQuestionForm() {
     }
     btn.disabled = true;
     try {
-      const { error } = await quizJoin.client.rpc("submit_player_question", {
+      const base = {
         p_session_id: quizJoin.sessionId, p_client_token: quizJoin.clientToken,
         p_question_text: text, p_options: options, p_correct_index: correct,
-      });
+      };
+      const { error } = quizJoin.editingQuestionId
+        ? await quizJoin.client.rpc("update_player_question", { ...base, p_question_id: quizJoin.editingQuestionId })
+        : await quizJoin.client.rpc("submit_player_question", base);
       if (error) throw new Error(error.message);
-      document.getElementById("pq-text").value = "";
-      [0, 1, 2, 3].forEach((i) => { document.getElementById(`pq-opt-${i}`).value = ""; });
+      resetPlayerQuestionForm();
       await refreshPlayerQuestionBox();
     } catch (e) {
       err.textContent = e.message || "Frage konnte nicht gespeichert werden.";

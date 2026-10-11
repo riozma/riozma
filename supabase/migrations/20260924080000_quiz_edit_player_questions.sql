@@ -1,0 +1,2 @@
+-- Spieler können ihre eigenen Fragen in der Lobby ansehen und bearbeiten
+-- (get_my_player_questions, update_player_question) — siehe angewendete Migration "quiz_edit_player_questions".
