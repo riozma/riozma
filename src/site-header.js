@@ -181,13 +181,18 @@
     return `<li class="nav-item"><a ${attrs}>${item.label}</a></li>`;
   }
 
+  function renderSubLink(item, activeId) {
+    const active = item.id === activeId;
+    return `<a class="subnav-link${active ? " active" : ""}" href="${subNavItemHref(item)}"${active ? ' aria-current="page"' : ""}>${item.label}</a>`;
+  }
+
   function renderHeader(el) {
     const context = el.dataset.headerContext || "main";
     const isTrouvo = context === "trouvo";
     const isReisen = context === "reisen";
     const isSubApp = isTrouvo || isReisen;
     const path = pathWithSearch();
-    const mainActiveId = isSubApp ? null : pickActive(MAIN_ITEMS, path);
+    const mainActiveId = pickActive(MAIN_ITEMS, path) || (isTrouvo ? "trouvo" : isReisen ? "reisen" : null);
     const trouvoActiveId = isTrouvo ? pickActive(TROUVO_ITEMS, path) : null;
     const reisenActiveId = isReisen ? pickActive(REISEN_ITEMS, path) : null;
     const subTitle = isTrouvo
@@ -196,33 +201,29 @@
         ? (el.dataset.reisenTripTitle || "")
         : "";
 
-    const brandHref = isTrouvo ? "/trouvo/" : isReisen ? "/reisen/" : "/";
-    const brandClass = isSubApp ? "navbar-brand trouvo-brand" : "navbar-brand";
-    const brandLabel = isTrouvo ? "Trouvo" : isReisen ? "Reisen" : "Manuel Rio Zeltner";
-
-    const navItems = isTrouvo
-      ? visibleTrouvoItems()
-      : isReisen
-        ? visibleReisenItems()
-        : MAIN_ITEMS;
-
-    const navActiveId = isTrouvo ? trouvoActiveId : isReisen ? reisenActiveId : mainActiveId;
-    const dashboardActive = (isTrouvo && path === "/trouvo") || (isReisen && path === "/reisen");
+    const subItems = isTrouvo ? visibleTrouvoItems() : isReisen ? visibleReisenItems() : [];
+    const subActiveId = isTrouvo ? trouvoActiveId : reisenActiveId;
+    const subLabel = isTrouvo ? "Trouvo" : "Reisen";
+    const subHome = isTrouvo ? "/trouvo/" : "/reisen/";
 
     el.innerHTML = `
       <nav class="navbar navbar-expand-lg navbar-light navbar-bg trouvo-navbar">
-        <a class="${brandClass}${dashboardActive ? " trouvo-brand-active" : ""}" href="${brandHref}">${brandLabel}</a>
-        ${isSubApp && subTitle ? `<div class="trouvo-event-title-bar d-none d-lg-block">${escapeHeaderText(subTitle)}</div>` : ""}
+        <a class="navbar-brand" href="/">Manuel Rio Zeltner</a>
         <button class="navbar-toggler" type="button" aria-controls="siteNavbar" aria-expanded="false" aria-label="Navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="siteNavbar">
-          <ul class="navbar-nav ms-lg-auto nav-main${isSubApp ? " nav-trouvo-only" : ""}">
-            ${navItems.map((item) => renderLink(item, navActiveId)).join("")}
+          <ul class="navbar-nav nav-main ms-lg-auto">
+            ${MAIN_ITEMS.map((item) => renderLink(item, mainActiveId)).join("")}
           </ul>
         </div>
       </nav>
-      ${isSubApp && subTitle ? `<div class="trouvo-event-title-bar trouvo-event-title-bar-mobile d-lg-none">${escapeHeaderText(subTitle)}</div>` : ""}`;
+      ${isSubApp ? `
+        <div class="site-subnav">
+          <a class="site-subnav-title" href="${subHome}">${subLabel}</a>
+          ${subItems.map((item) => renderSubLink(item, subActiveId)).join("")}
+          ${subTitle ? `<span class="site-subnav-event">${escapeHeaderText(subTitle)}</span>` : ""}
+        </div>` : ""}`;
   }
 
   function escapeHeaderText(str) {

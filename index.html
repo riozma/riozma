@@ -33,30 +33,29 @@
     <a href="/about/">Über mich</a>
   </nav>
 
-  <div class="landing-banner" aria-hidden="true">
-    <div class="landing-banner-title">Manuel Rio Zeltner</div>
-  </div>
+  <header class="site-header landing-header" data-site-header data-header-context="main"></header>
+
+  <div class="landing-banner" aria-hidden="true"></div>
 
   <main class="landing-home">
-    <section class="home-carousel-section" aria-label="Kunst">
-      <div class="home-carousel" id="home-carousel" aria-live="off">
-        <div class="home-carousel-track" id="home-carousel-track"></div>
-        <button type="button" class="home-carousel-btn home-carousel-prev" id="carousel-prev" aria-label="Vorheriges Bild">‹</button>
-        <button type="button" class="home-carousel-btn home-carousel-next" id="carousel-next" aria-label="Nächstes Bild">›</button>
-        <div class="home-carousel-caption" id="carousel-caption"></div>
+    <section class="home-art-section" aria-label="Kunst">
+      <div class="art-strip-wrap">
+        <div class="art-strip" id="art-strip"></div>
+        <button type="button" class="strip-btn strip-prev" id="strip-prev" aria-label="Zurück">‹</button>
+        <button type="button" class="strip-btn strip-next" id="strip-next" aria-label="Weiter">›</button>
       </div>
-      <a href="/kunst/" class="home-arrow" aria-label="Zur Kunst">
-        <span class="home-arrow-label">Kunst</span>
-        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      <a href="/kunst/" class="home-more-link" aria-label="Zur ganzen Galerie">
+        <span>Zur Galerie</span>
+        <svg viewBox="0 0 48 24" width="48" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h42M34 3l10 9-10 9"/></svg>
       </a>
     </section>
 
     <section class="home-politik-section" aria-label="Politik">
       <h2 class="home-section-title">Politik</h2>
-      <div class="home-politik-cards" id="home-politik-cards"></div>
-      <a href="/politik/" class="home-arrow" aria-label="Zur Politik">
-        <span class="home-arrow-label">Politik</span>
-        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      <div class="hero-slider" id="hero-slider"></div>
+      <a href="/politik/" class="home-more-link" aria-label="Alle Beiträge">
+        <span>Alle Beiträge</span>
+        <svg viewBox="0 0 48 24" width="48" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h42M34 3l10 9-10 9"/></svg>
       </a>
     </section>
 
@@ -99,5 +98,8 @@
   <script src="/src/supabase-client.js"></script>
   <script src="/src/artworks-data.js"></script>
   <script src="/src/landing.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+  <script src="/src/site-header.js"></script>
+  <script src="/src/site-nav.js"></script>
 </body>
 </html>
