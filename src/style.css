@@ -3528,10 +3528,10 @@ body.site-body :where(button, input, textarea, select, .btn, .form-control, .nav
     display: block;
     width: 100%;
     aspect-ratio: 1616 / 1080;
-    max-height: 62vh;
+    max-height: 84vh;
     background: url("/src/img/bernina.jpg") center top / cover no-repeat;
-    -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.55) 30%, rgba(0, 0, 0, 0) 85%);
-    mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.55) 30%, rgba(0, 0, 0, 0) 85%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 50%, rgba(0, 0, 0, 0) 88%);
+    mask-image: linear-gradient(to bottom, #000 50%, rgba(0, 0, 0, 0) 88%);
   }
 
   .landing-brand {
@@ -3541,14 +3541,14 @@ body.site-body :where(button, input, textarea, select, .btn, .form-control, .nav
     left: 50%;
     transform: translateX(-50%);
     z-index: 5;
-    font: 600 1.15rem/1 Helvetica, "Helvetica Neue", Arial, sans-serif;
+    font: 600 1.7rem/1 Helvetica, "Helvetica Neue", Arial, sans-serif;
     letter-spacing: 0.04em;
     color: #2e7d32;
     text-decoration: none;
   }
 
   .landing-home {
-    margin-top: -26vh;
+    margin-top: -46vh;
     position: relative;
   }
 }
