@@ -1161,8 +1161,10 @@ function renderFields() {
 
 function renderBring() {
   const el = document.getElementById("bring-list");
+  const addBtn = document.getElementById("btn-add-bring");
+  if (addBtn) addBtn.textContent = bringItems.length ? "+ Item" : "+ Mitbringsel aktivieren";
   if (!bringItems.length) {
-    el.innerHTML = `<p class="text-muted small">Keine Mitbringsel-Items.</p>`;
+    el.innerHTML = `<p class="text-muted small">Noch keine Mitbringsel – mit dem Button unten aktivieren, damit Gäste bei der Anmeldung angeben können, was sie mitbringen.</p>`;
     return;
   }
   el.innerHTML = bringItems.map((b, i) => {

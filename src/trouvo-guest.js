@@ -69,9 +69,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("btn-open-register")?.addEventListener("click", () => dialogEl?.showModal());
   document.getElementById("btn-cancel-register")?.addEventListener("click", () => dialogEl?.close());
   dialogEl?.addEventListener("click", (e) => {
-    const rect = dialogEl.getBoundingClientRect();
-    const inside = e.clientY >= rect.top && e.clientY <= rect.bottom && e.clientX >= rect.left && e.clientX <= rect.right;
-    if (!inside) dialogEl.close();
+    if (e.target === dialogEl) dialogEl.close();
   });
   dialogEl?.addEventListener("input", () => saveDraft(eventData, collectDraftFromDialog()));
 

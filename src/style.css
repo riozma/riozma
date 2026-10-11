@@ -3517,6 +3517,7 @@ body.site-body :where(button, input, textarea, select, .btn, .form-control, .nav
 
 /* ===== New landing page ===== */
 .landing-banner,
+.landing-brand,
 .landing-burger,
 .landing-menu {
   display: none;
