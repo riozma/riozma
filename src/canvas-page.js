@@ -21,7 +21,7 @@
     text: [36, 64, 110],
   };
 
-  const state = { tool: "pen", color: CANVAS_COLORS[1], size: 1, shape: "rect", fill: true, stamp: "z", rot: 0 };
+  const state = { tool: "hand", color: CANVAS_COLORS[1], size: 1, shape: "rect", fill: true, stamp: "z", rot: 0 };
   const mine = [];
 
   // ---------- Palette-Aufbau ----------
@@ -79,6 +79,7 @@
 
   function syncUi() {
     document.querySelectorAll("#cv-tools button").forEach((b) => b.classList.toggle("active", b.dataset.tool === state.tool));
+    pal.dataset.tool = state.tool;
     subShape.hidden = state.tool !== "shape";
     subStamp.hidden = state.tool !== "stamp";
     layoutPalette();
@@ -219,11 +220,16 @@
     else if (e.key === "0") setView(1, 0, view.scrollPx);
   });
 
+  overlayEl.addEventListener("touchstart", (e) => e.preventDefault(), { passive: false });
+  overlayEl.addEventListener("touchmove", (e) => e.preventDefault(), { passive: false });
+
+  let pendingStamp = null;
   overlayEl.addEventListener("pointerdown", (e) => {
     if (e.pointerType === "touch") {
       touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (touches.size === 2) {
         drawing = null;
+        pendingStamp = null;
         view.clearOverlay();
         const t = touchInfo();
         pinch = { dist: t.dist, zoom: view.zoom, cx: t.cx, cy: t.cy, panX: view.panX, scroll: view.scrollPx };
@@ -245,7 +251,9 @@
     commitText();
     overlayEl.setPointerCapture(e.pointerId);
     if (state.tool === "stamp") {
-      commit("stamp", { s: state.stamp, c: state.color, x: round(p.x), y: round(p.y), size: SIZES.stamp[state.size], r: Math.round(state.rot * 1000) / 1000 });
+      const data = { s: state.stamp, c: state.color, x: round(p.x), y: round(p.y), size: SIZES.stamp[state.size], r: Math.round(state.rot * 1000) / 1000 };
+      if (e.pointerType === "touch") pendingStamp = { id: e.pointerId, data };
+      else commit("stamp", data);
       return;
     }
     if (state.tool === "pen" || state.tool === "erase") drawing = { type: state.tool, pts: [round(p.x), round(p.y)] };
@@ -286,6 +294,10 @@
 
   function endDrawing(e) {
     if (e && e.pointerId !== undefined) touches.delete(e.pointerId);
+    if (pendingStamp && e && e.pointerId === pendingStamp.id) {
+      if (e.type === "pointerup" && touches.size === 0) commit("stamp", pendingStamp.data);
+      pendingStamp = null;
+    }
     if (touches.size < 2) pinch = null;
     pan = null;
     if (!drawing) return;
@@ -371,6 +383,8 @@
     e.preventDefault();
     if (e.ctrlKey || e.metaKey) {
       zoomAt(view.zoom * Math.exp(-e.deltaY * 0.01), e.clientX, e.clientY);
+    } else if (state.tool === "hand" && !e.shiftKey) {
+      zoomAt(view.zoom * Math.exp(-e.deltaY * 0.0022), e.clientX, e.clientY);
     } else if (state.tool === "stamp" && !e.altKey) {
       state.rot += (e.deltaY > 0 ? 1 : -1) * (Math.PI / 12);
       updateGhost();

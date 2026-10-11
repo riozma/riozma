@@ -24,16 +24,21 @@
 
   <a href="/" class="cv-home" aria-label="Zur Startseite">← riozma</a>
 
-  <div class="cv-palette dock-bottom" id="cv-palette">
+  <div class="cv-palette dock-bottom" id="cv-palette" data-tool="hand">
     <div class="cv-top">
       <div class="cv-handle" id="cv-handle" title="Verschieben" aria-label="Palette verschieben">
         <span></span><span></span><span></span>
       </div>
+            <div class="cv-section cv-actions">
+        <button type="button" id="cv-undo" title="Letztes eigenes Element entfernen">↶<small>Zurück</small></button>
+        <button type="button" id="cv-ghost-toggle" class="active" title="Seiteninhalt als Schatten anzeigen">◫<small>Inhalt</small></button>
+        <button type="button" id="cv-reset" hidden title="Ganzen Canvas für alle zurücksetzen">⟲<small>Reset</small></button>
+      </div>
       <button type="button" class="cv-collapse" id="cv-collapse" aria-label="Palette ein-/ausklappen" aria-expanded="true">▾</button>
     </div>
     <div class="cv-section cv-tools" id="cv-tools" role="toolbar" aria-label="Werkzeuge">
-      <button type="button" data-tool="hand" title="Verschieben (oder Mausrad / zwei Finger)">✋<small>Hand</small></button>
-      <button type="button" data-tool="pen" class="active" title="Stift">✎<small>Stift</small></button>
+      <button type="button" data-tool="hand" class="active" title="Verschieben (oder Mausrad / zwei Finger)">✋<small>Hand</small></button>
+      <button type="button" data-tool="pen" title="Stift">✎<small>Stift</small></button>
       <button type="button" data-tool="erase" title="Radierer">⌫<small>Gummi</small></button>
       <button type="button" data-tool="shape" title="Formen">◆<small>Form</small></button>
       <button type="button" data-tool="stamp" title="Stempel">✿<small>Stempel</small></button>
@@ -53,11 +58,6 @@
       <button type="button" id="cv-fill" title="Gefüllt / Umriss" aria-pressed="true">Füllung</button>
     </div>
     <div class="cv-section cv-sub cv-stamps" id="cv-sub-stamp" hidden></div>
-    <div class="cv-section cv-actions">
-      <button type="button" id="cv-undo" title="Letztes eigenes Element entfernen">↶<small>Zurück</small></button>
-      <button type="button" id="cv-ghost-toggle" class="active" title="Seiteninhalt als Schatten anzeigen">◫<small>Inhalt</small></button>
-      <button type="button" id="cv-reset" hidden title="Ganzen Canvas für alle zurücksetzen">⟲<small>Reset</small></button>
-    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
