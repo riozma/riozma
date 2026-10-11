@@ -999,3 +999,31 @@ body.quiz-body {
   opacity: 0.8;
   margin-left: 0.35rem;
 }
+
+.quiz-auth-wrap {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.quiz-auth-card {
+  background: #fff;
+  color: #241333;
+  border-radius: var(--quiz-radius);
+  padding: 1.5rem;
+  box-shadow: var(--quiz-shadow);
+  text-align: left;
+}
+
+.quiz-auth-card .auth-panel-full {
+  max-width: none;
+}
+
+.quiz-auth-wrap .auth-bar {
+  justify-content: center;
+  color: var(--quiz-text);
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}

@@ -1,12 +1,30 @@
 let quizLandingSession = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
+  const container = document.getElementById("quiz-auth-container");
+  const toggle = document.getElementById("quiz-auth-toggle");
+  let formOpen = false;
+
+  function syncAuthUi() {
+    const loggedIn = !!quizLandingSession;
+    toggle.classList.toggle("d-none", loggedIn);
+    container.classList.toggle("quiz-auth-card", !loggedIn);
+    container.classList.toggle("d-none", !loggedIn && !formOpen);
+  }
+
+  toggle.addEventListener("click", () => {
+    formOpen = !formOpen;
+    syncAuthUi();
+  });
+
   await initAuthUI({
-    mode: "discreet",
+    mode: "full",
     loginContainerId: "quiz-auth-container",
+    leadText: "Melde dich an, um Quizzes zu erstellen und zu hosten.",
     onAuthChange: (session) => {
       quizLandingSession = session;
       document.getElementById("quiz-owner-actions").classList.toggle("d-none", !session);
+      syncAuthUi();
     },
   });
 
