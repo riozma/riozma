@@ -49,10 +49,16 @@ async function setupArtStrip() {
     return;
   }
 
-  strip.innerHTML = works.map((w) => `
+  const tile = (w, eager) => `
     <a href="${artworkPageUrl(w.id)}" aria-label="${escapeHtml(w.title || "Kunstwerk")}">
-      <img src="${escapeHtml(w.image_url)}" alt="${escapeHtml(w.title || "")}" loading="lazy">
-    </a>`).join("");
+      <img src="${escapeHtml(w.thumb_url || w.image_url)}" alt="${escapeHtml(w.title || "")}" ${eager ? "" : 'loading="lazy" '}decoding="async">
+    </a>`;
+  const FIRST = 6;
+  strip.innerHTML = works.slice(0, FIRST).map((w) => tile(w, true)).join("");
+  const appendRest = () => strip.insertAdjacentHTML("beforeend", works.slice(FIRST).map((w) => tile(w, false)).join(""));
+  const firstImgs = Array.from(strip.querySelectorAll("img"));
+  Promise.all(firstImgs.map((im) => im.complete ? 1 : new Promise((r) => { im.onload = im.onerror = r; })))
+    .then(() => (window.requestIdleCallback ? requestIdleCallback(appendRest, { timeout: 1500 }) : setTimeout(appendRest, 300)));
 
   const step = () => {
     const first = strip.firstElementChild;

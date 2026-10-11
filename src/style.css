@@ -4049,3 +4049,8 @@ body.landing-body .landing-brand {
 @media (max-width: 991.98px) {
   main.landing-home { padding-top: 4.5rem; }
 }
+
+body.landing-body .landing-brand { color: #1f5a2c; }
+@media (max-width: 991.98px) {
+  body.landing-body .landing-brand { background: rgba(255, 255, 255, 0.88); padding: 0.35rem 0.9rem; border-radius: 999px; font-size: 1.5rem; }
+}
