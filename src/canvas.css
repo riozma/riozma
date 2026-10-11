@@ -138,3 +138,4 @@ html, body.canvas-body {
   .cv-palette.dock-left, .cv-palette.dock-right { width: 164px; }
 }
 .cv-palette [hidden] { display: none !important; }
+.cv-ghost { position: fixed; pointer-events: none; z-index: 15; }

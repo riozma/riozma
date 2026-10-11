@@ -8,6 +8,23 @@ const CANVAS_COLOR_NAMES = ["Olivgrün", "Koralle", "Sand", "Petrol", "Bordeaux"
 
 // Stempel in einem 24x24-Raster
 const CANVAS_STAMPS = {
+  z: (ctx) => {
+    ctx.save();
+    ctx.scale(0.5, 0.5);
+    const bar = (x, y, w) => {
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, 5.328, 2.664);
+      ctx.fill();
+    };
+    bar(12.148, 4.086, 23.703);
+    bar(12.148, 10.485, 23.703);
+    bar(12.148, 16.883, 23.703);
+    ctx.rotate((-40.788087 * Math.PI) / 180);
+    ctx.beginPath();
+    ctx.roundRect(-17.573, 38.252, 27.938, 5.328, 2.664);
+    ctx.fill();
+    ctx.restore();
+  },
   flower: (ctx) => {
     for (let i = 0; i < 5; i++) {
       ctx.save();
@@ -48,15 +65,17 @@ const CANVAS_STAMPS = {
   drop: (ctx) => ctx.fill(new Path2D("M12 2C8 8 5 11.5 5 15.5a7 7 0 0 0 14 0C19 11.5 16 8 12 2z")),
 };
 const CANVAS_STAMP_NAMES = {
-  flower: "Blume", star: "Stern", heart: "Herz", sun: "Sonne",
+  z: "Z", flower: "Blume", star: "Stern", heart: "Herz", sun: "Sonne",
   leaf: "Blatt", moon: "Mond", mountain: "Berg", drop: "Tropfen",
 };
 
-function canvasDrawStamp(ctx, name, x, y, size, color) {
+function canvasDrawStamp(ctx, name, x, y, size, color, rot = 0) {
   const fn = CANVAS_STAMPS[name];
   if (!fn) return;
   ctx.save();
-  ctx.translate(x - size / 2, y - size / 2);
+  ctx.translate(x, y);
+  if (rot) ctx.rotate(rot);
+  ctx.translate(-size / 2, -size / 2);
   ctx.scale(size / 24, size / 24);
   ctx.fillStyle = color;
   fn(ctx);
@@ -128,7 +147,7 @@ function canvasDrawItem(ctx, item) {
   const d = item.data;
   if (!d) return;
   if (item.kind === "stroke") canvasDrawStroke(ctx, d);
-  else if (item.kind === "stamp") canvasDrawStamp(ctx, d.s, d.x, d.y, d.size, d.c);
+  else if (item.kind === "stamp") canvasDrawStamp(ctx, d.s, d.x, d.y, d.size, d.c, d.r || 0);
   else if (item.kind === "shape") canvasDrawShape(ctx, d);
   else if (item.kind === "text") canvasDrawText(ctx, d);
 }

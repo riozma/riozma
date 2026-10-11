@@ -15,7 +15,7 @@
     text: [36, 64, 110],
   };
 
-  const state = { tool: "pen", color: CANVAS_COLORS[1], size: 1, shape: "rect", fill: true, stamp: "flower" };
+  const state = { tool: "pen", color: CANVAS_COLORS[1], size: 1, shape: "rect", fill: true, stamp: "z", rot: 0 };
   const mine = [];
 
   // ---------- Palette-Aufbau ----------
@@ -75,7 +75,6 @@
     document.querySelectorAll("#cv-tools button").forEach((b) => b.classList.toggle("active", b.dataset.tool === state.tool));
     subShape.hidden = state.tool !== "shape";
     subStamp.hidden = state.tool !== "stamp";
-    overlayEl.style.cursor = state.tool === "text" ? "text" : "crosshair";
     layoutPalette();
   }
 
@@ -155,7 +154,7 @@
     commitText();
     overlayEl.setPointerCapture(e.pointerId);
     if (state.tool === "stamp") {
-      commit("stamp", { s: state.stamp, c: state.color, x: round(p.x), y: round(p.y), size: SIZES.stamp[state.size] });
+      commit("stamp", { s: state.stamp, c: state.color, x: round(p.x), y: round(p.y), size: SIZES.stamp[state.size], r: Math.round(state.rot * 1000) / 1000 });
       return;
     }
     if (state.tool === "pen") drawing = { type: "pen", pts: [round(p.x), round(p.y)] };
@@ -217,6 +216,54 @@
       view.drawPreview({ kind: "shape", data: { f: state.shape, c: state.color, x, y, w, h, fill: state.fill, sw: SIZES.shape[state.size] } });
     }
   }
+
+  // ---------- Stempel als Mauszeiger (Mausrad dreht) ----------
+  const ghost = document.createElement("canvas");
+  ghost.className = "cv-ghost d-none";
+  document.body.appendChild(ghost);
+  let lastPt = null;
+  function drawGhost() {
+    const px = Math.max(24, SIZES.stamp[state.size] * view.scale);
+    const pad = Math.ceil(px * 0.45);
+    const side = Math.ceil(px + pad * 2);
+    ghost.width = ghost.height = side;
+    ghost.style.width = ghost.style.height = `${side}px`;
+    ghost.style.marginLeft = ghost.style.marginTop = `${-side / 2}px`;
+    const g = ghost.getContext("2d");
+    g.clearRect(0, 0, side, side);
+    g.globalAlpha = 0.85;
+    canvasDrawStamp(g, state.stamp, side / 2, side / 2, px, state.color, state.rot);
+  }
+  function updateGhost() {
+    const on = state.tool === "stamp" && lastPt;
+    ghost.classList.toggle("d-none", !on);
+    overlayEl.style.cursor = state.tool === "stamp" ? "none" : state.tool === "text" ? "text" : "crosshair";
+    if (on) {
+      drawGhost();
+      ghost.style.left = `${lastPt.x}px`;
+      ghost.style.top = `${lastPt.y}px`;
+    }
+  }
+  overlayEl.addEventListener("pointermove", (e) => {
+    if (e.pointerType === "touch") return;
+    lastPt = { x: e.clientX, y: e.clientY };
+    if (state.tool === "stamp") {
+      ghost.style.left = `${e.clientX}px`;
+      ghost.style.top = `${e.clientY}px`;
+      if (ghost.classList.contains("d-none")) updateGhost();
+    }
+  });
+  overlayEl.addEventListener("pointerleave", () => ghost.classList.add("d-none"));
+  overlayEl.addEventListener("wheel", (e) => {
+    if (state.tool !== "stamp") return;
+    e.preventDefault();
+    state.rot += (e.deltaY > 0 ? 1 : -1) * (Math.PI / 12);
+    updateGhost();
+  }, { passive: false });
+  const origSyncUi = syncUi;
+  syncUi = function () { origSyncUi(); updateGhost(); };
+  ["cv-colors", "cv-sizes", "cv-sub-stamp"].forEach((id) =>
+    document.getElementById(id).addEventListener("click", () => setTimeout(updateGhost, 0)));
 
   // ---------- Text ----------
   let textAt = null;
