@@ -3537,7 +3537,7 @@ body.site-body :where(button, input, textarea, select, .btn, .form-control, .nav
   .landing-brand {
     display: block;
     position: absolute;
-    top: 1.1rem;
+    top: 5.5rem;
     left: 50%;
     transform: translateX(-50%);
     z-index: 5;
@@ -3547,8 +3547,8 @@ body.site-body :where(button, input, textarea, select, .btn, .form-control, .nav
     text-decoration: none;
   }
 
-  .landing-home {
-    margin-top: -46vh;
+  main.landing-home {
+    margin-top: -62vh;
     position: relative;
   }
 }
