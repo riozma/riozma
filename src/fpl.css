@@ -15,23 +15,22 @@ body { margin: 0; font-family: var(--font); color: var(--ink); background: var(-
 a { color: inherit; }
 
 .hero { background: var(--blue); color: var(--white); padding: 0 24px 72px; display: flex; flex-direction: column; }
-.topbar { order: 0; width: 100%; }
-.hero-inner { order: 2; width: 100%; }
-/* Trailer als Spalt: Linie -> öffnet sich nach oben und unten -> schliesst sich wieder zur Linie */
-.slit { display: none; order: 1; position: relative; width: calc(100% + 48px); margin: 0 -24px; height: 30px; cursor: pointer; --full: min(74vh, calc(100vw * 9 / 16)); transition: height 1s cubic-bezier(.77, 0, .18, 1); outline-offset: -3px; }
-.slit-inner { position: absolute; left: 0; right: 0; top: 50%; height: 2px; transform: translateY(-50%); overflow: hidden; background: var(--orange); transition: height 1s cubic-bezier(.77, 0, .18, 1), background-color .4s; }
-.slit video { position: absolute; left: 0; top: 50%; width: 100%; height: var(--full); transform: translateY(-50%); object-fit: contain; background: #0b1730; opacity: 0; transition: opacity .5s; }
-.slit.loading .slit-inner { animation: slitPulse 1.4s ease-in-out infinite; }
-.slit.closed:hover .slit-inner, .slit.closed:focus-visible .slit-inner { height: 26px; background: #0b1730; animation: none; transition-duration: .45s; }
-.slit.closed:hover video, .slit.closed:focus-visible video { opacity: 1; }
-.slit.open { height: var(--full); cursor: default; }
-.slit.open .slit-inner { height: 100%; background: #0b1730; animation: none; }
-.slit.open video { opacity: 1; }
+.topbar { width: 100%; }
+.hero-inner { width: 100%; }
+/* Trailer als Dropdown-Spalt zwischen Leiste und Intro: Linie -> klappt auf (ganzes Video, passend zum Bildschirm) -> klappt wieder zur Linie zu */
+.slit { display: none; position: relative; width: calc(100% + 48px); margin: 0 -24px; border-top: 2px solid var(--orange); cursor: pointer; --full: min(calc(100vh - 120px), calc(100vw * 9 / 16)); outline-offset: 2px; }
+.slit::before { content: ""; position: absolute; left: 0; right: 0; top: -14px; height: 28px; }
+.slit-inner { position: relative; height: 0; overflow: hidden; background: #0b1730; transition: height .9s cubic-bezier(.77, 0, .18, 1); }
+.slit video { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 100vw; height: var(--full); object-fit: contain; display: block; }
+.slit.loading { animation: slitPulse 1.4s ease-in-out infinite; }
+.slit.closed:hover .slit-inner, .slit.closed:focus-visible .slit-inner { height: 22px; transition-duration: .4s; }
+.slit.open .slit-inner { height: var(--full); }
+.slit.open { cursor: default; }
 .slit.open.playing { cursor: pointer; }
-.slit.open ~ .hero-inner { padding-top: 48px; }
+.slit.open ~ .hero-inner { padding-top: 40px; }
 @keyframes slitPulse { 50% { opacity: .35; } }
 @media (min-width: 900px) { .slit { display: block; } }
-@media (prefers-reduced-motion: reduce) { .slit, .slit-inner, .slit video { transition-duration: .01s; } .slit.loading .slit-inner { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .slit-inner { transition-duration: .01s; } .slit.loading { animation: none; } }
 .topbar { max-width: 64rem; margin: 0 auto; padding: 18px 0; display: flex; align-items: center; gap: 22px; }
 .topnav { display: flex; gap: 18px; margin-right: auto; font-size: .85rem; }
 .topnav a { color: rgba(255, 255, 255, .8); text-decoration: none; }

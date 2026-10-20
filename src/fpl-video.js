@@ -18,6 +18,7 @@
   }
 
   function play() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
     video.currentTime = 0;
     setState("open");
     slit.classList.add("playing");
