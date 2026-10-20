@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/src/site-init.js"></script>
+  <title>Future Planning Lab – FPL</title>
+  <link rel="icon" href="/src/img/fpl-mark.svg" type="image/svg+xml">
+  <meta name="description" content="Future Planning Lab (FPL): a student community thinking freely about the future of construction planning. Add your post-its to our five questions.">
+  <meta name="theme-color" content="#536A89">
+  <link rel="canonical" href="https://riozma.ch/fpl/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Future Planning Lab – FPL">
+  <meta property="og:description" content="A student community for the future of construction planning. Share your thoughts on five questions.">
+  <meta property="og:url" content="https://riozma.ch/fpl/">
+  <link rel="stylesheet" href="/src/fpl.css">
+</head>
+<body>
+  <header class="hero">
+    <img class="hero-mark" src="/src/img/fpl-mark.svg" alt="FPL logo">
+    <h1>Future Planning Lab</h1>
+    <p class="lead">A student community that thinks freely about where construction planning is heading: with digital innovation, AI and automation, and together with experts from practice. Our goal is a network of digitalization-minded students, so that innovation actually reaches practice.</p>
+    <a class="btn" href="https://chat.whatsapp.com/K5vrZwAB6O98FyIPNHesqV?s=cl&amp;p=a&amp;mlu=4&amp;ilr=4" target="_blank" rel="noopener">Join the WhatsApp group</a>
+  </header>
+
+  <main>
+    <section class="info" aria-label="About the FPL">
+      <details class="panel why">
+        <summary>Why FPL?</summary>
+        <ul>
+          <li>Frustrated by unproductive processes</li>
+          <li>AI is changing our profession</li>
+          <li>Big challenges: climate, housing, fewer engineers</li>
+          <li>Huge potential for innovation</li>
+        </ul>
+      </details>
+      <details class="panel what">
+        <summary>What &amp; how?</summary>
+        <h3>Output</h3>
+        <ul>
+          <li>Future scenarios</li>
+          <li>Ideas for theses &amp; projects</li>
+          <li>Network of students &amp; experts</li>
+          <li>Framework to classify new developments</li>
+        </ul>
+        <h3>How</h3>
+        <ul>
+          <li>Workshops</li>
+          <li>Expert talks &amp; Stammtisch</li>
+          <li>Hackathons</li>
+          <li>Exchange with other studies</li>
+        </ul>
+      </details>
+      <details class="panel road">
+        <summary>Roadmap</summary>
+        <ol>
+          <li><b>HS26 · Discover</b>: build the team, map topics &amp; existing solutions</li>
+          <li><b>FS27 · Reality check</b>: experts, future scenarios &amp; first proof of concept</li>
+          <li><b>HS27 · Implement &amp; establish</b></li>
+        </ol>
+      </details>
+      <details class="panel who">
+        <summary>Is the FPL for you?</summary>
+        <p>If you enjoy developing new ideas for more efficient and better planning with others, you are in the right place. Primarily civil engineering Master's students, but open to everyone interested. Take away what you like: input for your projects, ideas for theses, maybe a startup, or simply a relaxed round of deeper thinking with like-minded people. No commitment needed, join only the sessions that interest you.</p>
+      </details>
+    </section>
+
+    <section class="board" aria-label="Five questions">
+      <h2>Five questions, your post-its</h2>
+      <p class="board-lead">These are the thoughts from the kick-off. Add your own to any question, or give a thumbs up to the ones you agree with.</p>
+      <div id="questions"></div>
+      <p id="status" class="status" role="status" hidden></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Future Planning Lab · ETH Zurich · <a href="/">riozma.ch</a></p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/src/supabase-config.js"></script>
+  <script src="/src/supabase-client.js"></script>
+  <script src="/src/fpl.js"></script>
+</body>
+</html>
