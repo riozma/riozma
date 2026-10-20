@@ -17,6 +17,7 @@
 </head>
 <body>
   <header class="hero">
+    <div class="authbar" id="authbar"></div>
     <img class="hero-mark" src="/src/img/fpl-mark.svg" alt="FPL logo">
     <h1>Future Planning Lab</h1>
     <p class="lead">A student community that thinks freely about where construction planning is heading: with digital innovation, AI and automation, and together with experts from practice. Our goal is a network of digitalization-minded students, so that innovation actually reaches practice.</p>
@@ -68,10 +69,14 @@
     <section class="board" aria-label="Five questions">
       <h2>Five questions, your post-its</h2>
       <p class="board-lead">These are the thoughts from the kick-off. Add your own to any question, or give a thumbs up to the ones you agree with.</p>
+      <p class="board-lead hint">Post-its that overlap belong together: the one in front is a reply to the one behind it. Use 💬 to reply.</p>
+      <p class="board-lead hint" id="anon-hint">Post-its added without logging in can be edited and deleted by anyone. Log in (top right) to make yours editable only by you.</p>
       <div id="questions"></div>
       <p id="status" class="status" role="status" hidden></p>
     </section>
   </main>
+
+  <dialog id="dlg"><form id="dlg-form" method="dialog"></form></dialog>
 
   <footer>
     <p>Future Planning Lab · ETH Zurich · <a href="/">riozma.ch</a></p>
