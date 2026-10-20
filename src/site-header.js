@@ -66,6 +66,12 @@
       activeWhen: (path) => path === "/canvas" || path.startsWith("/canvas/"),
     },
     {
+      id: "fpl",
+      href: "/fpl/",
+      label: "FPL",
+      activeWhen: (path) => path === "/fpl" || path.startsWith("/fpl/"),
+    },
+    {
       id: "about",
       href: "/about/",
       label: "Über mich",

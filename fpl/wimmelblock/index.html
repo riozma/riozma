@@ -1,0 +1,679 @@
+<!doctype html><html><head><meta charset="utf-8"><title>FPL Wimmelblock</title><link rel="icon" href="/src/img/fpl-mark.svg" type="image/svg+xml"><meta name="theme-color" content="#0b1730"><meta name="description" content="Der FPL-Wimmelblock: ein 3D-Wimmelbild über das Planen und Bauen von morgen."><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: full-bleed 3D stage, one quiet info card bottom-left, a found-list on the right. Single deliberate dark look (FPL navy). */
+:root {
+  --navy: #0b1730; --navy-2: #13254a; --ink: #eef3ff; --dim: #93a5c6;
+  --orange: #ffa53a; --teal: #3ee6c1; --card: rgba(11, 23, 48, 0.82); --line: rgba(147, 165, 198, 0.22);
+  --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  margin: 0; overflow: hidden; color: var(--ink); font-family: var(--f-display);
+  background: radial-gradient(120% 90% at 50% 35%, var(--navy-2) 0%, var(--navy) 60%, #070f22 100%);
+}
+#stage { position: fixed; inset: 0; }
+#stage canvas { display: block; outline: none; }
+.hud { position: fixed; pointer-events: none; display: flex; flex-direction: column; gap: 10px; }
+.hud > * { pointer-events: auto; }
+#info {
+  left: max(16px, calc(env(safe-area-inset-left, 0px) + 16px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  width: min(340px, calc(100vw - 32px));
+}
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; backdrop-filter: blur(8px); }
+.eyebrow { font: 500 11px/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--orange); }
+h1 { margin: 6px 0 4px; font-weight: 900; font-size: 26px; letter-spacing: -.01em; text-wrap: balance; }
+p { margin: 0; color: var(--dim); font-size: 14px; line-height: 1.45; }
+.count { font: 500 13px/1 var(--f-mono); color: var(--ink); margin-top: 10px; font-variant-numeric: tabular-nums; }
+.bar { height: 4px; border-radius: 2px; background: var(--line); margin-top: 8px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--orange); transition: width .4s; }
+#detail[hidden] { display: none !important; }
+#detail h2 { margin: 4px 0 4px; font-size: 18px; font-weight: 700; }
+#list {
+  right: max(16px, calc(env(safe-area-inset-right, 0px) + 16px)); top: calc(env(safe-area-inset-top, 0px) + 16px);
+  width: 210px; max-height: calc(100% - 32px);
+}
+#list ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
+#list li { display: flex; gap: 8px; align-items: center; color: var(--dim); }
+#list li::before { content: ""; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--dim); flex: none; }
+#list li.found { color: var(--ink); }
+#list li.found::before { background: var(--orange); border-color: var(--orange); }
+.btns { display: flex; gap: 8px; margin-top: 10px; }
+button {
+  font: 700 12px/1 var(--f-display); color: var(--ink); background: transparent; border: 1px solid var(--line);
+  border-radius: 999px; padding: 8px 12px; cursor: pointer;
+}
+button:hover { border-color: var(--orange); color: var(--orange); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.back { position: fixed; z-index: 5; left: max(16px, env(safe-area-inset-left, 0px)); top: calc(env(safe-area-inset-top, 0px) + 14px); color: var(--ink); text-decoration: none; font: 700 12px/1 var(--f-display); background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 9px 14px; backdrop-filter: blur(8px); }
+.back:hover { border-color: var(--orange); color: var(--orange); }
+#loading { position: fixed; inset: 0; display: grid; place-items: center; font: 500 13px var(--f-mono); color: var(--dim); }
+@media (max-width: 640px) {
+  #list { display: none; }
+  h1 { font-size: 22px; }
+}
+</style>
+
+<div id="stage"></div>
+<a class="back" href="/fpl/">← Future Planning Lab</a>
+<div id="loading">Baustelle wird eingerichtet …</div>
+
+<div id="info" class="hud">
+  <div class="card" id="detail" hidden>
+    <div class="eyebrow" id="d-kind">Gefunden</div>
+    <h2 id="d-title"></h2>
+    <p id="d-text"></p>
+  </div>
+  <div class="card">
+    <div class="eyebrow">Future Planning Lab · ETH Zürich</div>
+    <h1>Der FPL-Block</h1>
+    <p>Ein Wimmelblock über das Planen und Bauen von morgen. Ziehen zum Drehen, scrollen zum Zoomen, auf Details klicken.</p>
+    <div class="count" id="count">0 / 0 entdeckt</div>
+    <div class="bar"><i id="bar"></i></div>
+    <div class="btns">
+      <button id="spin" type="button" aria-pressed="true">Drehung pausieren</button>
+      <button id="reset" type="button">Ansicht zurücksetzen</button>
+    </div>
+  </div>
+</div>
+
+<div id="list" class="hud">
+  <div class="card">
+    <div class="eyebrow">Finde alles</div>
+    <ul id="items"></ul>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// wait briefly for the sign font so canvas textures use it
+await Promise.race([Promise.all([document.fonts.load('900 64px "Archivo"'), document.fonts.load('700 32px "Archivo"')]), new Promise(r => setTimeout(r, 2500))]).catch(() => {});
+
+const COL = {
+  orange: 0xffa53a, orange2: 0xf07c22, orangeDeep: 0xd85f1c, cream: 0xf4e7cf, navy: 0x0b1730,
+  asphalt: 0x1d2840, walk: 0x8c97ad, curb: 0xb7c0d2, concrete: 0xc6ccd8, darkSteel: 0x2a3550,
+  glassWarm: 0xffd58a, glassTeal: 0x3ee6c1, glassBlue: 0x7fb8ff, wood: 0xc68a55, green: 0x5fbf7a,
+  greenDark: 0x3b8f5c, white: 0xf7f9ff, black: 0x111522, tram: 0x2d6fe0, red: 0xe5534b, brick: 0xc8643f
+};
+
+// ---------- renderer / scene ----------
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+stage.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(28, innerWidth / innerHeight, 1, 400);
+const HOME = new THREE.Vector3(40, 31, 40);
+camera.position.copy(HOME);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(-1.5, 5, -1.5);
+controls.enableDamping = true;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.5;
+controls.minDistance = 25; controls.maxDistance = 130;
+controls.maxPolarAngle = Math.PI * 0.47;
+controls.update();
+
+scene.add(new THREE.HemisphereLight(0xcfe0ff, 0x1a2440, 1.1));
+const sun = new THREE.DirectionalLight(0xfff1dc, 2.2);
+sun.position.set(30, 50, 18);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 120 });
+sun.shadow.bias = -0.0005;
+scene.add(sun);
+const rim = new THREE.DirectionalLight(0x6fa8ff, 0.8);
+rim.position.set(-30, 20, -25);
+scene.add(rim);
+
+// ---------- helpers ----------
+const mats = new Map();
+function mat(color, opts = {}) {
+  const key = color + JSON.stringify(opts);
+  if (!mats.has(key)) mats.set(key, new THREE.MeshStandardMaterial({ color, roughness: 0.78, metalness: 0.05, flatShading: true, ...opts }));
+  return mats.get(key);
+}
+const glow = (color, i = 1) => new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: i, roughness: 0.4 });
+function mesh(geo, m, parent, x = 0, y = 0, z = 0) {
+  const o = new THREE.Mesh(geo, typeof m === 'number' ? mat(m) : m);
+  o.position.set(x, y, z); o.castShadow = true; o.receiveShadow = true;
+  (parent || scene).add(o); return o;
+}
+// box placed by its bottom-center
+const box = (w, h, d, m, p, x = 0, y = 0, z = 0) => mesh(new THREE.BoxGeometry(w, h, d), m, p, x, y + h / 2, z);
+const cyl = (rt, rb, h, m, p, x = 0, y = 0, z = 0, seg = 12) => mesh(new THREE.CylinderGeometry(rt, rb, h, seg), m, p, x, y + h / 2, z);
+const sph = (r, m, p, x = 0, y = 0, z = 0) => mesh(new THREE.SphereGeometry(r, 14, 10), m, p, x, y, z);
+const grp = (p, x = 0, y = 0, z = 0) => { const g = new THREE.Group(); g.position.set(x, y, z); (p || scene).add(g); return g; };
+
+function signTex(lines, { bg = '#ffa53a', fg = '#0b1730', w = 512, h = 160, size = 64, weight = 900, font = 'Archivo', border } = {}) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  g.fillStyle = bg; g.fillRect(0, 0, w, h);
+  if (border) { g.strokeStyle = border; g.lineWidth = 10; g.strokeRect(5, 5, w - 10, h - 10); }
+  g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle';
+  const arr = [].concat(lines);
+  arr.forEach((l, i) => {
+    const s = i === 0 ? size : size * 0.55;
+    g.font = `${i === 0 ? weight : 700} ${s}px "${font}", Arial, sans-serif`;
+    const y = h / 2 + (i - (arr.length - 1) / 2) * size * 0.85;
+    g.fillText(l, w / 2, y);
+  });
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  return t;
+}
+function sign(lines, w, h, opts, parent, x, y, z, ry = 0, emissive = 0.35) {
+  const ratio = w / h;
+  const tex = signTex(lines, { w: 512, h: Math.round(512 / ratio), ...opts });
+  const m = new THREE.MeshStandardMaterial({ map: tex, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: emissive, roughness: .6 });
+  const s = mesh(new THREE.BoxGeometry(w, h, 0.08), [mat(COL.darkSteel), mat(COL.darkSteel), mat(COL.darkSteel), mat(COL.darkSteel), m, mat(COL.darkSteel)], parent, x, y, z);
+  s.rotation.y = ry; return s;
+}
+
+// clickable details
+const DETAILS = [];
+function tag(obj, title, text) { obj.userData.label = { title, text }; DETAILS.push(obj); return obj; }
+
+// people
+const SHIRTS = [COL.orange, COL.glassTeal, COL.white, COL.tram, 0x9b7bff, COL.red, COL.cream];
+const SKIN = [0xf2c9a0, 0xd9a072, 0x8d5a3b, 0xf6d8bd];
+const people = [];
+function person(p, x, z, { y = 0, shirt, helmet = false, laptop = false, ry = 0, sit = false } = {}) {
+  const g = grp(p, x, y, z); g.rotation.y = ry;
+  const s = shirt ?? SHIRTS[(people.length * 3) % SHIRTS.length];
+  if (!sit) { cyl(0.09, 0.09, 0.45, COL.darkSteel, g, -0.1, 0, 0, 6); cyl(0.09, 0.09, 0.45, COL.darkSteel, g, 0.1, 0, 0, 6); }
+  cyl(0.2, 0.24, 0.5, s, g, 0, sit ? 0.05 : 0.42, 0, 8);
+  sph(0.17, SKIN[people.length % SKIN.length], g, 0, sit ? 0.75 : 1.12, 0);
+  if (helmet) {
+    mesh(new THREE.SphereGeometry(0.2, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), COL.orange, g, 0, sit ? 0.8 : 1.17, 0);
+    cyl(0.27, 0.27, 0.03, COL.orange, g, 0, sit ? 0.79 : 1.16, 0.03);
+  }
+  if (laptop) { box(0.36, 0.02, 0.26, COL.concrete, g, 0, sit ? 0.5 : 0.7, 0.3); const sc = box(0.36, 0.24, 0.02, glow(COL.glassTeal, .8), g, 0, sit ? 0.52 : 0.72, 0.43); sc.rotation.x = -0.25; }
+  g.userData.phase = Math.random() * 6.28;
+  people.push(g); return g;
+}
+function tree(p, x, z, s = 1) {
+  const g = grp(p, x, 0, z);
+  cyl(0.1 * s, 0.14 * s, 1.0 * s, COL.wood, g, 0, 0, 0, 6);
+  mesh(new THREE.IcosahedronGeometry(0.75 * s, 0), COL.green, g, 0, 1.4 * s, 0);
+  mesh(new THREE.IcosahedronGeometry(0.5 * s, 0), COL.greenDark, g, 0.3 * s, 1.95 * s, 0.1);
+  return g;
+}
+function plant(p, x, y, z) { cyl(0.16, 0.12, 0.25, COL.brick, p, x, y, z, 8); mesh(new THREE.IcosahedronGeometry(0.22, 0), COL.green, p, x, y + 0.4, z); }
+function windowRow(p, face, count, width, y, h, m, offset = 0, depth = 0) {
+  // face: 'z' -> on +z plane at depth, 'x' -> on +x plane
+  const step = width / count;
+  for (let i = 0; i < count; i++) {
+    const c = -width / 2 + step * (i + 0.5) + offset;
+    if (face === 'z') { box(step * 0.62, h, 0.06, m, p, c, y, depth); box(step * 0.72, 0.08, 0.2, COL.cream, p, c, y - 0.06, depth); }
+    else { box(0.06, h, step * 0.62, m, p, depth, y, c); box(0.2, 0.08, step * 0.72, COL.cream, p, depth, y - 0.06, c); }
+  }
+}
+const flicker = [];
+function litWindow(color, i = 0.9) { const m = glow(color, i); flicker.push(m); return m; }
+
+// ---------- ground plate ----------
+box(28, 1.4, 28, 0x16203a, null, 0, -1.4, 0);
+box(28.2, 0.12, 28.2, COL.orange, null, 0, -1.52, 0); // orange edge trim like a model base
+box(26, 0.1, 26, COL.asphalt, null, 0, -0.1, 0);
+// lot + sidewalk (lot occupies x,z in [-13,4])
+box(17.6, 0.3, 17.6, COL.walk, null, -4.6, 0, -4.6);
+box(17.6, 0.32, 0.25, COL.curb, null, -4.6, 0, 4.1);
+box(0.25, 0.32, 17.6, COL.curb, null, 4.1, 0, -4.6);
+// road markings
+for (let z = -12; z < 12; z += 2.2) box(0.18, 0.02, 1.1, COL.white, null, 8.5, 0, z);
+for (let x = -12; x < 3; x += 2.2) box(1.1, 0.02, 0.18, COL.white, null, x, 0, 8.5);
+for (let i = 0; i < 6; i++) box(0.5, 0.02, 2.4, COL.white, null, 5 + i * 0.9 + 0.2, 0, 5.7); // crosswalk
+// tram rails on x road
+for (const dx of [-0.45, 0.45]) box(0.08, 0.04, 26, 0x6b7790, null, 10.4 + dx, 0, 0);
+
+const L0 = 0.3; // lot surface height
+
+// ---------- main FPL house ----------
+const H = 2.5; // floor height
+const main = grp(null, -3.2, L0, -3.2);
+// ground floor: café
+box(7, H, 7, COL.cream, main, 0, 0, 0);
+for (const [face, d] of [['z', 3.52], ['x', 3.52]]) windowRow(main, face, 3, 6, 0.5, 1.6, litWindow(COL.glassWarm, .8), 0, d);
+box(6.4, 0.05, 1.4, COL.orange, main, 0, 2.15, 4.2).rotation.x = 0.25; // awning
+box(1.4, 0.05, 6.4, COL.orange2, main, 4.2, 2.15, 0).rotation.z = -0.25;
+for (let i = 0; i < 7; i++) box(0.4, 0.06, 1.42, i % 2 ? COL.white : COL.orange, main, -2.85 + i * 0.95, 2.18, 4.2).rotation.x = 0.25;
+const cafe = sign(['FPL CAFÉ', 'Stammtisch · Do 18:00'], 4.2, 0.9, {}, main, 0, 2.75, 3.56);
+tag(cafe, 'Stammtisch im FPL-Café', 'Jeden Donnerstag: Bier, Mate und die Frage, warum Pläne immer noch als PDF verschickt werden.');
+// café tables outside
+for (const [tx, tz] of [[-2, 5.2], [0.4, 5.3], [2.4, 5.1]]) {
+  cyl(0.4, 0.4, 0.05, COL.white, main, tx, 0.7, tz); cyl(0.05, 0.05, 0.7, COL.darkSteel, main, tx, 0, tz, 6);
+  cyl(0.06, 0.06, 0.18, COL.white, main, tx + 0.15, 0.75, tz, 8);
+}
+const stamm = grp(main, 0, 0, 0);
+person(stamm, -2.6, 5.2, { ry: Math.PI / 2, sit: true, laptop: true, y: 0.25 });
+person(stamm, -1.4, 5.3, { ry: -Math.PI / 2, sit: true, y: 0.25 });
+person(stamm, 0.4, 6.0, { ry: Math.PI, sit: true, y: 0.25, shirt: COL.glassTeal });
+person(stamm, 2.9, 5.4, { ry: -Math.PI / 2, sit: true, y: 0.25, laptop: true });
+tag(stamm, 'Studis mit Laptops', 'Hier entsteht gerade ein Startup. Oder eine Projektarbeit. Oder beides, je nach Kaffeestand.');
+
+// floor 1: drawing studio (orange)
+const f1 = grp(main, 0, H, 0);
+box(7, H, 7, COL.orange, f1, 0, 0, 0);
+windowRow(f1, 'z', 3, 6, 0.45, 1.5, litWindow(COL.glassWarm, .6), 0, 3.52);
+windowRow(f1, 'x', 3, 6, 0.45, 1.5, litWindow(COL.glassWarm, .6), 0, 3.52);
+// balcony with drafting table
+box(3.4, 0.15, 1.3, COL.concrete, f1, -1.4, 0, 4.15);
+for (let i = 0; i < 7; i++) box(0.05, 0.75, 0.05, COL.darkSteel, f1, -3 + i * 0.53, 0.15, 4.75);
+box(3.4, 0.05, 0.06, COL.darkSteel, f1, -1.4, 0.9, 4.75);
+const draft = grp(f1, -1.6, 0.15, 4.1);
+cyl(0.04, 0.04, 0.8, COL.darkSteel, draft, 0, 0, 0, 6);
+const board = box(1.0, 0.04, 0.7, COL.white, draft, 0, 0.8, 0); board.rotation.x = -0.5;
+box(0.6, 0.01, 0.02, COL.tram, draft, 0, 0.86, 0); // blueprint line
+person(draft, 0.9, 0.0, { ry: -Math.PI / 2 });
+plant(f1, -2.8, 0.15, 4.4);
+tag(draft, 'Reissbrett auf dem Balkon', 'Analog geplant, digital gedacht: die letzte Handskizze vor dem BIM-Modell.');
+
+// floor 2: AI lab
+const f2 = grp(main, 0, H * 2, 0);
+box(7, H, 7, COL.concrete, f2, 0, 0, 0);
+windowRow(f2, 'z', 4, 6, 0.4, 1.6, litWindow(COL.glassTeal, 1.0), 0, 3.52);
+windowRow(f2, 'x', 4, 6, 0.4, 1.6, litWindow(COL.glassTeal, 1.0), 0, 3.52);
+const ai = sign(['AI LAB'], 1.0, 2.0, { bg: '#0b1730', fg: '#3ee6c1', size: 110 }, f2, 3.8, 0.4, 2.2, Math.PI / 2, 0.9);
+ai.rotation.z = 0; ai.scale.set(1, 1, 1);
+tag(ai, 'AI Lab', 'Im zweiten Stock rechnet eine KI Varianten durch. Sie weiss noch nicht, was eine Brandschutzwand ist.');
+// cornice
+box(7.6, 0.35, 7.6, COL.orangeDeep, main, 0, H * 3, 0);
+
+// roof
+const roof = grp(main, 0, H * 3 + 0.35, 0);
+box(7.2, 0.4, 0.15, COL.orangeDeep, roof, 0, 0, 3.55); box(0.15, 0.4, 7.2, COL.orangeDeep, roof, 3.55, 0, 0);
+box(7.2, 0.4, 0.15, COL.orangeDeep, roof, 0, 0, -3.55); box(0.15, 0.4, 7.2, COL.orangeDeep, roof, -3.55, 0, 0);
+// giant hard hat mascot
+const hat = grp(roof, 0.2, 0, 0.2); hat.scale.setScalar(1.12);
+const hatTop = grp(hat, 0, 0, 0);
+mesh(new THREE.SphereGeometry(1.9, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), mat(COL.orange, { roughness: .45 }), hatTop, 0, 0.55, 0);
+cyl(2.55, 2.55, 0.18, mat(COL.orange, { roughness: .45 }), hatTop, 0.2, 0.45, 0.2, 24);
+const ridge = mesh(new THREE.TorusGeometry(1.75, 0.16, 6, 24, Math.PI), COL.orange2, hatTop, 0, 0.55, 0); ridge.rotation.y = Math.PI / 2;
+for (const ex of [-0.6, 0.6]) {
+  const e = sph(0.3, COL.white, hatTop, ex * 0.72, 1.25, 1.66); e.scale.set(1, 1.2, 0.6);
+  sph(0.15, COL.black, hatTop, ex * 0.72 + 0.04, 1.25, 1.84);
+}
+const smile = mesh(new THREE.TorusGeometry(0.32, 0.06, 6, 12, Math.PI), COL.black, hatTop, 0.0, 0.95, 1.86); smile.rotation.z = Math.PI; smile.rotation.x = -0.15;
+for (const ex of [-0.75, 0.75]) { const ch = sph(0.15, COL.red, hatTop, ex, 0.9, 1.78); ch.scale.set(1, 0.6, 0.4); }
+sign(['FPL'], 1.0, 0.45, { bg: '#0b1730', fg: '#ffa53a', size: 120 }, hatTop, 0, 1.9, 1.05, 0, 0.5).rotation.x = -0.65;
+hatTop.rotation.y = Math.PI / 4;
+tag(hat, 'Helmi, das FPL-Maskottchen', 'Ein Bauhelm mit Weitblick. Schützt vor herabfallenden Normen.');
+// rooftop 3D printer printing a mini tower
+const printer = grp(roof, -2.2, 0, -2.2);
+for (const [px, pz] of [[-0.8, -0.8], [0.8, -0.8], [-0.8, 0.8], [0.8, 0.8]]) box(0.1, 2.2, 0.1, COL.darkSteel, printer, px, 0, pz);
+box(1.8, 0.1, 1.8, COL.darkSteel, printer, 0, 2.2, 0);
+box(1.6, 0.1, 1.6, COL.concrete, printer, 0, 0, 0);
+const gantry = box(1.7, 0.12, 0.14, COL.orange2, printer, 0, 1.8, 0);
+const nozzle = box(0.18, 0.3, 0.18, COL.black, gantry, 0, -0.3, 0);
+const printed = box(0.8, 1.0, 0.8, mat(COL.cream), printer, 0, 0.1, 0);
+tag(printer, '3D-Drucker auf dem Dach', 'Druckt gerade das nächste Gebäude. Massstab 1:1 ist für nächstes Semester geplant.');
+// solar panels
+const solar = grp(roof, 0.4, 0, -2.7);
+for (let i = 0; i < 3; i++) { const sp = box(1.0, 0.06, 0.7, mat(0x2b4fa8, { metalness: .4, roughness: .3 }), solar, i * 1.1 - 0.4, 0.5, 0); sp.rotation.x = -0.5; box(0.06, 0.5, 0.06, COL.darkSteel, solar, i * 1.1 - 0.4, 0, 0.1); }
+// antenna with orange light
+cyl(0.04, 0.06, 2.2, COL.darkSteel, roof, -2.9, 0, 2.9, 6);
+const beacon = sph(0.13, glow(COL.orange, 2), roof, -2.9, 2.3, 2.9);
+
+// ---------- left neighbor: BIM office, tall and narrow ----------
+const left = grp(null, -10.2, L0, -5.2);
+box(4.6, H * 4, 6.2, COL.wood, left, 0, 0, 0);
+for (let f = 0; f < 4; f++) {
+  windowRow(left, 'z', 2, 3.8, f * H + 0.5, 1.5, f === 0 ? litWindow(COL.glassWarm, .7) : mat(COL.glassBlue, { roughness: .2 }), 0, 3.12);
+  windowRow(left, 'x', 3, 5.4, f * H + 0.5, 1.5, f === 2 ? litWindow(COL.glassWarm, .7) : mat(COL.glassBlue, { roughness: .2 }), 0, 2.32);
+  box(4.8, 0.12, 6.4, COL.cream, left, 0, (f + 1) * H - 0.06, 0);
+}
+box(5.0, 0.3, 6.6, COL.darkSteel, left, 0, H * 4, 0);
+const bim = sign(['B', 'I', 'M'].join(''), 0.9, 2.8, { bg: '#ffa53a', fg: '#0b1730', size: 150, w: 512 }, left, 2.6, H * 2.4, 2.0, Math.PI / 2, 0.6);
+// vertical-ish banner: rotate the texture approach is easier as a tall sign with stacked letters
+bim.material[4].map = signTex(['B', 'I', 'M'], { w: 180, h: 560, size: 150 });
+bim.material[4].emissiveMap = bim.material[4].map;
+tag(bim, 'BIM-Büro', 'Hier ist jedes Schräubchen ein Objekt mit Attributen. Auch die Kaffeemaschine hat eine IFC-Klasse.');
+// roof garden
+const garden = grp(left, 0, H * 4 + 0.3, 0);
+box(4.2, 0.25, 5.6, 0x6b4a32, garden, 0, 0, 0);
+tree(garden, -1, -1.5, 0.8); tree(garden, 1, 1.2, 0.65);
+for (let i = 0; i < 3; i++) box(0.6, 0.3, 0.4, COL.green, garden, 0.9, 0.25, -1.8 + i * 0.7);
+person(garden, -0.6, 1.4, { ry: 0.6, shirt: COL.white });
+tag(garden, 'Dachgarten', 'Begrünte Dächer kühlen die Stadt und sind der beste Ort für Ideen nach 22 Uhr.');
+// scaffolding on its front face
+const scaf = grp(left, 0, 0, 3.6);
+for (let i = 0; i < 4; i++) box(0.08, H * 3.2, 0.08, COL.orange2, scaf, -2 + i * 1.33, 0, 0.5);
+for (let i = 0; i < 4; i++) box(0.08, H * 3.2, 0.08, COL.orange2, scaf, -2 + i * 1.33, 0, -0.2);
+for (let f = 1; f <= 3; f++) { box(4.2, 0.08, 0.9, COL.wood, scaf, 0, f * H - 0.1, 0.15); box(4.2, 0.06, 0.06, COL.orange2, scaf, 0, f * H + 0.8, 0.55); }
+for (let i = 0; i < 3; i++) { const br = box(0.06, 0.06, 2.6, COL.orange2, scaf, -1.33 + i * 1.33, H * 1.6, 0.55); br.rotation.x = Math.PI / 2; br.rotation.z = 0.9; }
+person(scaf, -1.2, 0.15, { y: H - 0.05, helmet: true, shirt: COL.orange, ry: Math.PI });
+person(scaf, 0.9, 0.15, { y: H * 2 - 0.05, helmet: true, shirt: COL.glassTeal, ry: Math.PI });
+const scanner = grp(scaf, 1.5, H * 3 - 0.05, 0.15);
+cyl(0.03, 0.03, 0.8, COL.darkSteel, scanner, 0, 0, 0, 5); const scanHead = cyl(0.12, 0.12, 0.25, glow(COL.glassTeal, 1.2), scanner, 0, 0.8, 0, 10);
+tag(scaf, 'Gerüst mit Laserscanner', 'Bestand wird erst gescannt, dann geplant. Die Punktwolke hat 2,3 Milliarden Punkte und eine Taube.');
+
+// ---------- back right: building under construction + crane ----------
+const site = grp(null, 2.0, L0, -8.2);
+box(3.6, 0.3, 7.2, COL.concrete, site, 0, 0, 0);
+for (let f = 0; f < 3; f++) {
+  for (const [cx, cz] of [[-1.5, -3.2], [1.5, -3.2], [-1.5, 0], [1.5, 0], [-1.5, 3.2], [1.5, 3.2]]) box(0.25, H - 0.25, 0.25, COL.concrete, site, cx, 0.3 + f * H, cz);
+  if (f < 2) box(3.6, 0.25, 7.2, COL.concrete, site, 0, 0.3 + (f + 1) * H - 0.25, 0);
+}
+// timber modules (re-use) on second slab
+box(1.6, 1.2, 2.4, COL.wood, site, -0.6, 0.3 + H * 2, -1.8);
+const reuse = sign(['RE-USE'], 1.6, 0.45, { bg: '#5fbf7a', fg: '#0b1730', size: 100 }, site, -0.6, 0.3 + H * 2 + 0.75, -0.58, 0, 0.3);
+tag(reuse, 'Re-Use-Holzmodul', 'Dieses Modul stand schon in zwei anderen Gebäuden. Zirkuläres Bauen in echt.');
+// robot arm laying bricks on top slab
+const robot = grp(site, 0.8, 0.3 + H * 2, 1.6);
+cyl(0.35, 0.45, 0.35, COL.orange, robot, 0, 0, 0, 12);
+const rArm1 = grp(robot, 0, 0.4, 0);
+box(0.22, 1.2, 0.22, COL.orange, rArm1, 0, 0, 0);
+const rArm2 = grp(rArm1, 0, 1.2, 0);
+sph(0.18, COL.darkSteel, rArm2, 0, 0, 0);
+box(0.18, 0.9, 0.18, COL.orange, rArm2, 0, 0, 0);
+const gripBrick = box(0.35, 0.18, 0.18, COL.brick, rArm2, 0, 0.95, 0);
+for (let i = 0; i < 5; i++) box(0.35, 0.18, 0.18, COL.brick, site, -0.4 + (i % 3) * 0.37, 0.3 + H * 2 + Math.floor(i / 3) * 0.19, 3.0);
+tag(robot, 'Maurerroboter', 'Setzt 400 Steine pro Stunde. Macht keine Znüni-Pause, ist aber auch nicht zum Stammtisch eingeladen.');
+// tower crane
+const crane = grp(null, 3.4, L0, -12.3);
+for (const [px, pz] of [[-0.35, -0.35], [0.35, -0.35], [-0.35, 0.35], [0.35, 0.35]]) box(0.1, 16, 0.1, COL.orange, crane, px, 0, pz);
+for (let y = 0.8; y < 16; y += 1.0) { box(0.8, 0.06, 0.06, COL.orange, crane, 0, y, 0.35); box(0.8, 0.06, 0.06, COL.orange, crane, 0, y, -0.35); box(0.06, 0.06, 0.8, COL.orange, crane, 0.35, y, 0); box(0.06, 0.06, 0.8, COL.orange, crane, -0.35, y, 0); }
+box(1.6, 0.4, 1.6, COL.darkSteel, crane, 0, 0, 0);
+const jib = grp(crane, 0, 16, 0);
+box(1.0, 1.0, 1.0, COL.cream, jib, 0.7, 0, 0);
+box(0.12, 1.6, 0.12, COL.orange, jib, 0, 1.0, 0);
+box(10, 0.35, 0.35, COL.orange, jib, 4.5, 0.8, 0);
+box(4, 0.35, 0.35, COL.orange, jib, -2.5, 0.8, 0);
+box(1.2, 1.0, 0.9, COL.concrete, jib, -3.8, 0.3, 0);
+const trolley = grp(jib, 6, 0.8, 0);
+box(0.5, 0.2, 0.5, COL.darkSteel, trolley, 0, -0.2, 0);
+const cable = box(0.03, 1, 0.03, COL.black, trolley, 0, -0.2, 0);
+const load = grp(trolley, 0, -6, 0);
+box(1.3, 1.3, 1.3, mat(COL.glassTeal, { roughness: .5 }), load, 0, 0, 0);
+sign(['BIM'], 1.2, 0.5, { bg: '#0b1730', fg: '#3ee6c1', size: 110 }, load, 0, 0.65, 0.67, 0, 0.7);
+tag(crane, 'Kran mit BIM-Würfel', 'Hebt ein Datenmodell an seinen Platz. Die Planung kommt diesmal vor dem Beton.');
+
+// ---------- think tank plaza (front right of lot) ----------
+const plaza = grp(null, 1.8, L0, 1.6);
+box(4.0, 0.05, 4.0, 0x7fcf8f, plaza, 0, 0, 0);
+tree(plaza, -1.3, -1.3, 1.0);
+const wb = grp(plaza, 0.6, 0, -0.9);
+for (const lx of [-0.8, 0.8]) box(0.06, 1.0, 0.06, COL.darkSteel, wb, lx, 0, 0);
+const wbTex = (() => {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 300; const g = c.getContext('2d');
+  g.fillStyle = '#fbfcff'; g.fillRect(0, 0, 512, 300);
+  g.strokeStyle = '#2d6fe0'; g.lineWidth = 6; g.beginPath(); g.moveTo(40, 240); g.lineTo(140, 120); g.lineTo(240, 180); g.lineTo(360, 60); g.stroke();
+  g.fillStyle = '#d85f1c'; g.font = '900 54px Archivo, Arial'; g.fillText('2035?', 300, 250);
+  g.fillStyle = '#0b1730'; g.font = '700 34px Archivo, Arial'; g.fillText('Planung = Code?', 40, 60);
+  g.strokeStyle = '#3ee6c1'; g.beginPath(); g.arc(420, 150, 40, 0, 6.28); g.stroke();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+})();
+mesh(new THREE.BoxGeometry(1.8, 1.05, 0.05), [mat(COL.darkSteel), mat(COL.darkSteel), mat(COL.darkSteel), mat(COL.darkSteel), new THREE.MeshStandardMaterial({ map: wbTex, roughness: .5 }), mat(COL.darkSteel)], wb, 0, 1.5, 0);
+person(plaza, 0.1, 0.2, { ry: Math.PI + 0.3, shirt: COL.tram });
+person(plaza, 1.1, 0.3, { ry: Math.PI - 0.3, shirt: COL.orange, laptop: true });
+for (const [bx, bz, c] of [[-0.6, 1.2, COL.orange], [0.7, 1.4, COL.glassTeal]]) { const bb = sph(0.4, c, plaza, bx, 0.25, bz); bb.scale.set(1, 0.6, 1); }
+person(plaza, -0.6, 1.2, { sit: true, y: 0.2, ry: Math.PI });
+tag(wb, 'Think-Tank-Whiteboard', '"Planung = Code?" Die Diskussion läuft seit drei Stunden. Niemand hat einen Stift für die Antwort.');
+tag(plaza, 'Think-Tank-Wiese', 'Sitzsäcke, ein Baum und freie Gedanken: der informellste Workshop-Raum der ETH.');
+
+// ---------- street life ----------
+// tram
+const tram = grp(null, 10.4, 0, 0);
+box(1.9, 0.5, 7.5, COL.white, tram, 0, 0.25, 0);
+box(1.9, 1.4, 7.5, COL.tram, tram, 0, 0.75, 0);
+box(1.95, 0.6, 7.1, litWindow(COL.glassWarm, 0.6), tram, 0, 1.25, 0);
+box(1.8, 0.2, 7.3, COL.white, tram, 0, 2.15, 0);
+const panto = box(0.06, 0.8, 1.0, COL.darkSteel, tram, 0, 2.35, 0); panto.rotation.x = 0.5;
+sign(['FPL', 'Linie 2035'], 1.4, 0.45, { bg: '#0b1730', fg: '#ffa53a', size: 70 }, tram, 0, 1.75, 3.76, 0, 0.9);
+tag(tram, 'Tram Linie 2035', 'Fährt direkt in die Zukunft der Planung. Halt auf Verlangen.');
+// overhead wires + poles
+const wireMat = new THREE.LineBasicMaterial({ color: 0x0a0f1c });
+function wire(a, b, sag = 0.6) {
+  const pts = []; for (let i = 0; i <= 20; i++) { const k = i / 20; const p = a.clone().lerp(b, k); p.y -= Math.sin(k * Math.PI) * sag; pts.push(p); }
+  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), wireMat));
+}
+for (const z of [-11, 0, 11]) { box(0.14, 4.4, 0.14, COL.darkSteel, null, 12.5, 0, z); box(3, 0.1, 0.1, COL.darkSteel, null, 11.1, 4.2, z); }
+wire(new THREE.Vector3(10.4, 3.25, -11), new THREE.Vector3(10.4, 3.25, 0), 0.15);
+wire(new THREE.Vector3(10.4, 3.25, 0), new THREE.Vector3(10.4, 3.25, 11), 0.15);
+wire(new THREE.Vector3(12.5, 4.3, -11), new THREE.Vector3(-0.2, 7.3, -5), 0.9);
+wire(new THREE.Vector3(12.5, 4.3, 0), new THREE.Vector3(0.3, 5.0, 0.3), 0.6);
+wire(new THREE.Vector3(-13, 9, -2.1), new THREE.Vector3(-6.7, 7, -2.1), 0.5);
+// street lamps
+for (const [lx, lz] of [[3.6, -2], [-6, 3.6], [3.6, -12]]) { box(0.1, 3.4, 0.1, COL.darkSteel, null, lx, L0, lz); sph(0.22, glow(COL.glassWarm, 1.5), null, lx, L0 + 3.5, lz); }
+
+// construction pit with excavator on the front road
+const pit = grp(null, -5.5, 0, 8.6);
+box(4.4, 0.04, 2.6, 0x3a2a1e, pit, 0, 0, 0);
+const dirt = mesh(new THREE.ConeGeometry(1.0, 0.9, 7), 0x8a5a36, pit, 3.0, 0.45, 0.4);
+for (const [cx, cz] of [[-2.4, -1.5], [-0.8, -1.6], [0.8, -1.6], [2.4, -1.5], [-2.4, 1.5], [2.4, 1.5]]) {
+  const cg = grp(pit, cx, 0, cz);
+  cyl(0.02, 0.2, 0.55, COL.orange, cg, 0, 0, 0, 8); cyl(0.13, 0.15, 0.1, COL.white, cg, 0, 0.25, 0, 8);
+}
+sign(['BAUSTELLE', 'Zukunft in Arbeit'], 2.0, 0.65, { bg: '#ffa53a', fg: '#0b1730', size: 70, border: '#0b1730' }, pit, 0, 0.6, 1.9, 0, 0.3);
+const exc = grp(pit, -0.5, 0, 0.0);
+box(2.0, 0.35, 0.5, COL.darkSteel, exc, 0, 0, -0.55); box(2.0, 0.35, 0.5, COL.darkSteel, exc, 0, 0, 0.55);
+const excTop = grp(exc, 0, 0.35, 0);
+box(1.6, 0.5, 1.4, COL.orange, excTop, 0.1, 0, 0);
+box(0.8, 0.8, 0.8, COL.orange2, excTop, -0.3, 0.5, 0.25);
+box(0.82, 0.5, 0.6, mat(COL.glassBlue, { roughness: .2 }), excTop, -0.3, 0.75, 0.3);
+const boom = grp(excTop, 0.8, 0.6, -0.2);
+box(0.2, 0.2, 2.0, COL.orange, boom, 0, 0, 0).rotation.set(0, 0, 0);
+boom.children[0].geometry = new THREE.BoxGeometry(1.8, 0.2, 0.2); boom.children[0].position.set(0.9, 0, 0);
+const stick = grp(boom, 1.8, 0, 0);
+box(0.16, 1.3, 0.16, COL.orange, stick, 0, -1.3, 0);
+box(0.45, 0.3, 0.4, COL.darkSteel, stick, 0.1, -1.55, 0);
+excTop.rotation.y = Math.PI;
+tag(exc, 'Autonomer Bagger', 'Gräbt nach GPS-Plan. Der Fahrer sitzt im Café und kontrolliert per Tablet.');
+
+// robot dog on the sidewalk
+const dog = grp(null, 3.4, L0, -4);
+box(0.9, 0.3, 0.4, COL.cream, dog, 0, 0.5, 0);
+box(0.3, 0.22, 0.3, COL.darkSteel, dog, 0.55, 0.6, 0);
+sph(0.06, glow(COL.glassTeal, 2), dog, 0.71, 0.7, 0.08); sph(0.06, glow(COL.glassTeal, 2), dog, 0.71, 0.7, -0.08);
+const legs = [];
+for (const [lx, lz] of [[-0.35, -0.16], [0.35, -0.16], [-0.35, 0.16], [0.35, 0.16]]) { const l = grp(dog, lx, 0.5, lz); box(0.08, 0.5, 0.08, COL.darkSteel, l, 0, -0.5, 0); legs.push(l); }
+dog.rotation.y = -Math.PI / 2;
+tag(dog, 'Roboterhund', 'Kontrolliert den Baufortschritt und vergleicht ihn mit dem Modell. Bellt bei Kollisionen.');
+
+// drone with timber beam
+const drone = grp(null, 0, 15, 0);
+box(0.8, 0.25, 0.8, COL.darkSteel, drone, 0, 0, 0);
+sph(0.08, glow(COL.red, 2), drone, 0, 0.3, 0);
+const rotors = [];
+for (const [rx, rz] of [[-0.75, -0.75], [0.75, -0.75], [-0.75, 0.75], [0.75, 0.75]]) {
+  const arm = box(1.1, 0.06, 0.08, COL.darkSteel, drone, rx / 2, 0.1, rz / 2); arm.rotation.y = Math.atan2(-rz, rx);
+  const r = box(0.8, 0.02, 0.08, COL.white, drone, rx, 0.25, rz); rotors.push(r);
+}
+for (const bx of [-0.9, 0.9]) box(0.02, 1.2, 0.02, COL.black, drone, bx * 0.4, -1.2, 0);
+box(3.0, 0.25, 0.25, COL.wood, drone, 0, -1.45, 0);
+tag(drone, 'Lieferdrohne', 'Bringt den Holzbalken just in time. Leider ist "just in time" laut Drohne gestern gewesen.');
+
+// bike rack + students walking
+const bikes = grp(null, -1.2, L0, 3.2);
+for (let i = 0; i < 3; i++) {
+  const b = grp(bikes, i * 0.7, 0, 0); b.rotation.y = Math.PI / 2;
+  for (const wx of [-0.4, 0.4]) { const w = mesh(new THREE.TorusGeometry(0.28, 0.04, 6, 16), COL.black, b, wx, 0.3, 0); }
+  box(0.8, 0.05, 0.05, [COL.orange, COL.glassTeal, COL.white][i], b, 0, 0.5, 0);
+}
+tag(bikes, 'Velo-Parkplatz', 'Drei Velos, drei Bauingenieur*innen, null Parkplatzsorgen.');
+const walkers = [
+  person(null, 3.0, 2.5, { y: L0, shirt: COL.white, laptop: true }),
+  person(null, -8.5, 3.2, { y: L0, helmet: true }),
+  person(null, -11.5, 2.0, { y: L0, shirt: COL.glassTeal }),
+];
+// prof on site with tablet
+const prof = person(null, 1.1, -3.3, { y: L0, shirt: 0x6b5bd6, helmet: true, ry: Math.PI / 2 });
+box(0.3, 0.4, 0.04, glow(COL.glassBlue, 1), prof, 0.15, 0.8, 0.3);
+tag(prof, 'Professorin mit Tablet', 'Macht den Realitätscheck für die wildesten Ideen. Nickt gerade sehr langsam.');
+// kiosk on front-left corner
+const kiosk = grp(null, -10.5, L0, 1.8);
+box(3.2, 2.2, 2.4, COL.orange2, kiosk, 0, 0, 0);
+box(3.4, 0.2, 2.8, COL.cream, kiosk, 0, 2.2, 0.2);
+box(2.4, 1.0, 0.06, litWindow(COL.glassWarm, 1.0), kiosk, 0, 0.9, 1.22);
+sign(['HACKATHON', 'heute Nacht · Pizza inkl.'], 2.8, 0.7, { bg: '#0b1730', fg: '#3ee6c1', size: 72 }, kiosk, 0, 2.5, 1.0, 0, 1.0);
+for (let i = 0; i < 3; i++) box(0.4, 0.06, 0.4, 0xf3c56b, kiosk, -0.8 + i * 0.8, 1.42, 1.5);
+tag(kiosk, 'Hackathon-Kiosk', 'Heute Nacht wird gecodet. Pizza ist inklusive, Schlaf leider nicht.');
+person(kiosk, 0.6, 2.0, { ry: Math.PI });
+
+
+// ---------- extra wimmel details ----------
+// vertical neon FPL sign on the main house corner
+const neon = grp(main, 3.9, H * 1.2, 3.9);
+box(0.12, 0.12, 0.6, COL.darkSteel, neon, -0.2, 2.6, -0.2).rotation.y = Math.PI / 4;
+const nb = sign(['F', 'P', 'L'], 0.75, 2.6, { bg: '#0b1730', fg: '#ffa53a', size: 150 }, neon, 0, 0, 0, Math.PI / 4, 1.1);
+nb.material[4].map = signTex(['F', 'P', 'L'], { bg: '#0b1730', fg: '#ffa53a', w: 160, h: 560, size: 150 });
+nb.material[4].emissiveMap = nb.material[4].map;
+nb.position.y = 1.3;
+tag(neon, 'Leuchtschild', 'Leuchtet die ganze Nacht, damit niemand den Weg zum Kickoff verpasst.');
+// AC units and pipes on facades
+for (const [ax, ay, az] of [[3.7, 1.2, -2.2], [3.7, H + 1.9, -2.4], [3.7, H * 2 + 1.9, -0.6]]) { box(0.45, 0.45, 0.7, COL.concrete, main, ax, ay, az); cyl(0.16, 0.16, 0.05, COL.darkSteel, main, ax + 0.24, ay + 0.22, az, 10).rotation.z = Math.PI / 2; }
+cyl(0.07, 0.07, H * 3, COL.darkSteel, main, 3.62, 0, -3.3, 6);
+// hanging plants on the studio balcony rail
+for (let i = 0; i < 3; i++) plant(f1, -2.2 + i * 0.9, 0.9, 4.75);
+// billboard on the BIM building facing the road
+const bill = grp(left, 0, H * 4 + 0.3, 0);
+for (const bx of [-1.4, 1.4]) box(0.1, 1.4, 0.1, COL.darkSteel, bill, bx, 0, 2.4);
+sign(['THINK TANK', 'für die Bauwelt von morgen'], 3.6, 1.15, { bg: '#ffa53a', fg: '#0b1730', size: 74 }, bill, 0, 1.9, 2.45, 0, 0.5);
+// laundry line of blueprints between buildings
+const lineA = new THREE.Vector3(-7.9, H * 3.4 + L0, -2.0), lineB = new THREE.Vector3(-6.7, H * 2.6 + L0, -1.0);
+wire(new THREE.Vector3(-7.9, 9.0, 0.5), new THREE.Vector3(-6.7, 7.6, 0.5), 0.2);
+for (let i = 0; i < 3; i++) { const sh = box(0.32, 0.45, 0.02, mat(i === 1 ? COL.white : 0x4c7fe0), null, -7.6 + i * 0.4, 7.9 - i * 0.35, 0.5); }
+// cargo bike with "plans" box on the road
+const cargo = grp(null, 6.4, 0, -6);
+for (const wz of [-0.7, 0.6]) { const w = mesh(new THREE.TorusGeometry(0.28, 0.05, 6, 16), COL.black, cargo, 0, 0.3, wz); w.rotation.y = Math.PI / 2; }
+box(0.7, 0.5, 0.7, COL.orange, cargo, 0, 0.4, -0.55);
+box(0.06, 0.06, 1.3, COL.glassTeal, cargo, 0, 0.6, 0);
+person(cargo, 0, 0.35, { y: 0.15, shirt: COL.cream, helmet: true });
+tag(cargo, 'Lastenvelo mit Plänen', 'Liefert Pläne aus. Auf Papier. Aus Nostalgie.');
+// more pedestrians on sidewalks
+person(null, -2.5, 3.6, { y: L0, shirt: COL.red, ry: 0.4 });
+person(null, -3.1, 3.7, { y: L0, shirt: COL.orange, ry: -0.6, laptop: true });
+person(null, 3.6, -8.8, { y: L0, helmet: true, shirt: COL.glassTeal, ry: -Math.PI / 2 });
+person(null, -12.4, -0.5, { y: L0, shirt: COL.white, ry: Math.PI / 2 });
+// recycling skip with old components
+const skip = grp(null, 3.0, L0, -0.4);
+box(1.3, 0.6, 0.8, COL.green, skip, 0, 0, 0);
+for (let i = 0; i < 4; i++) { const pc = box(0.5, 0.12, 0.2, [COL.brick, COL.wood, COL.concrete, COL.glassBlue][i], skip, -0.3 + i * 0.2, 0.62 + (i % 2) * 0.1, 0); pc.rotation.y = i * 0.7; }
+tag(skip, 'Bauteilbörse', 'Hier landet nichts im Abfall: Ziegel, Fenster und Balken warten auf ihr zweites Leben.');
+
+// fog of dots: floating "data" particles over the block
+const pts = new THREE.BufferGeometry();
+const pArr = new Float32Array(240 * 3);
+for (let i = 0; i < 240; i++) { pArr[i * 3] = (Math.random() - 0.5) * 30; pArr[i * 3 + 1] = Math.random() * 24 + 2; pArr[i * 3 + 2] = (Math.random() - 0.5) * 30; }
+pts.setAttribute('position', new THREE.BufferAttribute(pArr, 3));
+const particles = new THREE.Points(pts, new THREE.PointsMaterial({ color: COL.orange, size: 0.12, transparent: true, opacity: 0.55 }));
+scene.add(particles);
+
+// ---------- UI: found list ----------
+const found = new Set();
+const itemsEl = document.getElementById('items');
+DETAILS.forEach((d, i) => { const li = document.createElement('li'); li.textContent = d.userData.label.title; li.id = 'it' + i; itemsEl.appendChild(li); d.userData.idx = i; });
+function updateCount() {
+  document.getElementById('count').textContent = `${found.size} / ${DETAILS.length} entdeckt`;
+  document.getElementById('bar').style.width = (found.size / DETAILS.length * 100) + '%';
+}
+updateCount();
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
+let down = null;
+renderer.domElement.addEventListener('pointerdown', e => down = [e.clientX, e.clientY]);
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
+  ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  ray.setFromCamera(ptr, camera);
+  const hits = ray.intersectObjects(scene.children, true);
+  for (const h of hits) {
+    let o = h.object; while (o && !o.userData.label) o = o.parent;
+    if (o) { show(o); return; }
+  }
+});
+function show(o) {
+  const { title, text } = o.userData.label;
+  const isNew = !found.has(o.userData.idx);
+  found.add(o.userData.idx);
+  document.getElementById('it' + o.userData.idx).classList.add('found');
+  document.getElementById('d-kind').textContent = isNew ? `Neu entdeckt · ${found.size} von ${DETAILS.length}` : 'Schon entdeckt';
+  document.getElementById('d-title').textContent = title;
+  document.getElementById('d-text').textContent = text;
+  document.getElementById('detail').hidden = false;
+  updateCount();
+  bump = { o, t: 0, s: o.scale.clone() };
+}
+let bump = null;
+const spinBtn = document.getElementById('spin');
+spinBtn.addEventListener('click', () => {
+  controls.autoRotate = !controls.autoRotate;
+  spinBtn.textContent = controls.autoRotate ? 'Drehung pausieren' : 'Drehung starten';
+  spinBtn.setAttribute('aria-pressed', controls.autoRotate);
+});
+document.getElementById('reset').addEventListener('click', () => { camera.position.copy(HOME); controls.target.set(-1.5, 5, -1.5); controls.update(); });
+if (matchMedia('(prefers-reduced-motion: reduce)').matches) { controls.autoRotate = false; spinBtn.textContent = 'Drehung starten'; spinBtn.setAttribute('aria-pressed', false); }
+renderer.domElement.addEventListener('pointerdown', () => { if (controls.autoRotate) spinBtn.click(); }, { once: true });
+
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); fitCamera(); });
+function fitCamera() { // pull back on tall/narrow screens so the block fits
+  const k = Math.max(1, 1.5 / camera.aspect);
+  HOME.set(40, 31, 40).multiplyScalar(Math.min(k, 2.2));
+}
+fitCamera(); camera.position.copy(HOME);
+
+// ---------- animation ----------
+const clock = new THREE.Clock();
+window.__setTime = null; // hook for offline rendering
+function animate(t) {
+  jib.rotation.y = Math.sin(t * 0.18) * 0.9 + 0.6;
+  trolley.position.x = 6 + Math.sin(t * 0.35) * 2.5;
+  const drop = 5 + Math.sin(t * 0.5) * 1.5;
+  load.position.y = -drop; cable.scale.y = drop; cable.position.y = -drop;
+  drone.position.set(Math.cos(t * 0.3) * 10, 15 + Math.sin(t * 1.3) * 0.4, Math.sin(t * 0.3) * 10);
+  drone.rotation.y = -t * 0.3;
+  rotors.forEach((r, i) => r.rotation.y = t * 30 + i);
+  const tz = Math.sin(t * 0.22) * 8.5; tram.position.z = tz;
+  const dz = -4 + Math.sin(t * 0.4) * 5; dog.position.z = dz;
+  dog.rotation.y = Math.cos(t * 0.4) > 0 ? Math.PI / 2 : -Math.PI / 2;
+  legs.forEach((l, i) => l.rotation.z = Math.sin(t * 9 + (i % 2) * Math.PI) * 0.4);
+  const pr = (t * 0.12) % 1;
+  printed.scale.y = Math.max(0.02, pr); printed.position.y = 0.1 + pr * 0.5;
+  gantry.position.y = 0.2 + pr * 1.0 + 0.3;
+  gantry.position.z = Math.sin(t * 3) * 0.35; nozzle.position.x = Math.cos(t * 3.3) * 0.35;
+  hatTop.position.y = Math.abs(Math.sin(t * 1.6)) * 0.25;
+  hatTop.rotation.z = Math.sin(t * 1.6) * 0.04;
+  rArm1.rotation.z = Math.sin(t * 0.9) * 0.6; rArm2.rotation.z = -0.9 + Math.sin(t * 0.9 + 1) * 0.5;
+  robot.rotation.y = Math.sin(t * 0.45) * 1.2;
+  boom.rotation.z = 0.3 + Math.sin(t * 0.8) * 0.25; stick.rotation.z = -0.4 + Math.sin(t * 0.8 + 1.2) * 0.35;
+  excTop.rotation.y = Math.PI + Math.sin(t * 0.3) * 0.5;
+  scanHead.rotation.y = t * 4;
+  beacon.material.emissiveIntensity = (Math.sin(t * 4) > 0.3) ? 3 : 0.2;
+  people.forEach(p => { p.position.y += 0; p.children.forEach(() => {}); p.rotation.z = Math.sin(t * 2 + p.userData.phase) * 0.03; });
+  walkers[0].position.x = 3.0 - ((t * 0.5) % 14); walkers[0].rotation.y = -Math.PI / 2;
+  walkers[1].position.z = 3.2 - Math.abs(Math.sin(t * 0.15)) * 0.2;
+  flicker.forEach((m, i) => m.emissiveIntensity = 0.7 + 0.2 * Math.sin(t * 0.7 + i * 1.7));
+  particles.rotation.y = t * 0.02;
+  if (bump) { bump.t += 0.05; const k = 1 + Math.sin(Math.min(bump.t, 1) * Math.PI) * 0.12; bump.o.scale.copy(bump.s).multiplyScalar(k); if (bump.t >= 1) { bump.o.scale.copy(bump.s); bump = null; } }
+}
+function loop() {
+  const t = window.__setTime ?? clock.getElapsedTime();
+  animate(t);
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+document.getElementById('loading').remove();
+loop();
+window.__fpl = { scene, camera, controls, renderer, animate };
+</script>
+
+</body></html>

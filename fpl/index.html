@@ -17,8 +17,13 @@
 </head>
 <body>
   <header class="hero">
+    <video class="hero-video" id="hero-video" muted loop playsinline aria-hidden="true" tabindex="-1"></video>
     <nav class="topbar">
-      <span class="brand">FPL</span>
+      <a class="brand" href="/fpl/">FPL</a>
+      <div class="topnav">
+        <a href="/fpl/wimmelblock/">Wimmelblock</a>
+        <a href="/">riozma.ch</a>
+      </div>
       <div class="authbar" id="authbar"></div>
     </nav>
     <div class="hero-inner">
@@ -74,6 +79,19 @@
       </details>
     </section>
 
+    <section class="trailer" aria-label="Trailer">
+      <h2>Trailer</h2>
+      <video id="trailer-video" controls playsinline preload="metadata" src="/fpl/trailer.mp4#t=0.1"></video>
+    </section>
+
+    <a class="wimmel" href="/fpl/wimmelblock/">
+      <span class="wimmel-text">
+        <strong>The FPL Block</strong>
+        <span>A 3D hidden-object scene of the construction site of tomorrow. Spin it, zoom in, find all 24 details.</span>
+      </span>
+      <span class="wimmel-go" aria-hidden="true">→</span>
+    </a>
+
     <section class="board" aria-label="Five questions">
       <h2>Five questions, your post-its</h2>
       <p class="board-lead">These are the thoughts from the kick-off. Add your own to any question, or give a thumbs up to the ones you agree with.</p>
@@ -93,6 +111,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/src/supabase-config.js"></script>
   <script src="/src/supabase-client.js"></script>
+  <script src="/src/fpl-video.js"></script>
   <script src="/src/fpl.js"></script>
 </body>
 </html>
