@@ -17,7 +17,9 @@
 </head>
 <body>
   <header class="hero">
-    <video class="hero-video" id="hero-video" muted loop playsinline aria-hidden="true" tabindex="-1"></video>
+    <div class="slit closed" id="slit" role="button" tabindex="0" aria-label="Play the trailer">
+      <div class="slit-inner"><video id="hero-video" muted playsinline preload="none"></video></div>
+    </div>
     <nav class="topbar">
       <a class="brand" href="/fpl/">FPL</a>
       <div class="topnav">
