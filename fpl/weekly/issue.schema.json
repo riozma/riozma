@@ -3,28 +3,82 @@
   "$id": "https://riozma.ch/fpl/weekly/issue.schema.json",
   "title": "FPL Weekly issue",
   "type": "object",
-  "required": ["issue", "week", "date", "covers", "title", "summary", "generated", "news", "focus", "question", "whatsapp_teaser"],
+  "required": [
+    "issue",
+    "week",
+    "date",
+    "covers",
+    "title",
+    "summary",
+    "generated",
+    "news",
+    "focus",
+    "question",
+    "whatsapp_teaser"
+  ],
   "properties": {
-    "issue": { "type": "integer", "minimum": 1, "description": "Running number of the issue, previous issue + 1." },
-    "week": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}$", "description": "ISO year and week, must equal the folder name, e.g. 2026-43." },
-    "date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$", "description": "Publication date, the Monday of that ISO week." },
+    "issue": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Running number of the issue, previous issue + 1."
+    },
+    "week": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}$",
+      "description": "ISO year and week, must equal the folder name, e.g. 2026-43."
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "Publication date, the Monday of that ISO week."
+    },
     "covers": {
       "type": "object",
-      "required": ["from", "to"],
+      "required": [
+        "from",
+        "to"
+      ],
       "properties": {
-        "from": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
-        "to": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" }
+        "from": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "to": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        }
       }
     },
-    "title": { "type": "string", "minLength": 5, "maxLength": 140 },
-    "summary": { "type": "string", "minLength": 40, "maxLength": 700 },
+    "title": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 140
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 40,
+      "maxLength": 700
+    },
     "generated": {
       "type": "object",
-      "required": ["by", "method", "created_at"],
+      "required": [
+        "by",
+        "method",
+        "created_at"
+      ],
       "properties": {
-        "by": { "type": "string", "minLength": 1 },
-        "method": { "type": "string", "minLength": 10 },
-        "created_at": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T" }
+        "by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "method": {
+          "type": "string",
+          "minLength": 10
+        },
+        "created_at": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T"
+        }
       }
     },
     "news": {
@@ -32,62 +86,227 @@
       "minItems": 3,
       "items": {
         "type": "object",
-        "required": ["id", "category", "title", "body", "source_name", "source_url", "published_at"],
+        "required": [
+          "id",
+          "category",
+          "title",
+          "body",
+          "background",
+          "region",
+          "topics",
+          "source_type",
+          "source_name",
+          "source_url",
+          "published_at"
+        ],
         "properties": {
-          "id": { "type": "string", "pattern": "^[a-z0-9-]{1,60}$", "description": "Unique within the issue. Lowercase letters, digits and hyphens only (the database restricts it the same way)." },
-          "category": { "type": "string", "enum": ["digital", "robotics", "circular", "swiss", "market"] },
-          "title": { "type": "string", "minLength": 5, "maxLength": 160 },
-          "body": { "type": "string", "minLength": 80, "description": "Paragraphs separated by a blank line. The paragraph starting with 'Why it matters' is highlighted." },
-          "source_name": { "type": "string", "minLength": 1 },
-          "source_url": { "type": "string", "pattern": "^https?://" },
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]{1,60}$",
+            "description": "Unique within the issue. Lowercase letters, digits and hyphens only (the database restricts it the same way)."
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "digital",
+              "robotics",
+              "circular",
+              "swiss",
+              "market"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 160,
+            "description": "Self-explanatory: name what unknown companies are or do (e.g. 'Origin, a US startup, ...'). No jargon without explanation."
+          },
+          "body": {
+            "type": "string",
+            "minLength": 80,
+            "description": "2 short paragraphs at most, separated by a blank line: what happened (own words), then a paragraph starting with 'Why it matters'. Company claims are marked as such."
+          },
+          "background": {
+            "type": "string",
+            "minLength": 40,
+            "maxLength": 700,
+            "description": "Explains the unfamiliar company, term or concept for a civil-engineering Bachelor graduate (what is it, why does it exist). Shown first when the item is expanded."
+          },
+          "region": {
+            "type": "string",
+            "enum": [
+              "CH",
+              "EU",
+              "UK",
+              "US",
+              "Asia",
+              "Global"
+            ],
+            "description": "Where the story mainly happens. Used to keep the issue international."
+          },
+          "topics": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]{2,30}$"
+            },
+            "description": "1 to 4 lowercase topic tags, e.g. 3d-printing, digital-twin, reuse, funding."
+          },
+          "source_type": {
+            "type": "string",
+            "enum": [
+              "primary",
+              "trade",
+              "general",
+              "branded"
+            ],
+            "description": "primary = the originator (company, institution, regulator, original study, or a verbatim reprint of its press release); trade = specialist press; general = general press or aggregator; branded = sponsored or branded content."
+          },
+          "source_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_url": {
+            "type": "string",
+            "pattern": "^https?://"
+          },
           "more_sources": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["name", "url"],
-              "properties": { "name": { "type": "string", "minLength": 1 }, "url": { "type": "string", "pattern": "^https?://" } }
+              "required": [
+                "name",
+                "url"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "url": {
+                  "type": "string",
+                  "pattern": "^https?://"
+                }
+              }
             }
           },
-          "published_at": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
-          "image_url": { "type": ["string", "null"], "description": "null = the build script fetches og:image from source_url." },
-          "image_credit": { "type": ["string", "null"] }
+          "published_at": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          },
+          "image_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "null = the build script fetches og:image from source_url."
+          },
+          "image_credit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       }
     },
     "focus": {
       "type": "object",
-      "required": ["title", "subtitle", "concept_id", "file"],
+      "required": [
+        "title",
+        "subtitle",
+        "concept_id",
+        "file"
+      ],
       "properties": {
-        "title": { "type": "string", "minLength": 5 },
-        "subtitle": { "type": "string", "minLength": 5 },
-        "concept_id": { "type": "string", "pattern": "^m[0-9]-[a-z0-9-]+$", "description": "Id from curriculum.json." },
-        "file": { "type": "string", "pattern": "^[a-z0-9._-]+\\.html$", "description": "HTML fragment in the issue folder, usually focus.html." },
+        "title": {
+          "type": "string",
+          "minLength": 5
+        },
+        "subtitle": {
+          "type": "string",
+          "minLength": 5
+        },
+        "concept_id": {
+          "type": "string",
+          "pattern": "^m[0-9]-[a-z0-9-]+$",
+          "description": "Id from curriculum.json."
+        },
+        "file": {
+          "type": "string",
+          "pattern": "^[a-z0-9._-]+\\.html$",
+          "description": "HTML fragment in the issue folder, usually focus.html."
+        },
         "glossary": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["term", "definition"],
-            "properties": { "term": { "type": "string", "minLength": 1 }, "definition": { "type": "string", "minLength": 5 } }
+            "required": [
+              "term",
+              "definition"
+            ],
+            "properties": {
+              "term": {
+                "type": "string",
+                "minLength": 1
+              },
+              "definition": {
+                "type": "string",
+                "minLength": 5
+              }
+            }
           }
         },
         "further_reading": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["title", "url"],
-            "properties": { "title": { "type": "string", "minLength": 1 }, "url": { "type": "string", "pattern": "^https?://" } }
+            "required": [
+              "title",
+              "url"
+            ],
+            "properties": {
+              "title": {
+                "type": "string",
+                "minLength": 1
+              },
+              "url": {
+                "type": "string",
+                "pattern": "^https?://"
+              }
+            }
           }
         }
       }
     },
     "question": {
       "type": "object",
-      "required": ["text", "options"],
+      "required": [
+        "text",
+        "options"
+      ],
       "properties": {
-        "text": { "type": "string", "minLength": 5 },
-        "options": { "type": "array", "minItems": 2, "maxItems": 10, "items": { "type": "string", "minLength": 1 } }
+        "text": {
+          "type": "string",
+          "minLength": 5
+        },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 10,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
       }
     },
-    "whatsapp_teaser": { "type": "string", "minLength": 20, "description": "Ready-to-paste WhatsApp text, ending with the issue URL." }
+    "whatsapp_teaser": {
+      "type": "string",
+      "minLength": 20,
+      "description": "Ready-to-paste WhatsApp text, ending with the issue URL."
+    }
   }
 }

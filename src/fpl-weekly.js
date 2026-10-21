@@ -4,6 +4,7 @@
 // Interaktion (Reaktionen, Kommentare, Umfrage, Moderation) läuft über die RPCs fplw_* in Supabase.
 (function () {
   const BASE = "/fpl/weekly";
+  const SITE = "https://riozma.ch";
   const CATS = {
     digital: "AI & Digitalization",
     robotics: "Robotics & Automation",
@@ -12,7 +13,7 @@
     market: "Funding & Market",
   };
   const EMOJIS = ["👍", "💡", "🤔", "🔥"];
-  const S = { user: null, isAdmin: false, summary: null, comments: [], week: null, panels: {}, open: new Set() };
+  const S = { user: null, isAdmin: false, summary: null, comments: [], week: null, panels: {}, open: new Set(), openItems: new Set(), stats: {} };
 
   /* ---------- Helfer ---------- */
 
@@ -452,33 +453,58 @@
     return frag;
   }
 
-  function newsCard(n, images) {
-    const art = el("article", "fplw-card");
-    art.id = "news-" + n.id;
-    const fig = el("figure", "fplw-img");
+  const SOURCE_LABELS = { primary: "Primary source", trade: "Trade press", general: "Press", branded: "Branded content" };
+
+  function track(target, kind) {
+    rpc("fplw_track", { p_issue: S.week, p_target: target, p_kind: kind, p_token: token() }).then(() => {}, () => {});
+  }
+
+  function newsItem(n, images, flags) {
+    const target = "news:" + n.id;
+    const d = el("details", "fplw-item");
+    d.id = "news-" + n.id;
+    d.open = S.openItems.has(n.id);
+    const sum = el("summary", "fplw-sum");
+
+    const fig = el("figure", "fplw-thumb");
     const img = el("img");
     const info = n.image_url ? { url: n.image_url, credit: n.image_credit } : images[n.id];
     const placeholder = "/src/img/fpl-weekly/" + n.category + ".svg";
     img.loading = "lazy";
-    img.alt = info ? "Preview image from " + n.source_name : CATS[n.category] || "News";
+    img.alt = "";
     img.src = info ? info.url : placeholder;
     img.referrerPolicy = "no-referrer";
     img.addEventListener("error", () => {
       if (!img.src.endsWith(placeholder)) img.src = placeholder;
-    }, { once: false });
+    });
     fig.append(img);
-    if (info && (info.credit || n.source_name)) fig.append(el("figcaption", "", "Image: " + (info.credit || n.source_name)));
-    const body = el("div", "fplw-card-body");
+
+    const txt = el("div", "fplw-sumtxt");
     const meta = el("div", "fplw-meta");
-    meta.append(el("span", "fplw-tag " + n.category, CATS[n.category] || n.category), el("span", "fplw-muted", fmtDate(n.published_at)));
-    body.append(meta, el("h3", "", n.title));
+    meta.append(el("span", "fplw-tag " + n.category, CATS[n.category] || n.category));
+    if (n.region) meta.append(el("span", "fplw-region", n.region));
+    if (flags && flags.popular) meta.append(el("span", "fplw-pop", "Most read"));
+    meta.append(el("span", "fplw-muted", fmtDate(n.published_at)));
+    const srcLine = el("div", "fplw-srcline");
+    srcLine.append(n.source_name);
+    if (n.source_type && SOURCE_LABELS[n.source_type]) srcLine.append(el("span", "fplw-stype " + n.source_type, SOURCE_LABELS[n.source_type]));
+    txt.append(meta, el("h3", "", n.title), srcLine);
+    sum.append(fig, txt, el("span", "fplw-chev"));
+    d.append(sum);
+
+    const body = el("div", "fplw-more-body");
+    if (n.background) {
+      const bg = el("div", "fplw-bg");
+      bg.append(el("strong", "", "Background"), el("p", "", n.background));
+      body.append(bg);
+    }
     body.append(paragraphs(n.body));
     const src = el("a", "fplw-btn", "Read the original article →");
     src.href = n.source_url;
     src.target = "_blank";
     src.rel = "noopener noreferrer";
-    const srcLine = el("p", "fplw-source", "Source: " + n.source_name);
-    body.append(src, srcLine);
+    ["click", "auxclick"].forEach((ev) => src.addEventListener(ev, () => track(target, "click")));
+    body.append(src);
     if (n.more_sources && n.more_sources.length) {
       const more = el("p", "fplw-more", "More: ");
       n.more_sources.forEach((m, i) => {
@@ -486,15 +512,48 @@
         a.href = m.url;
         a.target = "_blank";
         a.rel = "noopener noreferrer";
+        ["click", "auxclick"].forEach((ev) => a.addEventListener(ev, () => track(target, "click")));
         if (i) more.append(", ");
         more.append(a);
       });
       body.append(more);
     }
-    const target = "news:" + n.id;
+    if (info && (info.credit || n.source_name)) body.append(el("p", "fplw-more", "Preview image: " + (info.credit || n.source_name)));
     body.append(reactionBar(target), commentPanel(target));
-    art.append(fig, body);
-    return art;
+    d.append(body);
+
+    d.addEventListener("toggle", () => {
+      if (d.open) {
+        S.openItems.add(n.id);
+        track(target, "open");
+      } else S.openItems.delete(n.id);
+    });
+    return d;
+  }
+
+  // Reihenfolge: redaktionelle Reihenfolge, mit wachsender Datenmenge zunehmend nach Interesse (Klicks, Reaktionen, Kommentare, Öffnen).
+  function rankNews(items) {
+    const N = items.length;
+    const rows = items.map((n, i) => {
+      const st = S.stats["news:" + n.id] || {};
+      const e = 3 * (+st.clicks || 0) + 2 * (+st.reactions || 0) + 2 * (+st.comments || 0) + (+st.opens || 0);
+      return { n, i, e, views: +st.views || 0 };
+    });
+    const views = Math.max(0, ...Object.values(S.stats).map((s) => +s.views || 0));
+    const base = Math.max(views, 1);
+    const mean = rows.reduce((a, r) => a + r.e, 0) / (N * base);
+    const K = 5; // Vorannahme: wenige Daten ziehen zum Durchschnitt, damit Zufall nicht die Reihenfolge dreht
+    rows.forEach((r) => (r.rate = (r.e + K * mean) / (base + K)));
+    const maxRate = Math.max(...rows.map((r) => r.rate)) || 1;
+    const w = views / (views + 20); // 0 = nur Redaktion, ab ca. 20 Besuchern je zur Hälfte
+    rows.forEach((r) => {
+      const editorial = N > 1 ? 1 - r.i / (N - 1) : 1;
+      r.score = (1 - w) * editorial + w * (r.rate / maxRate);
+    });
+    rows.sort((a, b) => b.score - a.score || a.i - b.i);
+    const top = rows.slice().sort((a, b) => b.rate - a.rate)[0];
+    if (top && views >= 10 && top.e >= 3) top.popular = true;
+    return rows;
   }
 
   function runScripts(root) {
@@ -581,11 +640,47 @@
     return box;
   }
 
+  async function loadStats() {
+    const { data } = await rpc("fplw_stats", { p_issue: S.week });
+    S.stats = {};
+    (data || []).forEach((r) => (S.stats[r.target] = r));
+    S.statsLoaded = true;
+  }
+
   async function loadSummary() {
     const { data } = await rpc("fplw_summary", { p_issue: S.week, p_token: token() });
     S.summary = data || { reactions: [], poll: [], my_poll: null, moderation: null, is_admin: false };
     S.isAdmin = !!S.summary.is_admin;
     renderAuth();
+  }
+
+  function shareText(issue) {
+    let t = issue.summary;
+    if (t.length > 220) {
+      const cut = t.slice(0, 220);
+      const i = cut.lastIndexOf(". ");
+      t = i > 80 ? cut.slice(0, i + 1) : cut.replace(/\s+\S*$/, "") + "…";
+    }
+    return "FPL Weekly #" + issue.issue + ": " + issue.title + "\n" + t;
+  }
+
+  function shareButton(issue, label) {
+    const url = SITE + BASE + "/" + issue.week + "/";
+    const s = el("button", "fplw-btn", label || "Share");
+    s.type = "button";
+    s.addEventListener("click", async () => {
+      const text = shareText(issue);
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: "FPL Weekly #" + issue.issue, text, url });
+        } catch (e) { /* abgebrochen */ }
+        return;
+      }
+      const ok = await copyText(text + "\n" + url);
+      s.textContent = ok ? "Text and link copied" : "Copy failed";
+      setTimeout(() => (s.textContent = label || "Share"), 2000);
+    });
+    return s;
   }
 
   function sharing(issue, entry, neighbours) {
@@ -605,16 +700,7 @@
       links.append(a);
     }
     const share = el("div", "fplw-share");
-    const url = location.origin.replace("localhost:8080", "riozma.ch") + BASE + "/" + issue.week + "/";
-    const s = el("button", "fplw-btn", "Share");
-    s.type = "button";
-    s.addEventListener("click", async () => {
-      if (navigator.share) {
-        try { await navigator.share({ title: "FPL Weekly #" + issue.issue, text: issue.title, url: location.href }); return; } catch (e) { return; }
-      }
-      s.textContent = (await copyText(location.href)) ? "Link copied" : "Copy failed";
-      setTimeout(() => (s.textContent = "Share"), 1800);
-    });
+    const s = shareButton(issue, "Share this issue");
     const w = el("button", "fplw-btn ghost", "Copy for WhatsApp");
     w.type = "button";
     w.addEventListener("click", async () => {
@@ -637,18 +723,22 @@
     head.append(el("p", "fplw-eyebrow", "FPL Weekly #" + issue.issue + " · Week " + weekNo(issue.week) + " · " + fmtDate(issue.date)));
     head.append(el("h1", "", issue.title), el("p", "fplw-lead", issue.summary));
     head.append(el("p", "fplw-muted", "Covers " + fmtDate(issue.covers.from) + " – " + fmtDate(issue.covers.to)));
-    head.append(reactionBar("issue"));
+    const actions = el("div", "fplw-actions");
+    actions.append(reactionBar("issue"), shareButton(issue, "Share"));
+    head.append(actions);
     app.append(head, provenance(issue));
 
     const news = el("section", "fplw-news");
-    Object.keys(CATS).forEach((cat) => {
-      const items = issue.news.filter((n) => n.category === cat);
-      if (!items.length) return;
-      const sec = el("section", "fplw-group");
-      sec.append(el("h2", "", CATS[cat]));
-      items.forEach((n) => sec.append(newsCard(n, images)));
-      news.append(sec);
-    });
+    news.append(el("h2", "fplw-news-h", "This week's news"), el("p", "fplw-muted fplw-news-sub", "Tap an item for background, the summary and the original source. The most read items rise to the top."));
+    // Die Reihenfolge wird einmal festgelegt, sobald die Zahlen da sind, damit nichts springt, während jemand liest.
+    let order;
+    if (S.statsLoaded) {
+      if (!renderIssue.order) renderIssue.order = rankNews(issue.news);
+      order = renderIssue.order;
+    } else order = issue.news.map((n, i) => ({ n, i }));
+    const list = el("div", "fplw-items");
+    order.forEach((r) => list.append(newsItem(r.n, images, { popular: r.popular })));
+    news.append(list);
     app.append(news);
 
     // Fokus-Thema: breiter Abschnitt
@@ -718,14 +808,16 @@
       const neighbours = { prev: i > 0 ? list[i - 1] : null, next: i >= 0 && i < list.length - 1 ? list[i + 1] : null };
       renderIssue.ctx = { issue, focusHtml, images, neighbours, entry: list[i] };
       S.summary = { reactions: [], poll: [], my_poll: null, moderation: null };
+      if (location.hash.startsWith("#news-")) S.openItems.add(location.hash.slice(6));
+      const data = Promise.all([loadSummary(), loadComments(), loadStats()]);
+      await Promise.race([data, new Promise((r) => setTimeout(r, 1800))]);
       renderIssue();
-      await initAuth(async () => {
-        await loadSummary();
-        await loadComments();
+      track("issue", "view");
+      initAuth(async () => {
+        await Promise.all([loadSummary(), loadComments(), loadStats()]);
         renderIssue();
       });
-      await Promise.all([loadSummary(), loadComments()]);
-      renderIssue();
+      data.then(() => renderIssue());
     } catch (e) {
       console.error(e);
       app.replaceChildren(el("p", "fplw-error", "This issue could not be loaded."));

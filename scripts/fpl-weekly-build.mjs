@@ -159,7 +159,7 @@ ${firstImage ? `  <meta property="og:image" content="${esc(firstImage)}">\n  <me
     <ul>${list}</ul>
     <noscript>Please enable JavaScript to read the full issue.</noscript>
   </main>
-  <footer class="fplw-foot"><p>Future Planning Lab · ETH Zurich · <a href="/fpl/">FPL</a> · <a href="/fpl/weekly/feed.xml">RSS</a></p></footer>
+  <footer class="fplw-foot"><p>Future Planning Lab · ETH Zurich · <a href="/fpl/">FPL</a> · <a href="/fpl/weekly/feed.xml">RSS</a></p><p class="fplw-foot-note">We count anonymous opens and clicks (no personal data) to keep the newsletter relevant.</p></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/src/supabase-config.js"></script>
   <script src="/src/supabase-client.js"></script>

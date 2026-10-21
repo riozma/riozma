@@ -1,7 +1,11 @@
 {
   "icon-series-d": {
-    "url": "https://imgproxy.divecdn.com/jloI_ViuwG4Va27tkMzM-2ZXDPK3sG1eSO1smU8zQDk/g:ce/rs:fit:770:435/Z3M6Ly9kaXZlc2l0ZS1zdG9yYWdlL2RpdmVpbWFnZS9pY29uLXRpdGFuLWF0LXJuZC1wcmludGxhbmQtZmFjaWxpdHktYXVzdGluLXR4LTEuanBn.webp",
-    "credit": "constructiondive.com"
+    "url": "https://cdn.pulse2.com/cdn/2026/10/ICON-Logo.jpg",
+    "credit": "pulse2.com"
+  },
+  "origin-og1": {
+    "url": "https://cdn.pulse2.com/cdn/2026/10/Origin-Logo.jpeg",
+    "credit": "pulse2.com"
   },
   "origin-og1": {
     "url": "https://roboticsandautomationnews.com/wp-content/uploads/2026/10/origin-New-York-Image.png",
@@ -12,16 +16,12 @@
     "credit": "stacker.com"
   },
   "hexagon-rocscience": {
-    "url": "http://hexagon.com/-/media/project/one-web/shared/logos/hexagon_logo.png",
-    "credit": "hexagon.com"
-  },
-  "ai-on-site-mckinsey": {
-    "url": "https://static.stacker.com/s3fs-public/images/stories/2026/10/13/The%20Infinite%20Loop%20by%20Nebius-AI%20is%20moving%20onto%20the%20construction%20site.png",
-    "credit": "stacker.com"
+    "url": "https://aecmag.com/wp-content/uploads/2026/10/Rocscience.jpg",
+    "credit": "aecmag.com"
   },
   "sl-materials": {
-    "url": "https://www.esgtoday.com/wp-content/uploads/2026/10/SL-Materials.jpg",
-    "credit": "esgtoday.com"
+    "url": "https://assets.cemnet.com/Content/uploads/images/ae9b1de8-3b66-4973-981f-7d8f7b31db12_hq.jpg",
+    "credit": "cemnet.com"
   },
   "revail": {
     "url": "https://www.datocms-assets.com/31538/1791530669-revail-consortium.png?auto=format&fit=max&w=1200",

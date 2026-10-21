@@ -2,8 +2,9 @@
 
 Wöchentlicher Newsletter des Future Planning Lab auf <https://riozma.ch/fpl/weekly/>.
 Jede Woche ist ein Ordner unter `fpl/weekly/issues/<YYYY-WW>/`. Aus dem Ordner entstehen automatisch die Seite
-`/fpl/weekly/<YYYY-WW>/`, die Übersicht, der RSS-Feed und die Sitemap. Kommentare, Reaktionen, Umfrage und
-Moderationsstatus liegen in Supabase (Migration `20261021000000_fpl_weekly.sql`).
+`/fpl/weekly/<YYYY-WW>/`, die Übersicht, der RSS-Feed und die Sitemap. Kommentare, Reaktionen, Umfrage,
+Moderationsstatus und Nutzungszahlen liegen in Supabase (Migrationen `20261021000000_fpl_weekly.sql` und
+`20261021010000_fpl_weekly_events.sql`).
 
 ## Dateien
 
@@ -16,8 +17,70 @@ Moderationsstatus liegen in Supabase (Migration `20261021000000_fpl_weekly.sql`)
 | `issues/index.json`, `feed.xml`, `../../sitemap.xml` | Übersicht, RSS, Sitemap | nein, generiert |
 | `curriculum.json` | Lernpfad (Module und Konzepte) | ja, wird beim Build ergänzt |
 | `index.html`, `concepts/`, `glossary/` | Übersicht, Lernpfad, Glossar (laden die JSON-Dateien) | selten |
+| `../../scripts/fpl-weekly-insights.mjs` | Redaktionsplan aus den Nutzungszahlen (siehe unten) | läuft vor jeder Ausgabe |
 
 Der gemeinsame Renderer ist `src/fpl-weekly.js` mit `src/fpl-weekly.css`.
+
+## Leitbild: wie eine Fachredaktion arbeiten
+
+Zielgruppe sind Bauleute mit dem Wissensstand eines durchschnittlichen Bachelor-Absolventen in Europa (Bauingenieurwesen),
+vor allem ETH-Masterstudierende. Der Newsletter soll sie in 10 bis 15 Minuten auf dem Laufenden halten **und** ihr Bild
+der Branche Woche für Woche erweitern. Er arbeitet deshalb wie die Redaktionen von Hochparterre, TEC21 und Espazium,
+nur für die Nische Digitalisierung, KI, Automatisierung und Kreislaufwirtschaft im Bau:
+
+1. **Themenplanung (Redaktionssitzung).** Zuerst `node scripts/fpl-weekly-insights.mjs` ausführen und den Plan lesen
+   (Plätze je Rubrik, Entdecken-Plätze, wenig vertretene Regionen und Themen, Fokus-Kandidaten). Dazu die früheren Ausgaben
+   und `curriculum.json` lesen. Daraus eine Linie für die Woche festlegen: welche 6 bis 8 Geschichten, welcher Fokus, welcher rote Faden.
+2. **Recherche nach Ressorts (Beats).** Pro Rubrik gezielt die Orte absuchen, an denen Neuigkeiten zuerst erscheinen:
+   Newsrooms von Firmen, Hochschulen und Forschungsprojekten (ETH, EPFL, Empa, NCCR Digital Fabrication, TU Wien, TUM, Eurac),
+   Behörden und Normen (EU-Kommission, BAFU, SIA, buildingSMART, Bauen digital Schweiz), Fachpresse
+   (Hochparterre, TEC21, Espazium, Baublatt, AEC Magazine, Construction Dive, ENR, Bauwelt, ICR) und Finanzierungsmeldungen.
+   Nicht nur Europa und die Schweiz: mindestens zwei Beiträge aus anderen Weltregionen.
+3. **Quellenprüfung (Faktencheck).** Immer bis zur ursprünglichen Quelle gehen (Medienmitteilung, Studie, Behörde). Ist sie nicht
+   abrufbar, die beste Berichterstattung wählen (Fachpresse vor Allgemeinpresse vor Sammelseiten) und die Originalquelle unter
+   `more_sources` verlinken. Zahlen mit zwei Quellen abgleichen oder als Angabe des Unternehmens kennzeichnen («company claims»).
+   Datum prüfen (liegt es im Zeitraum?), Links öffnen, gesponserte Inhalte als `branded` kennzeichnen. Nichts erfinden, nichts
+   übernehmen, was nicht gelesen wurde.
+4. **Einordnen und erklären.** Die Leser kennen kleine oder internationale Firmen nicht. Jeder Beitrag bekommt:
+   einen Titel, der sagt, wer das ist (nicht «Origin raises $20M», sondern «Origin, a US start-up founded in 2025, launches a
+   wall-finishing robot with $20M»); ein Feld `background`, das die Firma, den Begriff oder das Konzept erklärt (was ist ein
+   Series-D-Investment, was ist Kalibrierung, was ist Topologie); einen Absatz «Why it matters» für Bauingenieur*innen.
+   Sachlich schreiben, keine Schlagworte («Revolution»), Behauptung und Tatsache trennen.
+5. **Mischung.** Etwa zwei Drittel «was gibt es, was passiert» (Markt, Produkte, Projekte, Forschung) und ein Drittel «wie funktioniert
+   das, was ist das Konzept» (`background`, mindestens zwei Beiträge, die vor allem wegen des Konzepts gewählt wurden, dazu das
+   Fokus-Thema). Höchstens zwei reine Finanzierungsmeldungen je Ausgabe.
+6. **Gegenlesen (Redigat).** Jeden Beitrag noch einmal gegen seine Quelle lesen: Zahlen, Namen, Einheiten, Währung, Datum, Rechtschreibung.
+   Doppelte Geschichten streichen, Titel prüfen, Reihenfolge der Beiträge nach Wichtigkeit festlegen (wichtigster zuerst),
+   dann `node scripts/fpl-weekly-build.mjs --check`.
+7. **Transparenz und Korrekturen.** `generated.method` sagt ehrlich, wie die Ausgabe entstand und was nicht verifiziert ist.
+   Fehler später korrigieren (Datei ändern, pushen) und im Feld `generated.method` mit Datum vermerken.
+
+Die Reihenfolge in `issue.json` ist die redaktionelle Wichtigkeit. Auf der Website werden die Beiträge zusätzlich nach Interesse sortiert (siehe unten).
+
+## Algorithmus: Qualität sichern, Horizont erweitern, keine Blase
+
+Der Algorithmus soll **nicht** nur geben, was geklickt wird, sondern die Qualität sichern und den Horizont erweitern. Er arbeitet an zwei Stellen.
+
+**1. Reihenfolge innerhalb einer Ausgabe (Website, `rankNews` in `src/fpl-weekly.js`).**
+Für jeden Beitrag zählen verschiedene Besucher: Klick auf die Originalquelle (Gewicht 3), Reaktion (2), Kommentar (2), Aufklappen (1).
+Der Wert wird zum Durchschnitt der Ausgabe hin geglättet, damit wenige Zufallsklicks nichts umwerfen. Dann gilt:
+`score = (1 - w) * redaktionelle Position + w * Interesse`, mit `w = Besucher / (Besucher + 20)`. Ohne Zahlen gilt also die Redaktion,
+mit wachsender Zahl der Besucher zunehmend das Interesse. Meistgelesene Beiträge rutschen nach oben (mit Marke «Most read»), weniger gelesene nach unten.
+Alle Beiträge bleiben sichtbar, nur die Reihenfolge ändert sich, und sie wird einmal beim Laden festgelegt, damit nichts springt.
+
+**2. Planung der nächsten Ausgabe (`scripts/fpl-weekly-insights.mjs`).**
+Aus den Zahlen berechnet das Skript je Rubrik, Region, Thema und Quelle einen geglätteten Interessenwert (neuere Wochen zählen mehr,
+Halbwertszeit 6 Wochen; Klicks auf gesponserte oder schwache Quellen zählen weniger). Daraus entsteht ein Plan mit Plätzen:
+
+- **Exploit:** Rubriken und Themen mit gutem Interesse, aber mit neuem Blickwinkel statt Wiederholung.
+- **Explore (Entdecken):** mindestens 25 Prozent der Plätze, bei einseitigem Interesse 40 Prozent. Diese Plätze gehen an die zuletzt am wenigsten gezeigten Rubriken,
+  Regionen und Themen und nutzen **keine** Klickdaten. Das ist der Schutz vor der Filterblase. Je einseitiger das Interesse (Entropie der Rubriken), desto mehr wird erkundet.
+  Technisch ist es ein UCB-Verfahren (geglättete Rate plus Entdecker-Bonus für wenig Gezeigtes).
+- **Qualitätsregeln gelten immer:** höchstens 2 Beiträge pro Quelle, mindestens die Hälfte aus Primär- oder Fachquellen, gesponserte Inhalte nie auf Entdecken-Plätzen,
+  mindestens ein Schweizer Beitrag und zwei von ausserhalb Europas/der Schweiz, höchstens 2 Plätze je Rubrik bei einseitigem Interesse.
+- **Fokus-Thema:** nächste Konzepte mit erfüllten Voraussetzungen, bewertet nach dem Interesse am Modul plus Entdecker-Bonus für wenig behandelte Module.
+
+Ohne Daten (Kaltstart, unter 20 Besuchern) richtet sich der Plan nur nach Abdeckung und Vielfalt. Die Zahlen sind anonym (Hash eines Browser-Tokens, höchstens ein Ereignis je Besucher und Tag, nur Summen abrufbar).
 
 ## Veröffentlichen (Ablauf für die wöchentliche Claude-Aufgabe)
 
@@ -29,25 +92,23 @@ Der Ablauf ist so gebaut, dass ein zweiter Lauf in derselben Woche nichts doppel
 
 1. **Woche bestimmen.** Zieldatum ist der Montag der aktuellen ISO-Woche (Zeitzone Europe/Zurich), Ordnername
    `<ISO-Jahr>-<ISO-Woche>` mit zweistelliger Woche, z. B. `2026-43`. Das Feld `date` ist dieser Montag.
-2. **Aktuellen Stand holen.** `git fetch origin main`, `git checkout main`, `git pull --ff-only`.
+2. **Aktuellen Stand holen.** `git fetch origin main`, `git checkout main`, `git pull --ff-only` (bzw. frisch klonen).
 3. **Doppelt-Schutz.** Existiert `fpl/weekly/issues/<YYYY-WW>/` schon auf `origin/main`, **abbrechen** und nichts
    ändern («already published»). Das gilt auch, wenn die Aufgabe zweimal gestartet wurde oder von mehreren Orten läuft.
-4. **Vorgänger lesen.**
+4. **Vorgänger lesen und planen.**
    - `fpl/weekly/issues/index.json`: höchste Ausgabennummer `N`, diese Ausgabe ist `N + 1`.
-   - Alle früheren `issue.json`: `news[].source_url` und `news[].id` sammeln. Keine Meldung aus einer Quelle verwenden,
-     die schon in einer früheren Ausgabe vorkam (Nachfolgemeldungen zur selben Geschichte nur mit neuem Stand).
+   - Alle früheren `issue.json`: `news[].source_url` und `news[].id` sammeln. Keine Quelle wiederverwenden, die schon in einer früheren Ausgabe vorkam
+     (Nachfolgemeldungen zur selben Geschichte nur mit neuem Stand).
    - `covers.from` ist der Tag nach `covers.to` der letzten Ausgabe, `covers.to` der Sonntag vor dem Montag.
-5. **Fokus-Thema wählen.** In `curriculum.json` das nächste Konzept mit `status: "planned"` nehmen, dessen
-   `prerequisites` alle `published` sind (niedrigstes Modul, dann kleinste `order`). Ist keines frei, das mit den
-   wenigsten offenen Voraussetzungen nehmen. Nie ein Konzept wiederholen, das `published` ist.
-6. **Recherchieren und schreiben.** 6 bis 10 News, jede aus einer echten Quelle mit funktionierendem Link,
-   mindestens drei Rubriken. Texte auf Englisch, sachlich, Zahlen so, wie die Quelle sie nennt (bei Eigenangaben
-   von Firmen das dazuschreiben). Jede News endet mit einem Absatz, der mit `Why it matters` beginnt. Bei
-   `image_url: null` holt der Build das Vorschaubild selbst.
+   - `node scripts/fpl-weekly-insights.mjs` ausführen und dem Plan folgen (siehe «Algorithmus»): Plätze, Entdecken-Plätze, Regionen, Quellenregeln, Fokus-Kandidaten.
+     Ist die Abfrage nicht erreichbar, läuft der Plan im Kaltstart-Modus weiter.
+5. **Fokus-Thema wählen.** Aus den Fokus-Kandidaten des Plans (sie stammen aus `curriculum.json`: `status: "planned"`, alle `prerequisites` veröffentlicht)
+   das beste wählen. Nie ein Konzept wiederholen, das `published` ist.
+6. **Redaktionsablauf durchlaufen** (siehe «Leitbild»): recherchieren, bis zur Originalquelle gehen, prüfen, einordnen, `background` schreiben, gegenlesen.
+   6 bis 8 News, mindestens drei Rubriken, Texte auf Englisch. Bei `image_url: null` holt der Build das Vorschaubild selbst.
 7. **Dateien anlegen:** `issues/<YYYY-WW>/issue.json` und `issues/<YYYY-WW>/focus.html`
-   (dazu optionale Bilder im selben Ordner). `issue.json` darf `images.json` und die generierten Seiten nicht
-   ersetzen. Das Curriculum nicht von Hand ändern: der Build setzt das Fokus-Konzept auf `published` und trägt die
-   Ausgabe ein (wer will, kann es zusätzlich selbst eintragen: `status: "published"`, `issue: "<YYYY-WW>"`).
+   (dazu optionale Bilder im selben Ordner). `images.json` und die generierten Seiten nicht von Hand schreiben. Das Curriculum nicht von Hand ändern:
+   der Build setzt das Fokus-Konzept auf `published` und trägt die Ausgabe ein.
 8. **Prüfen:** `node scripts/fpl-weekly-build.mjs --check` muss mit Exit-Code 0 enden. Fehler (rot) beheben,
    Warnungen lesen (z. B. «source already used»).
 9. **Veröffentlichen:**
@@ -74,12 +135,17 @@ Das Schema steht in `issue.schema.json` und wird vom Build geprüft. Beispiel: `
 
 - `issue` (Ganzzahl), `week` (`YYYY-WW`, gleich Ordnername), `date`, `covers.from/to`, `title`, `summary` (40 bis 700 Zeichen).
 - `generated`: `by`, `method`, `created_at`. Daraus entsteht die Hinweisbox «researched and written by AI».
-- `news[]`: `id` (nur `a-z`, `0-9`, `-`, höchstens 60 Zeichen, einmalig in der Ausgabe), `category`
-  (`digital`, `robotics`, `circular`, `swiss`, `market`), `title`, `body` (Absätze mit Leerzeile), `source_name`,
-  `source_url`, `more_sources[]`, `published_at`, `image_url` (`null` = Build holt `og:image`), `image_credit`.
+- `news[]`, in redaktioneller Reihenfolge (wichtigstes zuerst):
+  - `id` (nur `a-z`, `0-9`, `-`, höchstens 60 Zeichen, einmalig in der Ausgabe), `category` (`digital`, `robotics`, `circular`, `swiss`, `market`)
+  - `title` (selbsterklärend), `body` (höchstens zwei Absätze mit Leerzeile, der zweite beginnt mit «Why it matters»)
+  - `background` (erklärt Firma, Begriff oder Konzept für Bachelor-Niveau), `region` (`CH`, `EU`, `UK`, `US`, `Asia`, `Global`), `topics` (1 bis 4 Tags in Kleinbuchstaben)
+  - `source_type` (`primary` Urheber oder wortgetreuer Abdruck der Medienmitteilung, `trade` Fachpresse, `general` Allgemeinpresse, `branded` gesponsert), `source_name`, `source_url`, `more_sources[]`
+  - `published_at`, `image_url` (`null` = Build holt `og:image`), `image_credit`
 - `focus`: `title`, `subtitle`, `concept_id` (aus `curriculum.json`), `file` (`focus.html`), `glossary[]`, `further_reading[]`.
 - `question`: `text` und 2 bis 10 `options` (Umfrage).
 - `whatsapp_teaser`: fertiger WhatsApp-Text, endet mit der Ausgaben-URL.
+
+Auf der Website erscheint jeder Beitrag kompakt (kleines Bild, Titel, Quelle), der Rest (Background, Text, Quelle, Reaktionen, Kommentare) klappt auf.
 
 ## focus.html
 
@@ -96,7 +162,7 @@ nur aus diesem Repo und gilt als vertrauenswürdig. Konventionen:
 - Bilder lokal unter `issues/<YYYY-WW>/` ablegen (relativ zur Seite also `/fpl/weekly/issues/<YYYY-WW>/bild.jpg`)
   oder frei lizenziert mit Quellenangabe in einer `<figcaption>`. Immer `alt`-Text.
 - Muss auf 360 px Breite funktionieren. Keine festen Breiten über 100 %.
-- Die Texte sind Englisch, erklären ein Konzept für Bauingenieur-Studierende und enden mit «Next in Module X: …».
+- Die Texte sind Englisch, erklären ein Konzept für Bachelor-Absolventen des Bauingenieurwesens und enden mit «Next in Module X: …».
 
 ## Lernpfad
 
@@ -111,6 +177,7 @@ ergänzt werden, `id` nach dem Muster `m<Modul>-<kurzer-name>`.
 node scripts/fpl-weekly-build.mjs --check        # nur prüfen
 node scripts/fpl-weekly-build.mjs                # bauen (holt fehlende Bilder)
 node scripts/fpl-weekly-build.mjs --no-network   # bauen ohne Bilderabruf
+node scripts/fpl-weekly-insights.mjs             # Redaktionsplan für die nächste Ausgabe
 python -m http.server 8080                       # dann http://localhost:8080/fpl/weekly/
 ```
 
@@ -119,8 +186,7 @@ Mal keine Datei.
 
 ## Datenbank (Supabase)
 
-Migration `supabase/migrations/20261021000000_fpl_weekly.sql`. Alle Tabellen (`fplw_*`) sind per RLS gesperrt, der
-Zugriff läuft nur über RPCs (`fplw_summary`, `fplw_list_comments`, `fplw_add_comment`, `fplw_toggle_reaction`,
-`fplw_poll_vote`, `fplw_set_checked`, …). Besucher werden über das Konto (`auth.uid()`) oder den Hash des Browser-Tokens
-erkannt, der Admin über `fpl_is_admin()`. E-Mail-Adressen werden nie ausgeliefert. Einspielen wie bei den anderen
-Migrationen, siehe `SUPABASE_SETUP.md`.
+Alle Tabellen (`fplw_*`) sind per RLS gesperrt, der Zugriff läuft nur über RPCs (`fplw_summary`, `fplw_list_comments`,
+`fplw_add_comment`, `fplw_toggle_reaction`, `fplw_poll_vote`, `fplw_set_checked`, `fplw_track`, `fplw_stats`, …).
+Besucher werden über das Konto (`auth.uid()`) oder den Hash des Browser-Tokens erkannt, der Admin über `fpl_is_admin()`.
+E-Mail-Adressen werden nie ausgeliefert. Einspielen wie bei den anderen Migrationen, siehe `SUPABASE_SETUP.md`.
