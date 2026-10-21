@@ -203,7 +203,7 @@
     const brand = el("a", "fplw-brand", "FPL");
     brand.href = "/fpl/";
     const nav = el("nav", "fplw-nav");
-    [["Weekly", BASE + "/"], ["Concepts", BASE + "/concepts/"], ["Glossary", BASE + "/glossary/"], ["Wimmelblock", "/fpl/wimmelblock/"]].forEach(([t, h]) => {
+    [["Newsletter", BASE + "/"], ["Concepts", BASE + "/concepts/"], ["Glossary", BASE + "/glossary/"], ["Wimmelblock", "/fpl/wimmelblock/"]].forEach(([t, h]) => {
       const a = el("a", "", t);
       a.href = h;
       if (location.pathname.replace(/index\.html$/, "") === h) a.setAttribute("aria-current", "page");
