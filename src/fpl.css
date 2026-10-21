@@ -130,3 +130,13 @@ dialog button:disabled { opacity: .5; }
 .wimmel-go { margin-left: auto; font-size: 1.8rem; color: var(--orange); }
 @media (max-width: 899px) { .trailer { display: block; } }
 @media (max-width: 640px) { .topnav a:last-child { display: none; } .topbar { gap: 14px; } }
+
+.weekly-block { margin: 36px 0 8px; }
+.weekly { display: flex; align-items: center; gap: 16px; padding: 22px 24px; border: 2px solid var(--blue); border-radius: 16px; text-decoration: none; color: var(--ink); transition: transform .15s, box-shadow .15s; }
+.weekly:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(63, 84, 114, .2); }
+.weekly-text { display: grid; gap: 6px; }
+.weekly-text small { color: var(--orange); font-weight: 700; text-transform: uppercase; letter-spacing: .12em; font-size: .72rem; }
+.weekly-text strong { font-size: 1.25rem; line-height: 1.3; color: var(--blue-dark); }
+.weekly-text span { color: #3b4857; font-size: .95rem; line-height: 1.5; }
+.weekly-go { margin-left: auto; font-size: 1.8rem; color: var(--orange); }
+.weekly-all { display: inline-block; margin-top: 10px; font-size: .9rem; color: var(--blue-dark); }

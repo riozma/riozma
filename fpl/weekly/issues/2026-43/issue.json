@@ -1,0 +1,148 @@
+{
+  "issue": 1,
+  "week": "2026-43",
+  "date": "2026-10-19",
+  "covers": { "from": "2026-10-09", "to": "2026-10-18" },
+  "title": "Robots get funded, geotech goes digital, concrete goes round",
+  "summary": "Investors poured money into construction robotics this week, from ICON's 3D printers to Origin's wall-finishing robot. Hexagon is buying the geotechnical software house Rocscience to connect sensors with simulation, and recycled concrete got one of the biggest circular-economy rounds of the year. Our focus this week: what BIM really is, and why it is not yet a digital twin.",
+  "generated": {
+    "by": "Claude (Anthropic), scheduled FPL Weekly task",
+    "method": "Web search over news from the covered period, selection and summaries written by AI. Every item links to its original source. Figures are as reported by the sources and companies.",
+    "created_at": "2026-10-21T09:30:00+02:00"
+  },
+  "news": [
+    {
+      "id": "icon-series-d",
+      "category": "robotics",
+      "title": "ICON raises $200M to build multi-storey 3D-printing robots",
+      "body": "Texas-based ICON, known for 3D-printing houses out of a cement-based material, closed a $200 million Series D at a valuation of about $1.4 billion. The round was co-led by Baillie Gifford and funds managed by BlackRock, bringing ICON's total funding to around $700 million. The money goes into manufacturing its robotic systems, a large R&D facility in Austin and expansion into new US markets. The centrepiece is Titan, a printer that can build structures up to about 8 m (27 ft) high and is listed at $899,000.\n\nWhy it matters for planners: once a printer can build multi-storey walls, the design of the wall itself becomes a machine instruction. Geometry, layer heights and openings have to be planned for the printer, not just for the drawing.",
+      "source_name": "Construction Dive",
+      "source_url": "https://www.constructiondive.com/news/3d-printing-giant-icon-raises-funding/833001/",
+      "more_sources": [
+        { "name": "Bisnow", "url": "https://www.bisnow.com/news/national/proptech/blackrock-baillie-gifford-icon-series-d-valuation" }
+      ],
+      "published_at": "2026-10-13",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "origin-og1",
+      "category": "robotics",
+      "title": "Origin comes out of stealth with $20M for an interior-finishing robot",
+      "body": "Origin, a US startup, emerged from stealth with $20 million co-led by Accel and Zacua Ventures. Its first robot, OG-1, does drywall finishing: applying compound, sanding and priming, including corners, pillars and soffits up to about 4.3 m. Origin says it already works with two of the largest drywall finishing contractors in the US and plans pilots in Germany, Sweden and France, with 150 robots deployed by the end of 2027. The company claims three times human speed at human-level quality. Those are its own figures, not independently verified.\n\nWhy it matters: finishing trades are labour-intensive and short of workers. If robots take them over, tolerances and surface quality become something you specify and measure, not something you negotiate on site.",
+      "source_name": "Robotics & Automation News",
+      "source_url": "https://roboticsandautomationnews.com/2026/10/19/origin-raises-20-million-to-scale-general-purpose-construction-robots/106024/",
+      "more_sources": [
+        { "name": "Pulse 2.0", "url": "https://pulse2.com/origin-20-million-funding/" }
+      ],
+      "published_at": "2026-10-15",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "all3-koblenz",
+      "category": "robotics",
+      "title": "Four-legged robots will help build a housing project in Koblenz",
+      "body": "London startup All3 plans to use its legged robot, Mantis, on a micro-living residential project in Koblenz, Germany, starting in early 2027. The robots arrive in a shipping container and assemble timber-composite components that were designed by All3's AI platform and produced in its compact robotic factory cells. Mantis carries up to 100 kg with a 4 m reach. All3 says its buildings can cost up to 30% less than conventional ones, while admitting that humans will still be needed for parts of the process.\n\nWhy it matters: All3 does not sell a robot, it sells a chain from design software to factory to site. That is the same integration that our profession's split between planner, manufacturer and contractor usually prevents.",
+      "source_name": "Stacker",
+      "source_url": "https://stacker.com/stories/ai/ai-moving-construction-site",
+      "more_sources": [
+        { "name": "Tech.eu (funding, April 2026)", "url": "https://tech.eu/2026/04/29/all3-raises-25m-to-boost-construction-productivity-with-robotics-and-ai" }
+      ],
+      "published_at": "2026-10-13",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "hexagon-rocscience",
+      "category": "digital",
+      "title": "Hexagon buys Rocscience for $535M to connect sensors and simulation",
+      "body": "Hexagon agreed to acquire the Toronto geotechnical software company Rocscience for an enterprise value of about $535 million. Rocscience's tools model rock, soil and structures: slope stability, ground movement, tunnels and dams. It is used in about 125 countries and expects close to $50 million in revenue in 2026. Hexagon plans to combine these models with its own radar and sensor monitoring, so that live measurements from a slope or a tunnel feed back into the engineering model from design through operation. Closing is expected in Q4 2026.\n\nWhy it matters: this is the step from model to digital twin (see this week's focus). For geotechnical engineers, the design model could stay alive after handover and keep learning from the ground it describes.",
+      "source_name": "Hexagon (press release)",
+      "source_url": "https://hexagon.com/company/newsroom/press-releases/2026/hexagon-to-acquire-rocscience-closing-the-loop-between-realworld-monitoring-and-advanced-simulation",
+      "more_sources": [
+        { "name": "AEC Magazine", "url": "https://aecmag.com/news/hexagon-to-acquire-rocscience-for-535m/" }
+      ],
+      "published_at": "2026-10-09",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "ai-on-site-mckinsey",
+      "category": "digital",
+      "title": "McKinsey: AI could automate about 39% of non-physical construction work",
+      "body": "A feature on AI arriving on construction sites cites McKinsey's estimate that AI could automate roughly 39% of the non-physical work in construction: estimating, scheduling, documentation, reporting and coordination. It sets that against a sobering number: construction productivity grew by only about 10% between 2000 and 2022, far behind manufacturing. The article also notes that a large share of recent construction-tech venture money now goes to AI-enabled solutions.\n\nWhy it matters: most of that 39% is exactly what young engineers spend their first years doing. The question for us is not whether these tasks change, but which skills remain valuable when they do. That was also question 5 at our Kick-off.",
+      "source_name": "Stacker",
+      "source_url": "https://stacker.com/stories/ai/ai-moving-construction-site",
+      "more_sources": [],
+      "published_at": "2026-10-13",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "sl-materials",
+      "category": "circular",
+      "title": "SL Materials gets €100M to turn demolition concrete into new concrete",
+      "body": "Dutch company SL Materials, formerly Urban Mine, received a €100 million commitment from ABN AMRO's Sustainable Impact Fund and Aviva Investors. Its Smart Liberator and Smart Refiner processes separate demolition concrete back into sand, gravel and a cement-based fraction that can go into new concrete. The money will expand its site in Zaandam and build capacity elsewhere in Europe. With the deal, the UK circular-concrete platform Koreco also becomes part of SL Materials.\n\nWhy it matters: recycled aggregate is already common in Switzerland, but recovering the cement fraction is the part that actually saves CO₂. For structural engineers, the open questions are material properties, standards and how much variation a design can accept.",
+      "source_name": "ESG Today",
+      "source_url": "https://www.esgtoday.com/aviva-investors-abn-amro-invest-e100-million-in-circular-concrete-platform-sl-materials/",
+      "more_sources": [
+        { "name": "ABN AMRO", "url": "https://www.abnamro.com/en/news/abn-amro-sustainable-impact-fund-and-aviva-investors-support-concrete-producer-sl-materials" }
+      ],
+      "published_at": "2026-10-07",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "revail",
+      "category": "circular",
+      "title": "EU project REVAIL starts: reclaimed building parts for renovations",
+      "body": "REVAIL, a Horizon Europe project coordinated by Eurac Research, kicked off in Copenhagen. It wants to build scalable value chains for reclaiming, disassembling and reassembling building products, namely timber, aluminium, sandwich panels and ceramics, into new retrofit solutions. Pilots are planned in Italy, Poland, France and Greece.\n\nWhy it matters: reuse fails less on technology than on logistics and trust. Where do the parts come from, what condition are they in, who guarantees them? Projects like REVAIL test exactly those processes, which planners will need once reuse becomes a normal design option.",
+      "source_name": "Eurac Research",
+      "source_url": "https://www.eurac.edu/en/news/institute-for-renewable-energy/revail-advances-circular-construction-with-the-beautiful-reassembly-of-reclaimed",
+      "more_sources": [],
+      "published_at": "2026-10-09",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "sbb-rail-twin",
+      "category": "swiss",
+      "title": "SBB is building a digital twin of the Swiss rail network",
+      "body": "A feature describes how SBB is building its Integrated Topology Platform (ITOP), which models tracks, switches and signals and the relationships between them as one connected network. The goal is a single, consistent representation of the infrastructure that planning, maintenance and operations can all work from, instead of many separate databases.\n\nWhy it matters: Switzerland's largest infrastructure owner is moving from documents to a connected model. For civil engineers working on rail projects, that changes what a deliverable is: not a plan set, but data that has to fit into the owner's model. (Published 5 October, included because it is the most relevant Swiss item of these weeks.)",
+      "source_name": "Axiom",
+      "source_url": "https://www.axiomint.com/digital-twin-technology-for-switzerlands-rail-network/",
+      "more_sources": [],
+      "published_at": "2026-10-05",
+      "image_url": null,
+      "image_credit": null
+    }
+  ],
+  "focus": {
+    "title": "BIM is not a digital twin (yet)",
+    "subtitle": "Module 1 · Concept 1: from drawing to model to twin",
+    "concept_id": "m1-bim-vs-twin",
+    "file": "focus.html",
+    "glossary": [
+      { "term": "BIM (Building Information Modelling)", "definition": "A method of planning, building and operating with a shared, structured model of objects and their properties, not just geometry." },
+      { "term": "IFC (Industry Foundation Classes)", "definition": "The open, vendor-neutral data format for exchanging BIM models (ISO 16739)." },
+      { "term": "Digital shadow", "definition": "A model that is updated automatically from real-world data, but does not act back on the asset." },
+      { "term": "Digital twin", "definition": "A model connected to the real asset in both directions: data flows in from sensors, and decisions or controls flow back out." }
+    ],
+    "further_reading": [
+      { "title": "buildingSMART: What is openBIM?", "url": "https://www.buildingsmart.org/about/openbim/" },
+      { "title": "Bauen digital Schweiz", "url": "https://bauen-digital.ch/" },
+      { "title": "Kritzinger et al. (2018): Digital Twin in manufacturing: a categorical literature review and classification", "url": "https://doi.org/10.1016/j.ifacol.2018.08.474" }
+    ]
+  },
+  "question": {
+    "text": "Which step is the biggest hurdle in Swiss practice today?",
+    "options": [
+      "Getting from drawings to real BIM models",
+      "Keeping the model alive after handover",
+      "Connecting sensors and live data",
+      "Letting the model act back (a true twin)"
+    ]
+  },
+  "whatsapp_teaser": "🏗️ *FPL Weekly #1* is out!\nRobots get funded (ICON $200M, Origin $20M), Hexagon buys Rocscience to connect sensors with geotech models, and demolition concrete becomes new concrete (€100M for SL Materials).\n🔍 Focus: why BIM is not a digital twin (yet), with an interactive explainer.\n👉 https://riozma.ch/fpl/weekly/2026-43/"
+}

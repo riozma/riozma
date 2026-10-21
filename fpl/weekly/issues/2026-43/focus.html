@@ -1,0 +1,121 @@
+<!-- FPL Weekly 2026-43 · Focus: BIM is not a digital twin (yet). Fragment, wird vom Renderer in .fplw-focus eingesetzt. -->
+<style>
+  .fplw-focus .f-lead { font-size: 1.1rem; }
+  .fplw-focus figure { margin: 28px 0; }
+  .fplw-focus figcaption { font-size: .85rem; opacity: .75; margin-top: 6px; }
+  .fplw-focus svg { width: 100%; height: auto; display: block; }
+  .fplw-focus .f-ladder { border: 2px solid var(--blue, #536a89); border-radius: 10px; padding: 16px; margin: 28px 0; }
+  .fplw-focus .f-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .fplw-focus .f-steps button { font: inherit; font-size: .85rem; padding: 10px 6px; border: 0; border-radius: 6px; background: #e8edf3; color: var(--ink, #1d2733); cursor: pointer; }
+  .fplw-focus .f-steps button[aria-pressed="true"] { background: var(--blue, #536a89); color: #fff; }
+  .fplw-focus .f-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; align-items: center; }
+  .fplw-focus .f-panel h4 { margin: 0 0 6px; }
+  .fplw-focus .f-panel p { margin: 0 0 8px; }
+  .fplw-focus .f-flow line { stroke-width: 4; transition: opacity .3s; }
+  .fplw-focus .f-tag { display: inline-block; font-size: .75rem; padding: 2px 8px; border-radius: 99px; background: #e8edf3; margin-right: 4px; }
+  .fplw-focus .f-tag.on { background: var(--orange, #d68d00); color: #fff; }
+  .fplw-focus table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  .fplw-focus th, .fplw-focus td { text-align: left; padding: 8px; border-bottom: 1px solid #d9dfe7; vertical-align: top; }
+  @media (max-width: 600px) { .fplw-focus .f-panel { grid-template-columns: 1fr; } .fplw-focus .f-steps { grid-template-columns: repeat(2, 1fr); } }
+</style>
+
+<p class="f-lead">"We work in BIM" is one of the most common sentences in Swiss planning offices. "We have a digital twin" is one of the most common sentences in software marketing. They are not the same thing, and the gap between them is where a lot of the next decade's work lies.</p>
+
+<h3>What BIM actually is</h3>
+<p>BIM (Building Information Modelling) is not a software product. It is a way of working in which the project is described by a shared model made of <em>objects with properties</em>: a wall knows that it is a wall, which material it is made of, its fire rating and which storey it belongs to. A 3D CAD drawing only knows lines and surfaces. That difference sounds small, but it is what makes automatic quantity take-off, clash detection between disciplines and model checking possible.</p>
+<p>For BIM to work across companies, models need a common language. That is IFC (Industry Foundation Classes), an open ISO standard maintained by buildingSMART. In Switzerland, Bauen digital Schweiz and the SIA push this open approach, so that the engineer is not forced to use the architect's software.</p>
+
+<h3>From model to twin: four steps</h3>
+<p>The useful distinction comes from manufacturing research (Kritzinger et al., 2018) and is about <strong>which way the data flows</strong> between the physical asset and its model. Click through the steps:</p>
+
+<div class="f-ladder" data-widget="ladder">
+  <div class="f-steps" role="group" aria-label="Maturity steps">
+    <button type="button" data-step="0" aria-pressed="true">1 · Drawings</button>
+    <button type="button" data-step="1" aria-pressed="false">2 · BIM model</button>
+    <button type="button" data-step="2" aria-pressed="false">3 · Digital shadow</button>
+    <button type="button" data-step="3" aria-pressed="false">4 · Digital twin</button>
+  </div>
+  <div class="f-panel">
+    <div>
+      <h4 data-out="title"></h4>
+      <p data-out="text"></p>
+      <p><span class="f-tag" data-tag="objects">objects</span><span class="f-tag" data-tag="in">data in</span><span class="f-tag" data-tag="out">control out</span></p>
+    </div>
+    <svg viewBox="0 0 300 150" role="img" aria-label="Data flow between asset and model">
+      <rect x="10" y="40" width="100" height="70" rx="8" fill="#e8edf3" stroke="#536a89" stroke-width="2"/>
+      <text x="60" y="80" text-anchor="middle" font-size="14" fill="#1d2733">Real asset</text>
+      <rect x="190" y="40" width="100" height="70" rx="8" fill="#e8edf3" stroke="#536a89" stroke-width="2" data-shape="model"/>
+      <text x="240" y="80" text-anchor="middle" font-size="14" fill="#1d2733" data-out="modelname">Drawing</text>
+      <g class="f-flow">
+        <line x1="115" y1="60" x2="180" y2="60" stroke="#1f8f86" data-arrow="in" marker-end="url(#fa-in)"/>
+        <line x1="185" y1="92" x2="120" y2="92" stroke="#d68d00" data-arrow="out" marker-end="url(#fa-out)"/>
+      </g>
+      <defs>
+        <marker id="fa-in" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1f8f86"/></marker>
+        <marker id="fa-out" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#d68d00"/></marker>
+      </defs>
+      <text x="150" y="50" text-anchor="middle" font-size="11" fill="#1f8f86" data-arrow="in">measurements</text>
+      <text x="150" y="112" text-anchor="middle" font-size="11" fill="#d68d00" data-arrow="out">decisions / control</text>
+    </svg>
+  </div>
+</div>
+
+<script>
+(function () {
+  var root = document.currentScript ? document.currentScript.previousElementSibling : null;
+  if (!root || root.getAttribute('data-widget') !== 'ladder') root = document.querySelector('.fplw-focus [data-widget="ladder"]');
+  if (!root) return;
+  var steps = [
+    { t: 'Drawings and 3D geometry', m: 'Drawing', s: 'Lines, surfaces, maybe a 3D model. A human has to interpret everything. Updating the real building means updating plans by hand, if at all.', objects: false, inp: false, out: false },
+    { t: 'BIM model', m: 'BIM model', s: 'Objects with properties, shared in IFC. Great for design, coordination and quantities. But after handover the model usually freezes, while the building keeps changing.', objects: true, inp: false, out: false },
+    { t: 'Digital shadow', m: 'Shadow', s: 'Sensors, scans or monitoring data update the model automatically: settlement of a slope, temperature in a slab, progress on site. The model now follows reality, but people still make every decision.', objects: true, inp: true, out: false },
+    { t: 'Digital twin', m: 'Twin', s: 'Data flows both ways: the model is updated from the asset and its simulations feed decisions or controls back, such as adjusting ventilation, triggering an inspection or changing a construction sequence.', objects: true, inp: true, out: true }
+  ];
+  var btns = root.querySelectorAll('[data-step]');
+  function show(i) {
+    var s = steps[i];
+    btns.forEach(function (b, j) { b.setAttribute('aria-pressed', j === i ? 'true' : 'false'); });
+    root.querySelector('[data-out="title"]').textContent = s.t;
+    root.querySelector('[data-out="text"]').textContent = s.s;
+    root.querySelector('[data-out="modelname"]').textContent = s.m;
+    root.querySelectorAll('[data-arrow="in"]').forEach(function (e) { e.style.opacity = s.inp ? 1 : 0.12; });
+    root.querySelectorAll('[data-arrow="out"]').forEach(function (e) { e.style.opacity = s.out ? 1 : 0.12; });
+    root.querySelector('[data-tag="objects"]').classList.toggle('on', s.objects);
+    root.querySelector('[data-tag="in"]').classList.toggle('on', s.inp);
+    root.querySelector('[data-tag="out"]').classList.toggle('on', s.out);
+  }
+  btns.forEach(function (b) { b.addEventListener('click', function () { show(+b.getAttribute('data-step')); }); });
+  show(0);
+})();
+</script>
+
+<h3>Where practice is today</h3>
+<p>Most Swiss projects that "do BIM" sit at step 2 during design, and many fall back towards step 1 at handover, when the owner receives PDFs and a model nobody maintains. Real digital shadows exist mainly where monitoring was already part of the job: tunnels, dams, slopes, bridges. That is why Hexagon buying Rocscience (see the news above) is interesting: it connects step 2 geotechnical models with step 3 monitoring data, with step 4 as the stated goal. SBB's network model is another example of an owner trying to keep one model alive for decades.</p>
+
+<figure>
+  <svg viewBox="0 0 640 130" role="img" aria-label="Asset lifecycle: where the model usually dies">
+    <g font-size="17" fill="#1d2733" text-anchor="middle">
+      <rect x="10" y="40" width="140" height="44" rx="6" fill="#536a89"/><text x="80" y="67" fill="#fff">Design</text>
+      <rect x="160" y="40" width="140" height="44" rx="6" fill="#536a89"/><text x="230" y="67" fill="#fff">Construction</text>
+      <rect x="310" y="40" width="80" height="44" rx="6" fill="#d68d00"/><text x="350" y="67" fill="#fff">Handover</text>
+      <rect x="400" y="40" width="230" height="44" rx="6" fill="#e8edf3" stroke="#536a89" stroke-dasharray="5 4"/><text x="515" y="67">Operation: 50–100 years</text>
+      <text x="155" y="114">model is used and updated</text>
+      <text x="515" y="114">model often frozen or lost</text>
+    </g>
+    <path d="M20 20 H300" stroke="#1f8f86" stroke-width="3"/><path d="M400 20 H630" stroke="#c4372f" stroke-width="3" stroke-dasharray="6 5"/>
+  </svg>
+  <figcaption>The model is richest exactly when the building does not exist yet. Most of an asset's life, and a large share of its cost, happens in the dashed box.</figcaption>
+</figure>
+
+<h3>Why it is hard</h3>
+<table>
+  <tr><th>Hurdle</th><th>What it means in practice</th></tr>
+  <tr><td>Incentives</td><td>Planners are paid for deliverables until handover. Nobody is paid to keep the model useful for operation.</td></tr>
+  <tr><td>Data ownership</td><td>Who owns, maintains and is liable for a model that keeps changing after handover?</td></tr>
+  <tr><td>Interoperability</td><td>IFC covers design well. Sensor data, maintenance systems and simulations speak other languages.</td></tr>
+  <tr><td>Skills</td><td>A twin needs people who understand both the structure and the data. Few offices have them yet.</td></tr>
+</table>
+
+<h3>What it means for us as future planners</h3>
+<p>Two practical takeaways. First, when someone says "digital twin", ask which way the data flows. If nothing flows back from the asset, it is a model, and that is fine, but it is not a twin. Second, the most valuable work in the next years is probably not drawing better models, but designing what happens to the model after handover: which data the owner needs, which sensors are worth it, and who keeps it alive. That is a planning task, and one civil engineers are well placed to take on.</p>
+<p><strong>Next in Module 1:</strong> IFC in practice: what actually survives when you export a model, and what gets lost.</p>
