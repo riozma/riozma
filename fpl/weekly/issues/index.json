@@ -1,0 +1,20 @@
+{
+  "issues": [
+    {
+      "week": "2026-43",
+      "issue": 1,
+      "date": "2026-10-19",
+      "title": "Robots get funded, geotech goes digital, concrete goes round",
+      "summary": "Investors poured money into construction robotics this week, from ICON's 3D printers to Origin's wall-finishing robot. Hexagon is buying the geotechnical software house Rocscience to connect sensors with simulation, and recycled concrete got one of the biggest circular-economy rounds of the year. Our focus this week: what BIM really is, and why it is not yet a digital twin.",
+      "focus_title": "BIM is not a digital twin (yet)",
+      "focus_concept_id": "m1-bim-vs-twin",
+      "categories": [
+        "robotics",
+        "digital",
+        "circular",
+        "swiss"
+      ],
+      "news_count": 8
+    }
+  ]
+}

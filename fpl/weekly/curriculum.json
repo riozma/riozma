@@ -1,0 +1,381 @@
+{
+  "modules": [
+    {
+      "id": "M1",
+      "title": "Foundations of digital planning",
+      "description": "What BIM, digital twins and shared data environments really are."
+    },
+    {
+      "id": "M2",
+      "title": "Data & interoperability",
+      "description": "How information moves between people, tools and companies."
+    },
+    {
+      "id": "M3",
+      "title": "AI in planning",
+      "description": "Where AI helps in research, specifications, reports and design variants, and where it does not."
+    },
+    {
+      "id": "M4",
+      "title": "Automation & robotics on site",
+      "description": "From 3D printing to autonomous machines: what changes for design and tolerances."
+    },
+    {
+      "id": "M5",
+      "title": "Circular construction",
+      "description": "Designing, documenting and reusing building parts."
+    },
+    {
+      "id": "M6",
+      "title": "Innovation & incentives",
+      "description": "Why good ideas stall in practice and how they get through."
+    }
+  ],
+  "concepts": [
+    {
+      "id": "m1-bim-vs-twin",
+      "title": "BIM is not a digital twin (yet)",
+      "module": "M1",
+      "order": 1,
+      "prerequisites": [],
+      "status": "published",
+      "issue": "2026-43"
+    },
+    {
+      "id": "m1-ifc",
+      "title": "IFC in practice: what survives an export",
+      "module": "M1",
+      "order": 2,
+      "prerequisites": [
+        "m1-bim-vs-twin"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m1-cde",
+      "title": "Common Data Environment (CDE)",
+      "module": "M1",
+      "order": 3,
+      "prerequisites": [
+        "m1-bim-vs-twin"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m1-lod",
+      "title": "LOD, LOI and LOIN: how detailed is detailed enough",
+      "module": "M1",
+      "order": 4,
+      "prerequisites": [
+        "m1-ifc"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m1-openbim",
+      "title": "openBIM vs closed BIM",
+      "module": "M1",
+      "order": 5,
+      "prerequisites": [
+        "m1-ifc"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m2-formats",
+      "title": "Data formats beyond IFC: BCF, CityGML, point clouds",
+      "module": "M2",
+      "order": 1,
+      "prerequisites": [
+        "m1-ifc"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m2-checking",
+      "title": "Model checking and clash detection",
+      "module": "M2",
+      "order": 2,
+      "prerequisites": [
+        "m1-lod"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m2-standards",
+      "title": "Common standards: SIA 2051, ISO 19650, KBOB",
+      "module": "M2",
+      "order": 3,
+      "prerequisites": [
+        "m1-cde"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m2-geo",
+      "title": "Geodata and BIM: where the model meets the map",
+      "module": "M2",
+      "order": 4,
+      "prerequisites": [
+        "m2-formats"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m2-quality",
+      "title": "Data quality: garbage in, garbage out",
+      "module": "M2",
+      "order": 5,
+      "prerequisites": [
+        "m2-checking"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m3-llm",
+      "title": "How large language models work, in plain terms",
+      "module": "M3",
+      "order": 1,
+      "prerequisites": [],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m3-research",
+      "title": "AI for standards and literature research",
+      "module": "M3",
+      "order": 2,
+      "prerequisites": [
+        "m3-llm"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m3-specs",
+      "title": "AI for specifications (Leistungsverzeichnis) and reports",
+      "module": "M3",
+      "order": 3,
+      "prerequisites": [
+        "m3-llm"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m3-generative",
+      "title": "Generative design and variant studies",
+      "module": "M3",
+      "order": 4,
+      "prerequisites": [
+        "m3-llm",
+        "m2-checking"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m3-verify",
+      "title": "Evaluating AI output: verification and liability",
+      "module": "M3",
+      "order": 5,
+      "prerequisites": [
+        "m3-research"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m3-tools",
+      "title": "Writing your own planning tools with AI",
+      "module": "M3",
+      "order": 6,
+      "prerequisites": [
+        "m3-llm"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m4-printing",
+      "title": "3D printing in construction",
+      "module": "M4",
+      "order": 1,
+      "prerequisites": [],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m4-robots",
+      "title": "Robots on the building site",
+      "module": "M4",
+      "order": 2,
+      "prerequisites": [
+        "m4-printing"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m4-capture",
+      "title": "Scanning, drones and as-built capture",
+      "module": "M4",
+      "order": 3,
+      "prerequisites": [],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m4-prefab",
+      "title": "Prefabrication and industrialized construction",
+      "module": "M4",
+      "order": 4,
+      "prerequisites": [
+        "m4-robots"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m4-dfm",
+      "title": "Designing for the machine: tolerances and instructions",
+      "module": "M4",
+      "order": 5,
+      "prerequisites": [
+        "m4-printing",
+        "m4-prefab"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m5-basics",
+      "title": "Circular construction: the basic idea",
+      "module": "M5",
+      "order": 1,
+      "prerequisites": [],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m5-dfd",
+      "title": "Design for disassembly",
+      "module": "M5",
+      "order": 2,
+      "prerequisites": [
+        "m5-basics"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m5-passports",
+      "title": "Material passports and digital product data",
+      "module": "M5",
+      "order": 3,
+      "prerequisites": [
+        "m5-basics",
+        "m2-formats"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m5-reuse",
+      "title": "Reuse of building parts: logistics, trust and guarantees",
+      "module": "M5",
+      "order": 4,
+      "prerequisites": [
+        "m5-dfd"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m5-concrete",
+      "title": "Low-carbon concrete and recycled aggregates",
+      "module": "M5",
+      "order": 5,
+      "prerequisites": [
+        "m5-basics"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m5-stock",
+      "title": "Working with the existing building stock",
+      "module": "M5",
+      "order": 6,
+      "prerequisites": [
+        "m5-reuse",
+        "m4-capture"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m6-incentives",
+      "title": "Why innovation stalls: incentives in the building chain",
+      "module": "M6",
+      "order": 1,
+      "prerequisites": [],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m6-fees",
+      "title": "Fee models and what they reward",
+      "module": "M6",
+      "order": 2,
+      "prerequisites": [
+        "m6-incentives"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m6-diffusion",
+      "title": "How innovation reaches practice",
+      "module": "M6",
+      "order": 3,
+      "prerequisites": [
+        "m6-incentives"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m6-pilots",
+      "title": "Pilot projects, testing and the fear of failure",
+      "module": "M6",
+      "order": 4,
+      "prerequisites": [
+        "m6-diffusion"
+      ],
+      "status": "planned",
+      "issue": null
+    },
+    {
+      "id": "m6-skills",
+      "title": "Skills for tomorrow's engineers",
+      "module": "M6",
+      "order": 5,
+      "prerequisites": [
+        "m6-diffusion",
+        "m3-llm"
+      ],
+      "status": "planned",
+      "issue": null
+    }
+  ]
+}

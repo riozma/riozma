@@ -1,0 +1,59 @@
+# FPL Weekly: baut nach jedem Push einer Ausgabe die generierten Dateien (Seite, Bilder, Übersicht, RSS, Sitemap)
+# und committet sie auf main. Details in fpl/weekly/README.md.
+name: FPL Weekly build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "fpl/weekly/issues/**"
+      - "fpl/weekly/curriculum.json"
+      - "fpl/weekly/issue.schema.json"
+      - "scripts/fpl-weekly-build.mjs"
+  workflow_dispatch:
+
+# Läufe nacheinander, nie parallel (zwei Ausgaben-Pushes in kurzer Folge)
+concurrency:
+  group: fpl-weekly
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+
+jobs:
+  build:
+    # Der Bot-Commit löst über GITHUB_TOKEN ohnehin keinen neuen Lauf aus; die Bedingung ist ein zweiter Riegel gegen Schleifen.
+    if: github.actor != 'fpl-weekly-bot' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build FPL Weekly
+        run: node scripts/fpl-weekly-build.mjs
+
+      - name: Commit generated files
+        run: |
+          git config user.name "fpl-weekly-bot"
+          git config user.email "fpl-weekly-bot@users.noreply.github.com"
+          git add -A fpl/weekly sitemap.xml
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+          git commit -m "FPL Weekly: generated files [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      # Pushes mit dem GITHUB_TOKEN lösen den Pages-Build nicht zuverlässig aus, deshalb ausdrücklich anstossen.
+      - name: Trigger GitHub Pages build
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds"
