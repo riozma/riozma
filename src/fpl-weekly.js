@@ -493,8 +493,8 @@
     if (n.source_type && SOURCE_LABELS[n.source_type]) info2.append(el("span", "fplw-stype " + n.source_type, SOURCE_LABELS[n.source_type]));
     body.append(info2);
     if (n.background) {
-      const bg = el("div", "fplw-bg");
-      bg.append(el("strong", "", "Background"), el("p", "", n.background));
+      const bg = el("details", "fplw-bg");
+      bg.append(el("summary", "", "Background: what you need to know"), el("p", "", n.background));
       body.append(bg);
     }
     body.append(paragraphs(n.body));

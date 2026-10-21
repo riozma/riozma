@@ -241,3 +241,11 @@ footer.fplw-foot a { color: var(--orange); }
 .fplw-focuslink-t small { font-size: .66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--orange); }
 .fplw-focuslink-t strong { font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fplw-focuslink-go { margin-left: auto; color: var(--orange); font-size: 1.1rem; }
+
+/* Background je Beitrag: eingeklappt, per Tipp ausklappbar */
+details.fplw-bg { padding: 0; }
+details.fplw-bg summary { cursor: pointer; list-style: none; padding: 9px 14px; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #7a8797; display: flex; justify-content: space-between; align-items: center; }
+details.fplw-bg summary::-webkit-details-marker { display: none; }
+details.fplw-bg summary::after { content: ""; width: 8px; height: 8px; border-right: 2px solid #aab4c1; border-bottom: 2px solid #aab4c1; transform: rotate(45deg) translate(-2px, -2px); transition: transform .2s; }
+details.fplw-bg[open] summary::after { transform: rotate(225deg) translate(-2px, -2px); }
+details.fplw-bg p { padding: 0 14px 12px; }
