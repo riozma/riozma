@@ -249,3 +249,7 @@ details.fplw-bg summary::-webkit-details-marker { display: none; }
 details.fplw-bg summary::after { content: ""; width: 8px; height: 8px; border-right: 2px solid #aab4c1; border-bottom: 2px solid #aab4c1; transform: rotate(45deg) translate(-2px, -2px); transition: transform .2s; }
 details.fplw-bg[open] summary::after { transform: rotate(225deg) translate(-2px, -2px); }
 details.fplw-bg p { padding: 0 14px 12px; }
+
+html { scroll-behavior: smooth; }
+#focus { scroll-margin-top: 8px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

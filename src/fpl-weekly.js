@@ -728,6 +728,14 @@
     const flText = el("span", "fplw-focuslink-t");
     flText.append(el("small", "", "Focus of the week"), el("strong", "", issue.focus.title));
     fl.append(flText, el("span", "fplw-focuslink-go", "↓"));
+    fl.addEventListener("click", (e) => {
+      const t = document.getElementById("focus");
+      if (!t) return;
+      e.preventDefault();
+      const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      t.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "start" });
+      try { history.replaceState(null, "", "#focus"); } catch (err) { /* ignorieren */ }
+    });
     head.append(fl);
     head.append(el("p", "fplw-muted", "Covers " + fmtDate(issue.covers.from) + " – " + fmtDate(issue.covers.to)));
     const actions = el("div", "fplw-actions");
