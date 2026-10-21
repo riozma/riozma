@@ -140,3 +140,10 @@ dialog button:disabled { opacity: .5; }
 .weekly-text span { color: #3b4857; font-size: .95rem; line-height: 1.5; }
 .weekly-go { margin-left: auto; font-size: 1.8rem; color: var(--orange); }
 .weekly-all { display: inline-block; margin-top: 10px; font-size: .9rem; color: var(--blue-dark); }
+
+/* Trailer-Steuerung (Pause, Ton, Schliessen) */
+.slit-ctrl { position: absolute; left: 16px; bottom: 14px; z-index: 3; display: flex; gap: 8px; opacity: 0; pointer-events: none; transition: opacity .3s; }
+.slit.open .slit-ctrl { opacity: 1; pointer-events: auto; }
+.slit-ctrl button { width: 38px; height: 38px; padding: 0; display: grid; place-items: center; border: 1.5px solid rgba(255, 255, 255, .55); border-radius: 50%; background: rgba(11, 23, 48, .62); color: #fff; font-size: .8rem; line-height: 1; cursor: pointer; backdrop-filter: blur(4px); }
+.slit-ctrl button:hover { background: var(--orange); border-color: var(--orange); color: var(--blue-dark); }
+.slit-ctrl button:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }

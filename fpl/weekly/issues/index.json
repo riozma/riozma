@@ -8,6 +8,7 @@
       "summary": "Construction robotics drew big money this week: ICON's multi-storey 3D printer, Origin's wall-finishing robot and All3's legged site robots. Hexagon is buying the geotechnical software maker Rocscience to feed live sensor data into engineering models, a Dutch start-up got €100M to recycle demolition concrete into new concrete, and a new EU project wants reclaimed building parts to get a 'beautiful' second life. Our focus: what BIM really is, and why it is not yet a digital twin.",
       "focus_title": "BIM is not a digital twin (yet)",
       "focus_concept_id": "m1-bim-vs-twin",
+      "focus_kind": "concept",
       "categories": [
         "robotics",
         "digital",

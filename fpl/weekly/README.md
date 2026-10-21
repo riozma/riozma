@@ -41,11 +41,15 @@ nur für die Nische Digitalisierung, KI, Automatisierung und Kreislaufwirtschaft
    `more_sources` verlinken. Zahlen mit zwei Quellen abgleichen oder als Angabe des Unternehmens kennzeichnen («company claims»).
    Datum prüfen (liegt es im Zeitraum?), Links öffnen, gesponserte Inhalte als `branded` kennzeichnen. Nichts erfinden, nichts
    übernehmen, was nicht gelesen wurde.
-4. **Einordnen und erklären.** Die Leser kennen kleine oder internationale Firmen nicht. Jeder Beitrag bekommt:
+4. **Einordnen und erklären.** Die Leser kennen kleine oder internationale Firmen nicht und sind keine Spezialisten in genau dieser Nische. Jeder Beitrag bekommt:
    einen Titel, der sagt, wer das ist (nicht «Origin raises $20M», sondern «Origin, a US start-up founded in 2025, launches a
-   wall-finishing robot with $20M»); ein Feld `background`, das die Firma, den Begriff oder das Konzept erklärt (was ist ein
-   Series-D-Investment, was ist Kalibrierung, was ist Topologie); einen Absatz «Why it matters» für Bauingenieur*innen.
+   wall-finishing robot with $20M»); ein Feld `background`; einen Absatz «Why it matters» für Bauingenieur*innen.
    Sachlich schreiben, keine Schlagworte («Revolution»), Behauptung und Tatsache trennen.
+   **Das `background` ist konkret zum Artikel, nicht allgemein.** Es beantwortet, was jemand ohne Nischenwissen zum Verständnis dieses Beitrags braucht:
+   bei einer kleinen oder fremden Firma, was sie macht und wie sie vorgeht (ihr Lösungsansatz, ihre Produkte, ihre Technik, ihre Kunden und Referenzprojekte);
+   bei einer Behörde, Norm oder Plattform, wie die Sache bisher gehandhabt wurde und was sich ändert (Beispiel SBB: wie die Infrastrukturdaten bisher in mehreren Systemen lagen
+   und was ITOP anders macht); bei einem Fachbegriff, was er in genau diesem Fall bedeutet. Nur Belegtes aus den gelesenen Quellen verwenden. Eine Definition aus dem Lexikon
+   («Ein Series-D-Investment ist …») genügt nicht, sie darf höchstens ein Halbsatz sein. 3 bis 6 Sätze.
 5. **Mischung.** Etwa zwei Drittel «was gibt es, was passiert» (Markt, Produkte, Projekte, Forschung) und ein Drittel «wie funktioniert
    das, was ist das Konzept» (`background`, mindestens zwei Beiträge, die vor allem wegen des Konzepts gewählt wurden, dazu das
    Fokus-Thema). Höchstens zwei reine Finanzierungsmeldungen je Ausgabe.
@@ -102,8 +106,12 @@ Der Ablauf ist so gebaut, dass ein zweiter Lauf in derselben Woche nichts doppel
    - `covers.from` ist der Tag nach `covers.to` der letzten Ausgabe, `covers.to` der Sonntag vor dem Montag.
    - `node scripts/fpl-weekly-insights.mjs` ausführen und dem Plan folgen (siehe «Algorithmus»): Plätze, Entdecken-Plätze, Regionen, Quellenregeln, Fokus-Kandidaten.
      Ist die Abfrage nicht erreichbar, läuft der Plan im Kaltstart-Modus weiter.
-5. **Fokus-Thema wählen.** Aus den Fokus-Kandidaten des Plans (sie stammen aus `curriculum.json`: `status: "planned"`, alle `prerequisites` veröffentlicht)
-   das beste wählen. Nie ein Konzept wiederholen, das `published` ist.
+5. **Fokus-Thema wählen.** Normalfall: aus den Fokus-Kandidaten des Plans (sie stammen aus `curriculum.json`: `status: "planned"`, alle `prerequisites` veröffentlicht)
+   das beste wählen (`focus.kind: "concept"`, `concept_id` setzen). Nie ein Konzept wiederholen, das `published` ist.
+   **Ausnahme «Breaking»:** Ist in der Woche etwas Grundlegendes oder Bahnbrechendes geschehen (z. B. eine neue Norm oder Verordnung, ein Forschungsdurchbruch,
+   eine Übernahme oder Technologie, die ein Feld verändert), darf der Fokus dieses Ereignis erklären: `focus.kind: "breaking"`, ohne `concept_id`, mit Einordnung
+   (was ist passiert, was war vorher, was ändert sich, was bedeutet es für Bauleute). Die beiden Arten wechseln sich ab: nie zwei «Breaking»-Fokusse hintereinander,
+   und nur, wenn das Ereignis wirklich grundlegend ist, nicht für eine normale Finanzierungsmeldung. Das Konzept, das zurückgestellt wird, bleibt `planned` und kommt in einer späteren Woche.
 6. **Redaktionsablauf durchlaufen** (siehe «Leitbild»): recherchieren, bis zur Originalquelle gehen, prüfen, einordnen, `background` schreiben, gegenlesen.
    6 bis 8 News, mindestens drei Rubriken, Texte auf Englisch. Bei `image_url: null` holt der Build das Vorschaubild selbst.
 7. **Dateien anlegen:** `issues/<YYYY-WW>/issue.json` und `issues/<YYYY-WW>/focus.html`
@@ -138,10 +146,10 @@ Das Schema steht in `issue.schema.json` und wird vom Build geprüft. Beispiel: `
 - `news[]`, in redaktioneller Reihenfolge (wichtigstes zuerst):
   - `id` (nur `a-z`, `0-9`, `-`, höchstens 60 Zeichen, einmalig in der Ausgabe), `category` (`digital`, `robotics`, `circular`, `swiss`, `market`)
   - `title` (selbsterklärend), `body` (höchstens zwei Absätze mit Leerzeile, der zweite beginnt mit «Why it matters»)
-  - `background` (erklärt Firma, Begriff oder Konzept für Bachelor-Niveau), `region` (`CH`, `EU`, `UK`, `US`, `Asia`, `Global`), `topics` (1 bis 4 Tags in Kleinbuchstaben)
+  - `background` (konkret zum Artikel: was die Firma macht und wie sie vorgeht, wie es bisher gehandhabt wurde; 3 bis 6 Sätze), `region` (`CH`, `EU`, `UK`, `US`, `Asia`, `Global`), `topics` (1 bis 4 Tags in Kleinbuchstaben)
   - `source_type` (`primary` Urheber oder wortgetreuer Abdruck der Medienmitteilung, `trade` Fachpresse, `general` Allgemeinpresse, `branded` gesponsert), `source_name`, `source_url`, `more_sources[]`
   - `published_at`, `image_url` (`null` = Build holt `og:image`), `image_credit`
-- `focus`: `title`, `subtitle`, `concept_id` (aus `curriculum.json`), `file` (`focus.html`), `glossary[]`, `further_reading[]`.
+- `focus`: `title`, `subtitle`, `kind` (`concept` oder `breaking`), `concept_id` (aus `curriculum.json`, nur bei `concept`), `file` (`focus.html`), `glossary[]`, `further_reading[]`.
 - `question`: `text` und 2 bis 10 `options` (Umfrage).
 - `whatsapp_teaser`: fertiger WhatsApp-Text, endet mit der Ausgaben-URL.
 
@@ -170,6 +178,17 @@ nur aus diesem Repo und gilt als vertrauenswürdig. Konventionen:
 `prerequisites[]`, `status` = `planned` oder `published`, `issue`). Die Konzepte folgen den fünf Leitfragen des
 Kick-offs (Innovation in die Praxis, KI-Use-Cases, Hürden, Trends, Skills von morgen). Neue Konzepte dürfen jederzeit
 ergänzt werden, `id` nach dem Muster `m<Modul>-<kurzer-name>`.
+
+## Sicherheit
+
+- **Wer kann Inhalte veröffentlichen?** Nur, wer in das GitHub-Repo `riozma/riozma` pushen darf (Manuel und die geplante Aufgabe mit seinen Zugangsdaten). Die Website ist statisch, es gibt keinen Weg für Besucher, Ausgaben, Dateien oder Code zu ändern.
+- **Was können Besucher in Supabase?** Nur die RPCs `fplw_*`: Reaktionen, Kommentare, Umfrage, Zähler und eigene Kommentare ändern. Alle Tabellen sind per RLS gesperrt, alle Eingaben werden geprüft (Länge, Form, Ratenlimit).
+  Admin ist nur ein Konto mit bestätigter E-Mail `manuelzeltner@gmail.com` (`fpl_is_admin()`).
+- **Kommentare** werden immer als Text angezeigt, nie als HTML.
+- **Schutz vor eingeschleustem Code** (die Wochenaufgabe liest offene Webseiten und veröffentlicht direkt): Der Build lehnt eine `focus.html` ab, die Daten senden, umleiten oder nachladen könnte
+  (`fetch`, `XMLHttpRequest`, `WebSocket`, `sendBeacon`, `document.cookie`, Speicher, `location`, `eval`, Inline-Handler, iframes, Formulare, fremde Skriptquellen). Die Seite wird dann nicht erzeugt.
+  Zusätzlich erlaubt die Content-Security-Policy der Ausgabeseiten Verbindungen nur zum eigenen Server und zu Supabase, keine Frames, keine Plugins.
+- **Was bleibt Restrisiko:** Wer Push-Zugriff auf `main` oder das Google-Konto des Admins übernimmt, kann veröffentlichen. Deshalb Zwei-Faktor-Anmeldung für GitHub und Google. Anonyme Zähler und Kommentare lassen sich mit vielen Browser-Tokens beeinflussen oder zumüllen (Ratenlimit pro Token, kein Schutz gegen gezielten Missbrauch).
 
 ## Lokal bauen und testen
 

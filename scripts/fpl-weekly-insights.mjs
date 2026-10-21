@@ -41,6 +41,8 @@ const RULES = [
   "At least 1 Swiss item (if there is one worth reading) and at least 2 items from outside Europe/Switzerland per issue.",
   "Every item gets a 'background' box: assume the reader does not know the small or international company.",
   "The explore share is never below 25 percent of the slots, whatever the numbers say.",
+  "Background is specific to the article: what the (small) company does and how it works, or how the thing was handled so far; never a generic definition.",
+  "Focus: normally the best curriculum candidate; if something fundamental happened this week, a 'breaking' focus (no concept_id) may replace it, never twice in a row.",
 ];
 
 const readJson = async (p) => JSON.parse(await readFile(p, "utf8"));

@@ -129,8 +129,8 @@
           "background": {
             "type": "string",
             "minLength": 40,
-            "maxLength": 700,
-            "description": "Explains the unfamiliar company, term or concept for a civil-engineering Bachelor graduate (what is it, why does it exist). Shown first when the item is expanded."
+            "maxLength": 1000,
+            "description": "Explains what THIS item needs as prior knowledge, specific to the article: what the (small or foreign) company does and its approach or solution, how things were handled so far, the technical idea. Not a generic definition. Aimed at a Bachelor graduate who is not a specialist in this niche."
           },
           "region": {
             "type": "string",
@@ -217,7 +217,6 @@
       "required": [
         "title",
         "subtitle",
-        "concept_id",
         "file"
       ],
       "properties": {
@@ -232,7 +231,7 @@
         "concept_id": {
           "type": "string",
           "pattern": "^m[0-9]-[a-z0-9-]+$",
-          "description": "Id from curriculum.json."
+          "description": "Id from curriculum.json for a curriculum focus. Omit it for a 'breaking' focus about a fundamental event."
         },
         "file": {
           "type": "string",
@@ -278,6 +277,14 @@
               }
             }
           }
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "concept",
+            "breaking"
+          ],
+          "description": "concept (default) = next topic of the learning path; breaking = the week had a fundamental, groundbreaking development and the focus explains it."
         }
       }
     },

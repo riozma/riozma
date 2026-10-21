@@ -124,7 +124,42 @@ async function buildImages(dir, issue) {
   return next;
 }
 
+/* ---------- Sicherheitsprüfung für focus.html ---------- */
+// focus.html darf eigenes CSS und JS enthalten (Widgets). Weil die Aufgabe Inhalte aus dem offenen Web verarbeitet und
+// direkt veröffentlicht, wird hier alles abgelehnt, was Daten abgreifen, umleiten oder nachladen könnte.
+const ALLOWED_SCRIPT_HOSTS = ["cdnjs.cloudflare.com", "cdn.jsdelivr.net"];
+const FORBIDDEN_JS = [
+  [/\bfetch\s*\(/, "fetch()"], [/XMLHttpRequest/, "XMLHttpRequest"], [/WebSocket/, "WebSocket"], [/sendBeacon/, "sendBeacon"], [/EventSource/, "EventSource"],
+  [/document\s*\.\s*cookie/, "document.cookie"], [/localStorage|sessionStorage|indexedDB/, "browser storage"],
+  [/\beval\s*\(/, "eval()"], [/new\s+Function\b/, "new Function"], [/\bimport\s*\(/, "dynamic import"], [/importScripts/, "importScripts"],
+  [/window\s*\.\s*open|document\s*\.\s*write/, "window.open / document.write"],
+  [/\blocation\s*(\.|=)/, "location"], [/\b(top|parent)\s*\./, "top/parent"], [/postMessage/, "postMessage"],
+  [/supabase|getSupabase/i, "supabase"],
+];
+
+function lintFocus(html, where) {
+  const bad = (msg) => fail(`${where}: focus.html is not allowed to contain ${msg}`);
+  if (/<(iframe|object|embed|form|base|meta|link|frame)\b/i.test(html)) bad("iframe, object, embed, form, base, meta or link tags");
+  if (/\son[a-z]+\s*=/i.test(html)) bad("inline event handlers (use addEventListener)");
+  if (/javascript:|srcdoc\s*=/i.test(html)) bad("javascript: URLs or srcdoc");
+  if (/@import/i.test(html)) bad("CSS @import");
+  for (const m of html.matchAll(/<script\b([^>]*)>/gi)) {
+    const src = m[1].match(/\ssrc\s*=\s*["']?([^"'\s>]+)/i);
+    if (src) {
+      let host = "";
+      try { host = new URL(src[1]).hostname; } catch { /* relativ oder ungültig */ }
+      if (!ALLOWED_SCRIPT_HOSTS.includes(host)) bad(`a script from "${src[1]}" (only cdnjs.cloudflare.com and cdn.jsdelivr.net)`);
+    }
+  }
+  for (const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
+    for (const [re, name] of FORBIDDEN_JS) if (re.test(m[1])) bad(name);
+  }
+}
+
 /* ---------- Seiten ---------- */
+
+// Content-Security-Policy: Selbst wenn jemand Schadcode einschleust, darf die Seite Daten nur an den eigenen Server und Supabase senden.
+const CSP = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; media-src 'self'; connect-src 'self' https://lwxwcogvkhixfsfvkcvz.supabase.co; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'";
 
 function issuePage(issue, images) {
   const url = `${SITE}/fpl/weekly/${issue.week}/`;
@@ -137,6 +172,7 @@ function issuePage(issue, images) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="${CSP}">
   <script src="/src/site-init.js"></script>
   <title>${esc(title)}</title>
   <link rel="icon" href="/src/img/fpl-mark.svg" type="image/svg+xml">
@@ -241,7 +277,9 @@ async function main() {
       if (ids.has(n.id)) fail(`${where}: duplicate news id "${n.id}"`);
       ids.add(n.id);
     }
-    if (!conceptIds.has(issue.focus.concept_id)) warn(`${where}: concept_id ${issue.focus.concept_id} is not in curriculum.json`);
+    if (issue.focus.concept_id && !conceptIds.has(issue.focus.concept_id)) warn(`${where}: concept_id ${issue.focus.concept_id} is not in curriculum.json`);
+    if (issue.focus.kind === "breaking" && issue.focus.concept_id) warn(`${where}: a breaking focus normally has no concept_id`);
+    if (await exists(path.join(dir, issue.focus.file))) lintFocus(await readFile(path.join(dir, issue.focus.file), "utf8"), where);
     loaded.push({ week, dir, issue });
   }
 
@@ -271,7 +309,8 @@ async function main() {
       title: issue.title,
       summary: issue.summary,
       focus_title: issue.focus.title,
-      focus_concept_id: issue.focus.concept_id,
+      focus_concept_id: issue.focus.concept_id || null,
+      focus_kind: issue.focus.kind || "concept",
       categories: [...new Set(issue.news.map((n) => n.category))],
       news_count: issue.news.length,
     });
