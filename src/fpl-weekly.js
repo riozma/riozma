@@ -480,19 +480,18 @@
     fig.append(img);
 
     const txt = el("div", "fplw-sumtxt");
-    const meta = el("div", "fplw-meta");
-    meta.append(el("span", "fplw-tag " + n.category, CATS[n.category] || n.category));
-    if (n.region) meta.append(el("span", "fplw-region", n.region));
-    if (flags && flags.popular) meta.append(el("span", "fplw-pop", "Most read"));
-    meta.append(el("span", "fplw-muted", fmtDate(n.published_at)));
-    const srcLine = el("div", "fplw-srcline");
-    srcLine.append(n.source_name);
-    if (n.source_type && SOURCE_LABELS[n.source_type]) srcLine.append(el("span", "fplw-stype " + n.source_type, SOURCE_LABELS[n.source_type]));
-    txt.append(meta, el("h3", "", n.title), srcLine);
+    const tags = el("div", "fplw-tags");
+    tags.append(el("span", "", [n.region, CATS[n.category] || n.category].filter(Boolean).join(" · ")));
+    if (flags && flags.popular) tags.append(el("span", "fplw-pop", "Most read"));
+    txt.append(el("h3", "", n.title), tags);
     sum.append(fig, txt, el("span", "fplw-chev"));
     d.append(sum);
 
     const body = el("div", "fplw-more-body");
+    const info2 = el("p", "fplw-info");
+    info2.append(fmtDate(n.published_at) + " · " + n.source_name);
+    if (n.source_type && SOURCE_LABELS[n.source_type]) info2.append(el("span", "fplw-stype " + n.source_type, SOURCE_LABELS[n.source_type]));
+    body.append(info2);
     if (n.background) {
       const bg = el("div", "fplw-bg");
       bg.append(el("strong", "", "Background"), el("p", "", n.background));
@@ -573,24 +572,25 @@
   }
 
   function provenance(issue) {
-    const box = el("aside", "fplw-prov");
-    box.append(el("p", "fplw-prov-main", "This issue was researched and written by AI (Claude) as part of an automated weekly task. Every item links to its original source."));
-    box.append(el("p", "fplw-muted", issue.generated.method + " Created " + fmtDate(issue.generated.created_at) + "."));
+    const box = el("details", "fplw-prov");
+    box.open = !!S.provOpen;
+    box.addEventListener("toggle", () => (S.provOpen = box.open));
+    const sum = el("summary", "", "AI disclaimer");
+    box.append(sum);
+    const inner = el("div", "fplw-prov-in");
+    inner.append(el("p", "fplw-prov-main", "This issue was researched and written by AI (Claude) as part of an automated weekly task. Every item links to its original source."));
+    inner.append(el("p", "fplw-muted", issue.generated.method + " Created " + fmtDate(issue.generated.created_at) + "."));
     const row = el("div", "fplw-prov-row");
     const status = el("span");
-    const paint = () => {
-      status.replaceChildren(badge(S.summary));
-      const m = S.summary && S.summary.moderation;
-      if (m && m.note) status.append(el("span", "fplw-muted", "  " + m.note));
-    };
-    paint();
+    status.replaceChildren(badge(S.summary));
+    const mod = S.summary && S.summary.moderation;
+    if (mod && mod.note) status.append(el("span", "fplw-muted", "  " + mod.note));
     row.append(status);
     if (S.isAdmin) {
-      const m = S.summary && S.summary.moderation;
-      const btn = el("button", "fplw-btn small", m ? "Undo" : "Mark as checked");
+      const btn = el("button", "fplw-btn small", mod ? "Undo" : "Mark as checked");
       btn.type = "button";
       btn.addEventListener("click", async () => {
-        if (m) {
+        if (mod) {
           await rpc("fplw_set_checked", { p_issue: S.week, p_checked: false, p_note: null });
         } else {
           const note = prompt("Optional note for readers (leave empty for none):", "");
@@ -602,7 +602,8 @@
       });
       row.append(btn);
     }
-    box.append(row);
+    inner.append(row);
+    box.append(inner);
     return box;
   }
 
@@ -722,6 +723,12 @@
     const head = el("header", "fplw-head");
     head.append(el("p", "fplw-eyebrow", "FPL Weekly #" + issue.issue + " · Week " + weekNo(issue.week) + " · " + fmtDate(issue.date)));
     head.append(el("h1", "", issue.title), el("p", "fplw-lead", issue.summary));
+    const fl = el("a", "fplw-focuslink");
+    fl.href = "#focus";
+    const flText = el("span", "fplw-focuslink-t");
+    flText.append(el("small", "", "Focus of the week"), el("strong", "", issue.focus.title));
+    fl.append(flText, el("span", "fplw-focuslink-go", "↓"));
+    head.append(fl);
     head.append(el("p", "fplw-muted", "Covers " + fmtDate(issue.covers.from) + " – " + fmtDate(issue.covers.to)));
     const actions = el("div", "fplw-actions");
     actions.append(reactionBar("issue"), shareButton(issue, "Share"));
