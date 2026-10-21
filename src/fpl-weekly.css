@@ -253,3 +253,7 @@ details.fplw-bg p { padding: 0 14px 12px; }
 html { scroll-behavior: smooth; }
 #focus { scroll-margin-top: 8px; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+.fplw-btnrow { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+#fplw-dlg button.fplw-ai { display: block; width: 100%; text-align: left; margin: 0 0 8px; padding: 12px 16px; border-radius: 10px; background: var(--white); color: var(--ink); border: 1.5px solid var(--line); font-size: 1rem; }
+#fplw-dlg button.fplw-ai:hover { border-color: var(--orange); background: #fffaf0; }

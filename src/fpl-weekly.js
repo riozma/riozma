@@ -459,6 +459,43 @@
     rpc("fplw_track", { p_issue: S.week, p_target: target, p_kind: kind, p_token: token() }).then(() => {}, () => {});
   }
 
+  // «Ask AI»: Dialog mit Claude, ChatGPT und Gemini. Der Prompt enthält den Link zum Originalartikel.
+  function askAiPrompt(n) {
+    return (
+      "Please read this article and summarize it for me: " + n.source_url + "\n\n" +
+      "Title: " + n.title + "\n\n" +
+      "After the summary, stay open for my questions about it. Please explain companies, terms and concepts I might not know " +
+      "(I have Bachelor-level knowledge in civil engineering), and tell me if you cannot open the link."
+    );
+  }
+
+  function askAiDialog(n) {
+    const prompt = askAiPrompt(n);
+    const q = encodeURIComponent(prompt);
+    const providers = [
+      { name: "Claude", url: "https://claude.ai/new?q=" + q, copy: false },
+      { name: "ChatGPT", url: "https://chatgpt.com/?q=" + q, copy: false },
+      // Gemini kennt keinen Link mit vorbereitetem Prompt: Prompt wird kopiert, dort nur einfügen.
+      { name: "Gemini", url: "https://gemini.google.com/app", copy: true },
+    ];
+    dialog("Ask an AI about this article", (form) => {
+      form.append(el("p", "fplw-dlg-note", "Opens the chatbot with a ready-made prompt: summarize this article and answer your questions about it."));
+      providers.forEach((p) => {
+        const b = el("button", "fplw-ai", p.name + (p.copy ? " (prompt is copied, paste it)" : ""));
+        b.type = "button";
+        b.addEventListener("click", () => {
+          window.open(p.url, "_blank", "noopener");
+          if (p.copy) copyText(prompt);
+          document.getElementById("fplw-dlg").close();
+        });
+        form.append(b);
+      });
+      return {};
+    }, async () => null, "Close");
+    const ok = document.querySelector("#fplw-dlg button[type=submit]");
+    if (ok) ok.remove();
+  }
+
   function newsItem(n, images, flags) {
     const target = "news:" + n.id;
     const d = el("details", "fplw-item");
@@ -503,7 +540,12 @@
     src.target = "_blank";
     src.rel = "noopener noreferrer";
     ["click", "auxclick"].forEach((ev) => src.addEventListener(ev, () => track(target, "click")));
-    body.append(src);
+    const ask = el("button", "fplw-btn ghost", "Ask AI about this article");
+    ask.type = "button";
+    ask.addEventListener("click", () => askAiDialog(n));
+    const btnRow = el("div", "fplw-btnrow");
+    btnRow.append(src, ask);
+    body.append(btnRow);
     if (n.more_sources && n.more_sources.length) {
       const more = el("p", "fplw-more", "More: ");
       n.more_sources.forEach((m, i) => {
