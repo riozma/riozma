@@ -4,9 +4,9 @@
 //
 //   node scripts/stammbaum-build.mjs "<pfad>/datei.ged" [--root=@I194@]
 //
-// Datenschutz: Personen ohne Todesdatum, die ab 1925 geboren sind (oder deren Geburtsjahr
-// unbekannt ist und die Kinder ab 1925 haben), gelten als lebend. Von ihnen bleiben nur
-// Name und Geschlecht erhalten; Daten, Orte, Beruf, Religion, Notizen und Fotos fallen weg.
+// Personen ohne Todesdatum, die ab 1925 geboren sind (oder deren Geburtsjahr unbekannt ist und
+// die Kinder ab 1925 haben), gelten als lebend (Feld "l"). Die Daten liegen nur hinter Login und
+// Freigabe in Supabase; mit --anonymize-living bleiben von Lebenden nur Name und Geschlecht erhalten.
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
@@ -16,6 +16,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.join(ROOT, "stammbaum/data.json");
 const LIVING_FROM = 1925;
 const [input] = process.argv.slice(2).filter((a) => !a.startsWith("--"));
+const ANON = process.argv.includes("--anonymize-living");
 const rootArg = (process.argv.find((a) => a.startsWith("--root=")) || "").slice(7) || "@I194@";
 if (!input) {
   console.error("Aufruf: node scripts/stammbaum-build.mjs <datei.ged> [--root=@I194@]");
@@ -127,7 +128,7 @@ const persons = ids.map((id) => {
   if (fs.length) o.fs = fs;
   if (p.living) {
     o.l = 1;
-    return o;
+    if (ANON) return o;
   }
   if (p.title) o.t = clean(p.title).replace(/,$/, "");
   if (p.b) o.b = iso(p.b);
@@ -146,7 +147,7 @@ const families = fids.map((id) => {
   if (f.h && idx.has(f.h)) o.h = idx.get(f.h);
   if (f.w && idx.has(f.w)) o.w = idx.get(f.w);
   o.c = f.c.filter((c) => idx.has(c)).map((c) => idx.get(c));
-  const living = [f.h, f.w].some((x) => indis.get(x)?.living);
+  const living = ANON && [f.h, f.w].some((x) => indis.get(x)?.living);
   if (f.m && !living) o.m = iso(f.m);
   if (f.mp && !living) o.mp = clean(f.mp);
   if (f.div) o.div = 1;
@@ -157,4 +158,4 @@ const root = idx.get(rootArg);
 if (root === undefined) throw new Error(`Startperson ${rootArg} nicht gefunden`);
 await mkdir(path.dirname(OUT), { recursive: true });
 await writeFile(OUT, JSON.stringify({ root, persons, families }));
-console.log(`${persons.length} Personen, ${families.length} Familien, ${persons.filter((p) => p.l).length} als lebend anonymisiert -> ${path.relative(ROOT, OUT)}`);
+console.log(`${persons.length} Personen, ${families.length} Familien, ${persons.filter((p) => p.l).length} als lebend markiert -> ${path.relative(ROOT, OUT)}`);

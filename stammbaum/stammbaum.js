@@ -1,11 +1,13 @@
 (function () {
   "use strict";
 
-  var W = 176, H = 64, GX = 56, GY = 14;
+  var W = 230, H = 88, GX = 60, GY = 16;
   var MONTHS = ["Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sept.", "Okt.", "Nov.", "Dez."];
 
   var P, F, ROOT;
-  var state = { focus: 0, sel: null, mode: "both", up: 4, down: 3 };
+  var state = { focus: 0, sel: null, mode: "both", level: 2 };
+  function upGens() { return state.level; }
+  function downGens() { return Math.max(1, state.level - 1); }
   var view = { x: 0, y: 0, k: 1 };
 
   var $ = function (id) { return document.getElementById(id); };
@@ -32,8 +34,8 @@
     return (m[3] ? +m[3] + ". " : "") + MONTHS[+m[2] - 1] + " " + m[1];
   }
   function lifeYears(p) {
-    if (p.l) return "lebt";
     var b = yr(p.b), d = yr(p.d);
+    if (p.l) return b ? "* " + b : "lebt";
     if (b && d) return b + " – " + d;
     if (b) return "* " + b;
     if (d) return "† " + d;
@@ -106,8 +108,8 @@
   var lastBox = null;
   function render(fit) {
     var root = state.focus, nodes = [], links = [];
-    var up = state.mode !== "down" ? layoutUp(root, state.up) : layoutUp(root, 0);
-    var down = state.mode !== "up" ? layoutDown(root, state.down) : layoutDown(root, 0);
+    var up = state.mode !== "down" ? layoutUp(root, upGens()) : layoutUp(root, 0);
+    var down = state.mode !== "up" ? layoutDown(root, downGens()) : layoutDown(root, 0);
     nodes = up.nodes.concat(down.nodes.filter(function (n) { return n.gen > 0; }));
     links = up.links.concat(down.links);
     var rowH = H + GY;
@@ -151,19 +153,18 @@
     world.classList.toggle("anim", !!anim);
     world.style.transform = "translate(" + view.x + "px," + view.y + "px) scale(" + view.k + ")";
   }
-  function fitView(anim) {
+  function fitView(anim, all) {
     if (!lastBox) return;
     var sw = stage.clientWidth, sh = stage.clientHeight;
     if (!panel.hidden) {
       if (window.innerWidth > 720) sw -= panel.offsetWidth; else sh -= panel.offsetHeight;
     }
     var k = Math.min(1, sw / lastBox.w, sh / lastBox.h);
-    // sehr hohe Bäume nicht unlesbar klein machen: dann Fokusperson mittig, Rest per Verschieben
-    var tooSmall = k < 0.45;
-    if (tooSmall) k = Math.min(1, Math.max(0.45, sw / lastBox.w));
+    // Lesbarkeit geht vor: nie kleiner als 0.8. Passt der Baum so nicht, kommt die Fokusperson in die Mitte.
+    k = all ? Math.max(0.2, k) : Math.max(0.8, k);
     view.k = k;
-    view.x = (sw - lastBox.w * k) / 2 - lastBox.x * k;
-    view.y = tooSmall && lastBox.h * k > sh ? sh / 2 : (sh - lastBox.h * k) / 2 - lastBox.y * k;
+    view.x = lastBox.w * k > sw ? sw / 2 - (W / 2) * k : (sw - lastBox.w * k) / 2 - lastBox.x * k;
+    view.y = lastBox.h * k > sh ? sh / 2 : (sh - lastBox.h * k) / 2 - lastBox.y * k;
     applyView(anim);
   }
   function zoomAt(cx, cy, f) {
@@ -212,11 +213,11 @@
     zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * 0.0015));
     hideHint();
   }, { passive: false });
-  function hideHint() { $("sb-hint").classList.add("off"); }
+  function hideHint() {}
   function zoomBtn(f) { zoomAt(stage.clientWidth / 2, stage.clientHeight / 2, f); }
   $("sb-zin").onclick = function () { zoomBtn(1.25); };
   $("sb-zout").onclick = function () { zoomBtn(0.8); };
-  $("sb-fit").onclick = function () { fitView(true); };
+  $("sb-fit").onclick = function () { fitView(true, true); };
   window.addEventListener("resize", function () { fitView(false); });
 
   // ---- Navigation ----
@@ -251,11 +252,12 @@
   function row(k, v) { return v ? "<dt>" + k + "</dt><dd>" + esc(v) + "</dd>" : ""; }
 
   function showPanel(i) {
-    var p = P[i], h = '<button class="x" type="button" data-close aria-label="Schliessen">×</button>';
+    var p = P[i], h = '<button class="x" type="button" data-close aria-label="Schliessen">Schliessen</button>';
     h += "<h2>" + esc(fullName(p)) + "</h2>";
+    var hasDetail = p.b || p.bp || p.o || p.no || p.d;
     h += '<p class="sub">' + (p.g === "M" ? "Mann" : p.g === "F" ? "Frau" : "") + (p.l ? " · lebt" : lifeYears(p) ? " · " + esc(lifeYears(p)) : "") + "</p>";
-    if (p.l) {
-      h += '<p class="priv">Diese Person lebt vermutlich noch. Aus Datenschutzgründen werden Daten, Orte und weitere Angaben nicht angezeigt.</p>';
+    if (p.l && !hasDetail) {
+      h += '<p class="priv">Zu dieser Person sind keine weiteren Angaben gespeichert.</p>';
     } else {
       var age = yr(p.b) && yr(p.d) ? yr(p.d) - yr(p.b) : null;
       h += "<h3>Lebensdaten</h3><dl>" + row("Geboren", fmtDate(p.b)) + row("in", p.bp) + row("Gestorben", fmtDate(p.d)) + row("in", p.dp) +
@@ -307,14 +309,14 @@
     });
     function top(o, n) { return Object.keys(o).sort(function (a, b) { return o[b] - o[a]; }).slice(0, n); }
     var gens = countAnc(ROOT).g;
-    var h = '<button class="x" type="button" data-close aria-label="Schliessen">×</button><h2>Überblick</h2>';
-    h += '<p class="sub">Familienforschung von H. P. König, ergänzt bis 2024.</p>';
+    var h = '<button class="x" type="button" data-close aria-label="Schliessen">Schliessen</button><h2>Überblick</h2>';
+    h += '<p class="sub">Zusammengetragen von Heinz König. Stand 2024.</p>';
     h += '<div class="sb-kpis"><div><b>' + P.length + "</b><span>Personen</span></div><div><b>" + F.length + "</b><span>Familien</span></div><div><b>" + minB + "</b><span>ältestes Geburtsjahr</span></div>" +
       "<div><b>" + gens + "</b><span>Generationen ab Start</span></div><div><b>" + (P.length - living) + "</b><span>verstorben</span></div><div><b>" + maxChildren + "</b><span>Kinder (Rekord)</span></div></div>";
     h += "<h3>Häufigste Familiennamen</h3><div class='sb-chips'>" + top(byS, 14).map(function (s) { return '<button type="button" data-search="' + esc(s) + '">' + esc(s) + " · " + byS[s] + "</button>"; }).join("") + "</div>";
     h += "<h3>Häufigste Geburtsorte</h3><div class='sb-chips'>" + top(byP, 12).map(function (s) { return '<button type="button" data-search="' + esc(s) + '">' + esc(s) + " · " + byP[s] + "</button>"; }).join("") + "</div>";
     if (maxChildrenId != null) h += section("Grösste Familie", personLi(maxChildrenId, maxChildren + " Kinder"));
-    h += "<h3>Hinweis</h3><p class='sub'>Lebende Personen erscheinen nur mit Namen. Klicke eine Karte an, um sie ins Zentrum zu holen. Das +-Symbol am Rand öffnet weitere Generationen.</p>";
+    h += "<h3>Tipp</h3><p class='sub'>Klicke eine Karte an, um die Person in die Mitte zu holen. Das Zeichen am Kartenrand zeigt, dass es weitere Verwandte gibt.</p>";
     panel.innerHTML = h;
     panel.hidden = false;
     panel.scrollTop = 0;
@@ -369,18 +371,18 @@
   document.addEventListener("click", function (e) { if (!e.target.closest(".sb-search")) closeResults(); });
 
   // ---- Steuerung ----
-  function fillSel(el, max, val) {
-    for (var i = 1; i <= max; i++) el.insertAdjacentHTML("beforeend", '<option value="' + i + '"' + (i === val ? " selected" : "") + ">" + i + "</option>");
+  function syncLevel() {
+    $("sb-less").disabled = state.level <= 1;
+    $("sb-more").disabled = state.level >= 7;
   }
-  fillSel($("sb-up"), 8, state.up);
-  fillSel($("sb-down"), 6, state.down);
-  $("sb-up").onchange = function () { state.up = +this.value; render(true); };
-  $("sb-down").onchange = function () { state.down = +this.value; render(true); };
-  document.querySelector(".sb-seg").addEventListener("click", function (e) {
+  $("sb-less").onclick = function () { state.level = Math.max(1, state.level - 1); syncLevel(); render(true); };
+  $("sb-more").onclick = function () { state.level = Math.min(7, state.level + 1); syncLevel(); render(true); };
+  syncLevel();
+  document.querySelector(".sb-bar").addEventListener("click", function (e) {
     var b = e.target.closest("[data-mode]");
     if (!b) return;
     state.mode = b.dataset.mode;
-    document.querySelectorAll(".sb-seg button").forEach(function (x) { x.classList.toggle("on", x === b); });
+    document.querySelectorAll("[data-mode]").forEach(function (x) { x.classList.toggle("on", x === b); });
     render(true);
   });
   $("sb-home").onclick = function () { focusOn(ROOT); };
@@ -388,6 +390,24 @@
   document.addEventListener("keydown", function (e) {
     if (e.key === "/" && document.activeElement !== qEl) { e.preventDefault(); qEl.focus(); }
   });
+
+  // ---- Hilfe ----
+  function helpSeen() { try { return localStorage.getItem("sb_help_seen") === "1"; } catch (_) { return false; } }
+  function openHelp() { $("sb-modal").hidden = false; $("sb-modal-ok").focus(); }
+  function closeHelp() { $("sb-modal").hidden = true; try { localStorage.setItem("sb_help_seen", "1"); } catch (_) {} }
+  $("sb-help").onclick = openHelp;
+  $("sb-modal-ok").onclick = closeHelp;
+  $("sb-modal").addEventListener("click", function (e) { if (e.target === $("sb-modal")) closeHelp(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("sb-modal").hidden) closeHelp(); });
+  $("sb-logout").onclick = function () {
+    if (sb) sb.auth.signOut().then(function () { location.replace("/stammbaum/"); });
+  };
+  function setTop() {
+    var h = document.querySelector(".sb-top").offsetHeight + document.querySelector(".sb-bar").offsetHeight;
+    document.documentElement.style.setProperty("--top", h + "px");
+  }
+  window.addEventListener("resize", setTop);
+  setTop();
 
   // ---- Start ----
   var sb = typeof getSupabase === "function" ? getSupabase() : null;
@@ -410,6 +430,6 @@
     render(true);
     document.title = plainName(P[state.focus]) + " – Stammbaum";
     $("sb-loading").classList.add("off");
-    setTimeout(hideHint, 9000);
+    if (!helpSeen()) openHelp();
   }).catch(toGate);
 })();

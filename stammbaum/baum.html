@@ -5,33 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://lwxwcogvkhixfsfvkcvz.supabase.co; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
-  <title>Stammbaum – Familie König, Zeltner und Verwandte</title>
+  <title>Stammbaum der Familie König</title>
   <link rel="icon" href="/src/img/favicon.svg">
-  <meta name="description" content="Interaktiver Stammbaum mit über 1000 Personen aus 400 Jahren Familiengeschichte.">
-  <meta name="theme-color" content="#dbedd8">
-    <link rel="stylesheet" href="/stammbaum/stammbaum.css">
+  <meta name="theme-color" content="#edf7ea">
+  <link rel="stylesheet" href="/stammbaum/stammbaum.css">
 </head>
 <body>
   <header class="sb-top">
-    <a class="sb-back" href="/" aria-label="Zur Startseite">riozma</a>
-    <h1 class="sb-title">Stammbaum</h1>
+    <div class="sb-head">
+      <h1 class="sb-title">Stammbaum der Familie König</h1>
+      <p class="sb-credit">zusammengetragen von Heinz König</p>
+    </div>
     <div class="sb-search">
-      <input id="sb-q" type="search" placeholder="Name, Ort oder Jahr suchen …" autocomplete="off" spellcheck="false" aria-label="Person suchen" role="combobox" aria-expanded="false" aria-controls="sb-results">
+      <input id="sb-q" type="search" placeholder="Name suchen …" autocomplete="off" spellcheck="false" aria-label="Person suchen" role="combobox" aria-expanded="false" aria-controls="sb-results">
       <ul id="sb-results" class="sb-results" role="listbox" hidden></ul>
     </div>
     <div class="sb-tools">
-      <div class="sb-seg" role="group" aria-label="Ansicht">
-        <button type="button" data-mode="both" class="on">Beides</button>
-        <button type="button" data-mode="up">Vorfahren</button>
-        <button type="button" data-mode="down">Nachkommen</button>
-      </div>
-      <label class="sb-gen" title="Generationen aufwärts">▲ <select id="sb-up" aria-label="Generationen Vorfahren"></select></label>
-      <label class="sb-gen" title="Generationen abwärts">▼ <select id="sb-down" aria-label="Generationen Nachkommen"></select></label>
-      <button type="button" id="sb-home" class="sb-btn" title="Zur Startperson">Start</button>
-      <button type="button" id="sb-info" class="sb-btn" title="Überblick">Überblick</button>
+      <button type="button" id="sb-help" class="sb-btn">Hilfe</button>
+      <button type="button" id="sb-info" class="sb-btn">Überblick</button>
       <a href="/stammbaum/" id="sb-admin" class="sb-btn" hidden>Freigaben</a>
+      <button type="button" id="sb-logout" class="sb-btn sb-btn-quiet">Abmelden</button>
     </div>
   </header>
+
+  <div class="sb-bar" role="toolbar" aria-label="Ansicht">
+    <div class="sb-seg" role="group" aria-label="Was soll angezeigt werden?">
+      <button type="button" data-mode="up">Vorfahren</button>
+      <button type="button" data-mode="both" class="on">Beides</button>
+      <button type="button" data-mode="down">Nachkommen</button>
+    </div>
+    <div class="sb-seg" role="group" aria-label="Wie viele Generationen?">
+      <button type="button" id="sb-less">Weniger</button>
+      <button type="button" id="sb-more">Mehr Generationen</button>
+    </div>
+    <button type="button" id="sb-home" class="sb-btn">Zurück zum Anfang</button>
+  </div>
 
   <main class="sb-stage" id="sb-stage" aria-label="Stammbaum">
     <div class="sb-world" id="sb-world">
@@ -39,16 +47,29 @@
       <div id="sb-nodes"></div>
     </div>
     <div class="sb-zoom">
-      <button type="button" id="sb-zin" aria-label="Vergrössern">+</button>
-      <button type="button" id="sb-zout" aria-label="Verkleinern">−</button>
-      <button type="button" id="sb-fit" aria-label="Einpassen">⤢</button>
+      <button type="button" id="sb-zin">Grösser</button>
+      <button type="button" id="sb-zout">Kleiner</button>
+      <button type="button" id="sb-fit">Alles zeigen</button>
     </div>
-    <p class="sb-hint" id="sb-hint">Ziehen zum Verschieben · Mausrad zum Zoomen · Karte anklicken, um die Person ins Zentrum zu holen</p>
-    <p class="sb-loading" id="sb-loading">Prüfe Zugriff …</p>
+    <p class="sb-loading" id="sb-loading">Der Stammbaum wird geladen …</p>
     <noscript><p class="sb-loading">Für den Stammbaum wird JavaScript benötigt.</p></noscript>
   </main>
 
   <aside class="sb-panel" id="sb-panel" aria-live="polite" hidden></aside>
+
+  <div class="sb-modal" id="sb-modal" role="dialog" aria-modal="true" aria-labelledby="sb-modal-title" hidden>
+    <div class="sb-modal-box">
+      <h2 id="sb-modal-title">So geht's</h2>
+      <ol class="sb-steps">
+        <li><strong>Person anklicken:</strong> Die Person wandert in die Mitte, und rechts siehst du alle Angaben.</li>
+        <li><strong>Verschieben:</strong> Halte die Maustaste gedrückt und ziehe. Auf dem Tablet wischst du mit dem Finger.</li>
+        <li><strong>Grösser und kleiner:</strong> Benutze die Knöpfe unten rechts oder das Mausrad.</li>
+        <li><strong>Jemanden finden:</strong> Tippe oben einen Namen in das Suchfeld und wähle die Person aus.</li>
+      </ol>
+      <p class="sb-credit-box">Dieser Stammbaum ist das Werk von <strong>Heinz König</strong>, der die Familiengeschichte über viele Jahre erforscht und zusammengetragen hat.</p>
+      <button type="button" id="sb-modal-ok" class="sb-btn sb-btn-main">Verstanden, los geht's</button>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/src/supabase-config.js"></script>
