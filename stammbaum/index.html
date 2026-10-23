@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Stammbaum – Familie König, Zeltner und Verwandte</title>
+  <link rel="icon" href="/src/img/favicon.svg">
+  <meta name="description" content="Interaktiver Stammbaum mit über 1000 Personen aus 400 Jahren Familiengeschichte.">
+  <meta name="theme-color" content="#dbedd8">
+  <link rel="canonical" href="https://riozma.ch/stammbaum/">
+  <link rel="stylesheet" href="/stammbaum/stammbaum.css">
+</head>
+<body>
+  <header class="sb-top">
+    <a class="sb-back" href="/" aria-label="Zur Startseite">riozma</a>
+    <h1 class="sb-title">Stammbaum</h1>
+    <div class="sb-search">
+      <input id="sb-q" type="search" placeholder="Name, Ort oder Jahr suchen …" autocomplete="off" spellcheck="false" aria-label="Person suchen" role="combobox" aria-expanded="false" aria-controls="sb-results">
+      <ul id="sb-results" class="sb-results" role="listbox" hidden></ul>
+    </div>
+    <div class="sb-tools">
+      <div class="sb-seg" role="group" aria-label="Ansicht">
+        <button type="button" data-mode="both" class="on">Beides</button>
+        <button type="button" data-mode="up">Vorfahren</button>
+        <button type="button" data-mode="down">Nachkommen</button>
+      </div>
+      <label class="sb-gen" title="Generationen aufwärts">▲ <select id="sb-up" aria-label="Generationen Vorfahren"></select></label>
+      <label class="sb-gen" title="Generationen abwärts">▼ <select id="sb-down" aria-label="Generationen Nachkommen"></select></label>
+      <button type="button" id="sb-home" class="sb-btn" title="Zur Startperson">Start</button>
+      <button type="button" id="sb-info" class="sb-btn" title="Überblick">Überblick</button>
+    </div>
+  </header>
+
+  <main class="sb-stage" id="sb-stage" aria-label="Stammbaum">
+    <div class="sb-world" id="sb-world">
+      <svg class="sb-edges" id="sb-edges" aria-hidden="true"></svg>
+      <div id="sb-nodes"></div>
+    </div>
+    <div class="sb-zoom">
+      <button type="button" id="sb-zin" aria-label="Vergrössern">+</button>
+      <button type="button" id="sb-zout" aria-label="Verkleinern">−</button>
+      <button type="button" id="sb-fit" aria-label="Einpassen">⤢</button>
+    </div>
+    <p class="sb-hint" id="sb-hint">Ziehen zum Verschieben · Mausrad zum Zoomen · Karte anklicken, um die Person ins Zentrum zu holen</p>
+    <p class="sb-loading" id="sb-loading">Lade Stammbaum …</p>
+    <noscript><p class="sb-loading">Für den Stammbaum wird JavaScript benötigt.</p></noscript>
+  </main>
+
+  <aside class="sb-panel" id="sb-panel" aria-live="polite" hidden></aside>
+
+  <script src="/stammbaum/stammbaum.js"></script>
+</body>
+</html>

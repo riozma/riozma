@@ -3,3 +3,4 @@
 # Supabase CLI temp & lokale Claude-Einstellungen
 supabase/.temp/
 .claude/
+stammbaum/data.json
