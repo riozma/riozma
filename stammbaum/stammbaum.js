@@ -390,7 +390,16 @@
   });
 
   // ---- Start ----
-  fetch("/stammbaum/data.json").then(function (r) { return r.json(); }).then(function (d) {
+  var sb = typeof getSupabase === "function" ? getSupabase() : null;
+  function toGate() { location.replace("/stammbaum/"); }
+  if (!sb) { toGate(); return; }
+  sb.rpc("stammbaum_get").then(function (res) {
+    if (res.error || !res.data || !res.data.persons) throw new Error("kein Zugriff");
+    return sb.rpc("stammbaum_status").then(function (st) {
+      if (st.data === "admin") $("sb-admin").hidden = false;
+      return res.data;
+    });
+  }).then(function (d) {
     P = d.persons; F = d.families; ROOT = d.root;
     index = P.map(function (p) {
       return { name: norm(p.n + " " + p.s), extra: norm([p.b, p.d, p.bp, p.dp, p.o].filter(Boolean).join(" ")) };
@@ -402,7 +411,5 @@
     document.title = plainName(P[state.focus]) + " – Stammbaum";
     $("sb-loading").classList.add("off");
     setTimeout(hideHint, 9000);
-  }).catch(function () {
-    $("sb-loading").textContent = "Der Stammbaum konnte nicht geladen werden.";
-  });
+  }).catch(toGate);
 })();
