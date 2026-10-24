@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   content.innerHTML = `
     <div class="werk-image-wrap">
-      <img src="${escapeHtml(art.high_res_url)}" alt="${escapeHtml(art.title || "")}" class="werk-image" id="werk-image">
+      ${progressiveImgHtml(escapeHtml(art.image_url), escapeHtml(art.high_res_url), `alt="${escapeHtml(art.title || "")}" id="werk-image"`, "werk-image")}
     </div>
     <div class="werk-info">
       <h1 class="werk-title">\u201e${escapeHtml(art.title || "")}\u201c${avail ? "*" : ""}</h1>
@@ -36,5 +36,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       </nav>
     </div>`;
 
+  hydrateProgressiveImages(content);
   document.getElementById("werk-image").addEventListener("click", (e) => e.currentTarget.classList.toggle("is-zoomed"));
 });

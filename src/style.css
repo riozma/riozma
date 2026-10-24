@@ -3548,7 +3548,7 @@ body.site-body :where(button, input, textarea, select, .btn, .form-control, .nav
   }
 
   main.landing-home {
-    margin-top: -62vh;
+    margin-top: -37vh;   /* Inhalt 1/4 Bildschirmhöhe tiefer */
     position: relative;
   }
 }
@@ -4092,3 +4092,9 @@ html.embed .landing-header { visibility: hidden !important; }
 html.embed ::-webkit-scrollbar { width: 0; height: 0; }
 html.embed { scrollbar-width: none; }
 html.embed .hub-card, html.embed .hero-slider { backdrop-filter: none; }
+
+/* Progressives Bildladen: unscharfes Mini-Bild, dann scharf */
+img.img-progressive { filter: blur(10px); transform: scale(1.04); }
+.art-strip a { overflow: hidden; border-radius: 14px; }
+.artCard .card-img-top, .art-strip img { transition: filter 0.35s ease; }
+img.werk-image.img-progressive { filter: none; transform: none; }

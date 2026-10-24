@@ -59,6 +59,7 @@ function renderGallery(data) {
     container.innerHTML += items.map(artworkCardHtml).join("");
     currentIndex += itemsPerPage;
     loadMoreButton.style.display = currentIndex >= data.length ? "none" : "block";
+    hydrateProgressiveImages();
     bindArtCards();
     bindDeleteButtons();
     bindAvailabilityToggles();
@@ -77,7 +78,7 @@ function artworkCardHtml(artwork) {
       <div class="card artCard" id="${artwork.id}" year="${artwork.year || ""}" title="${escapeHtml(artwork.title || "")}" size="${artwork.size || ""}" medium="${artwork.medium || ""}" available="${avail}" data-source="${artwork.source || "local"}">
         ${canAdmin ? `<button type="button" class="artwork-avail-toggle ${avail ? "is-available" : ""}" data-toggle-avail="${artwork.id}" aria-label="Verfügbarkeit umschalten">${avail ? "verfügbar *" : "nicht verfügbar"}</button>` : ""}
         ${canDelete ? `<button type="button" class="artwork-delete-btn" data-delete-art="${artwork.id}" aria-label="Löschen" title="Löschen">×</button>` : ""}
-        <img class="card-img-top" src="${artwork.image_url}" alt="${escapeHtml(artwork.title || "")}">
+        ${progressiveImgHtml(artwork.micro_url || "", artwork.thumb_url || artwork.image_url, `alt="${escapeHtml(artwork.title || "")}"`, "card-img-top")}
         <div class="card-body">
           <h5 class="card-title">"${escapeHtml(artwork.title || "")}"${avail ? "*" : ""}</h5>
           <p class="card-text">${artwork.year || ""}</p>

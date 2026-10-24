@@ -88,6 +88,7 @@
   document.getElementById("cv-tools").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-tool]");
     if (!b) return;
+    if (!["hand", "shape", "stamp"].includes(b.dataset.tool)) return;   // Zeichnen/Radieren/Text deaktiviert
     state.tool = b.dataset.tool;
     commitText();
     drawing = null;

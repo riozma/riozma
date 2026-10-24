@@ -12,7 +12,7 @@ Was passiert:
      Unregelmässige Formen (z.B. ZigZag) bleiben unverändert und stehen freigestellt auf der Wand.
   2. Weissabgleich und Belichtung anhand der echten Wand im Foto (Wand = neutral, gleich hell).
   3. Auf flache Galeriewand (#ECE9E4) setzen, überall gleich breiter Rand, Seitenverhältnis 4:5 .. 5:4.
-Schreibt src/img/artManuel/{highRes/<id>.jpg, lowRes/<id>-min.jpg, thumb/<id>-min.jpg}
+Schreibt src/img/artManuel/{highRes/<id>.jpg, lowRes/<id>-min.jpg, thumb/<id>-min.jpg, micro/<id>-min.jpg}
 Siehe docs/kunst-bildworkflow.md
 """
 import math
@@ -26,7 +26,8 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "im
 WALL = (236, 233, 228)
 MARGIN = 0.085                 # Rand je Seite, Anteil der langen Gemäldeseite
 ASPECT = (0.8, 1.25)           # Breite/Höhe der fertigen Bilder (4:5 .. 5:4)
-SIZES = {"highRes": (2000, "{id}.jpg", 92), "lowRes": (1250, "{id}-min.jpg", 85), "thumb": (650, "{id}-min.jpg", 82)}
+SIZES = {"highRes": (2000, "{id}.jpg", 92), "lowRes": (1250, "{id}-min.jpg", 85), "thumb": (650, "{id}-min.jpg", 82),
+         "micro": (110, "{id}-min.jpg", 55)}   # micro: unscharfer Platzhalter für progressives Laden
 WALL_LUM = 0.915               # Zielhelligkeit der (echten) Wand, linear-sRGB-nah
 
 
