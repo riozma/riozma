@@ -1,5 +1,6 @@
 const ARTWORKS_JSON = "/src/artworks.json";
 const LOCAL_IMG_BASE = "/src/img/artManuel";
+const ART_IMG_VERSION = "2";   // bei neu bearbeiteten Bildern erhöhen (Browser-Cache)
 
 
 async function loadAllArtworks() {
@@ -11,9 +12,9 @@ async function loadAllArtworks() {
     ...a,
     source: "local",
     available: a.available === "True" || a.available === true,
-    image_url: `${LOCAL_IMG_BASE}/lowRes/${a.id}-min.jpg`,
-    thumb_url: `${LOCAL_IMG_BASE}/thumb/${a.id}-min.jpg`,
-    high_res_url: `${LOCAL_IMG_BASE}/highRes/${a.id}.jpg`,
+    image_url: `${LOCAL_IMG_BASE}/lowRes/${a.id}-min.jpg?v=${ART_IMG_VERSION}`,
+    thumb_url: `${LOCAL_IMG_BASE}/thumb/${a.id}-min.jpg?v=${ART_IMG_VERSION}`,
+    high_res_url: `${LOCAL_IMG_BASE}/highRes/${a.id}.jpg?v=${ART_IMG_VERSION}`,
   }));
 
   const client = getSupabase();
@@ -32,12 +33,12 @@ async function loadAllArtworks() {
     source: a.source,
     image_path: a.image_path,
     thumb_path: a.thumb_path,
-    thumb_url: a.source === "local" ? `${LOCAL_IMG_BASE}/thumb/${a.id}-min.jpg` : "",
+    thumb_url: a.source === "local" ? `${LOCAL_IMG_BASE}/thumb/${a.id}-min.jpg?v=${ART_IMG_VERSION}` : "",
     image_url: a.source === "local"
-      ? `${LOCAL_IMG_BASE}/lowRes/${a.id}-min.jpg`
+      ? `${LOCAL_IMG_BASE}/lowRes/${a.id}-min.jpg?v=${ART_IMG_VERSION}`
       : storagePublicUrl("artworks", a.thumb_path || a.image_path),
     high_res_url: a.source === "local"
-      ? `${LOCAL_IMG_BASE}/highRes/${a.id}.jpg`
+      ? `${LOCAL_IMG_BASE}/highRes/${a.id}.jpg?v=${ART_IMG_VERSION}`
       : storagePublicUrl("artworks", a.image_path),
   }));
 

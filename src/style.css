@@ -734,8 +734,8 @@ img {
 
 .artCard .card-img-top {
   aspect-ratio: 4 / 5;
-  object-fit: cover;
-  background: #eeebe6;
+  object-fit: contain;
+  background: #ece9e4;
 }
 
 .art-overlay {
