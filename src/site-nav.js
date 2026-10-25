@@ -11,6 +11,14 @@ function wireHeader(header) {
     toggler.setAttribute("aria-expanded", open ? "true" : "false");
   }
 
+  function setMore(open) {
+    const toggle = header.querySelector(".nav-more-toggle");
+    const menu = header.querySelector(".nav-more-menu");
+    if (!toggle || !menu) return;
+    menu.classList.toggle("show", open);
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
   // Delegated on the header itself (stable across setTripTitle/setTrouvoEventTitle
   // re-renders, which replace the toggler/collapse nodes via innerHTML).
   header.addEventListener("click", (event) => {
@@ -21,14 +29,29 @@ function wireHeader(header) {
       setOpen(!collapse?.classList.contains("show"));
       return;
     }
-    if (event.target.closest(".nav-link, .navbar-brand")) setOpen(false);
+    const moreToggle = event.target.closest(".nav-more-toggle");
+    if (moreToggle) {
+      event.preventDefault();
+      setMore(moreToggle.getAttribute("aria-expanded") !== "true");
+      return;
+    }
+    if (event.target.closest(".nav-link, .nav-more-item, .navbar-brand")) {
+      setMore(false);
+      setOpen(false);
+    }
   });
 
   document.addEventListener("click", (event) => {
-    if (!header.contains(event.target)) setOpen(false);
+    if (!header.contains(event.target)) {
+      setOpen(false);
+      setMore(false);
+    }
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") setOpen(false);
+    if (event.key === "Escape") {
+      setOpen(false);
+      setMore(false);
+    }
   });
 }

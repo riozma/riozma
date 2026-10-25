@@ -34,6 +34,15 @@
       activeWhen: (path) => path === "/politik" || path.startsWith("/politik/"),
     },
     {
+      id: "about",
+      href: "/about/",
+      label: "Über mich",
+      activeWhen: (path) => path === "/about" || path.startsWith("/about/"),
+    },
+  ];
+
+  const MORE_ITEMS = [
+    {
       id: "trouvo",
       href: "/trouvo/",
       label: "Trouvo",
@@ -72,10 +81,10 @@
       activeWhen: (path) => path === "/fpl" || path.startsWith("/fpl/"),
     },
     {
-      id: "about",
-      href: "/about/",
-      label: "Über mich",
-      activeWhen: (path) => path === "/about" || path.startsWith("/about/"),
+      id: "stammbaum",
+      href: "/stammbaum/",
+      label: "Stammbaum",
+      activeWhen: (path) => path === "/stammbaum" || path.startsWith("/stammbaum/"),
     },
   ];
 
@@ -193,6 +202,18 @@
     return `<li class="nav-item"><a ${attrs}>${item.label}</a></li>`;
   }
 
+  function renderMore(activeId) {
+    const active = MORE_ITEMS.some((item) => item.id === activeId);
+    const links = MORE_ITEMS.map((item) => {
+      const on = item.id === activeId;
+      return `<a class="nav-more-item${on ? " active" : ""}" href="${item.href}"${on ? ' aria-current="page"' : ""} data-nav-id="${item.id}">${item.label}</a>`;
+    }).join("");
+    return `<li class="nav-item nav-more">
+      <button type="button" class="nav-more-toggle${active ? " active" : ""}" aria-expanded="false" aria-haspopup="true">Sonstiges</button>
+      <div class="nav-more-menu">${links}</div>
+    </li>`;
+  }
+
   function renderSubLink(item, activeId) {
     const active = item.id === activeId;
     return `<a class="subnav-link${active ? " active" : ""}" href="${subNavItemHref(item)}"${active ? ' aria-current="page"' : ""}>${item.label}</a>`;
@@ -204,7 +225,7 @@
     const isReisen = context === "reisen";
     const isSubApp = isTrouvo || isReisen;
     const path = pathWithSearch();
-    const mainActiveId = pickActive(MAIN_ITEMS, path) || (isTrouvo ? "trouvo" : isReisen ? "reisen" : null);
+    const mainActiveId = pickActive(MAIN_ITEMS, path) || pickActive(MORE_ITEMS, path) || (isTrouvo ? "trouvo" : isReisen ? "reisen" : null);
     const trouvoActiveId = isTrouvo ? pickActive(TROUVO_ITEMS, path) : null;
     const reisenActiveId = isReisen ? pickActive(REISEN_ITEMS, path) : null;
     const subTitle = isTrouvo
@@ -227,6 +248,7 @@
         <div class="collapse navbar-collapse" id="siteNavbar">
           <ul class="navbar-nav nav-main ms-lg-auto">
             ${MAIN_ITEMS.map((item) => renderLink(item, mainActiveId)).join("")}
+            ${renderMore(mainActiveId)}
           </ul>
         </div>
       </nav>
