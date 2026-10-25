@@ -327,7 +327,7 @@
     function top(o, n) { return Object.keys(o).sort(function (a, b) { return o[b] - o[a]; }).slice(0, n); }
     var gens = countAnc(ROOT).g;
     var h = '<button class="x" type="button" data-close aria-label="Schliessen">Schliessen</button><h2>Überblick</h2>';
-    h += '<p class="sub">Zusammengetragen von Heinz König. Stand 2024.</p>';
+    h += '<p class="sub">Zusammengetragen von Heinz und Erich König. Stand 2024.</p>';
     h += '<div class="sb-kpis"><div><b>' + P.length + "</b><span>Personen</span></div><div><b>" + F.length + "</b><span>Familien</span></div><div><b>" + minB + "</b><span>ältestes Geburtsjahr</span></div>" +
       "<div><b>" + gens + "</b><span>Generationen ab Start</span></div><div><b>" + (P.length - living) + "</b><span>verstorben</span></div><div><b>" + maxChildren + "</b><span>Kinder (Rekord)</span></div></div>";
     h += "<h3>Häufigste Familiennamen</h3><div class='sb-chips'>" + top(byS, 14).map(function (s) { return '<button type="button" data-search="' + esc(s) + '">' + esc(s) + " · " + byS[s] + "</button>"; }).join("") + "</div>";
