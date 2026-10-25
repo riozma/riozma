@@ -97,25 +97,17 @@ async function setupArtStrip() {
 
 async function setupHeroSlider() {
   const root = document.getElementById("hero-slider");
-  let posts = [];
-  const client = getSupabase();
-  if (client) {
-    const { data } = await client
-      .from("blog_posts")
-      .select("slug,title,excerpt,subtitle,cover_image_path")
-      .eq("published", true)
-      .order("published_at", { ascending: false })
-      .limit(6);
-    posts = data || [];
-  }
+  const items = typeof loadPolitikFeed === "function" ? await loadPolitikFeed({ limit: 6 }) : [];
 
-  const slides = posts.length
-    ? posts.map((p) => ({
+  const slides = items.length
+    ? items.map((p) => ({
       title: p.title,
-      text: p.excerpt || p.subtitle || "",
-      href: `/politik/artikel.html?slug=${encodeURIComponent(p.slug)}`,
-      cta: "Weiterlesen",
-      img: p.cover_image_path ? storagePublicUrl("blog-images", p.cover_image_path) : "",
+      text: p.text,
+      href: p.href,
+      cta: POLITIK_TYPE_CTA[p.type] || "Mehr",
+      kicker: POLITIK_TYPE_LABELS[p.type] || "",
+      img: p.image,
+      external: p.external,
     }))
     : [{ title: "Beiträge & Gedanken", text: "Hier erscheinen meine neuesten Beiträge.", href: "/politik/", cta: "Zur Politik", img: "" }];
 
@@ -125,9 +117,10 @@ async function setupHeroSlider() {
         <div class="hero-slide${i === 0 ? " is-active" : ""}" style="${sl.img ? `background-image:url('${escapeHtml(sl.img)}')` : ""}">
           <div class="hero-slide-overlay"></div>
           <div class="hero-slide-content">
+            ${sl.kicker ? `<span class="hero-slide-kicker">${escapeHtml(sl.kicker)}</span>` : ""}
             <h3>${escapeHtml(sl.title)}</h3>
             ${sl.text ? `<p>${escapeHtml(sl.text)}</p>` : ""}
-            <a href="${escapeHtml(sl.href)}" class="hero-slide-btn">${escapeHtml(sl.cta)}</a>
+            <a href="${escapeHtml(sl.href)}" class="hero-slide-btn"${sl.external ? ` target="_blank" rel="noopener"` : ""}>${escapeHtml(sl.cta)}</a>
           </div>
         </div>`).join("")}
     </div>

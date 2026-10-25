@@ -1,0 +1,61 @@
+# Politik-Podcast: holt täglich die Folgen aus dem RSS-Feed von «Es schloht Öufi» nach politik/podcast.json,
+# damit sie im Politik-Feed und auf der Startseite erscheinen. Details in docs/politik-beitraege.md.
+name: Politik Podcast-Feed
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/politik-podcast-build.mjs"
+      - ".github/workflows/politik-podcast.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: politik-podcast
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+
+jobs:
+  build:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build podcast.json
+        run: node scripts/politik-podcast-build.mjs
+
+      - name: Commit podcast.json
+        id: commit
+        run: |
+          git config user.name "politik-podcast-bot"
+          git config user.email "politik-podcast-bot@users.noreply.github.com"
+          git add politik/podcast.json
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "Politik: Podcastfolgen aktualisiert [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # Pushes mit dem GITHUB_TOKEN lösen den Pages-Build nicht zuverlässig aus, deshalb ausdrücklich anstossen.
+      - name: Trigger GitHub Pages build
+        if: steps.commit.outputs.changed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds"
