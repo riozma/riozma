@@ -85,6 +85,7 @@ for (const r of records) {
       d: deat ? val(deat, "DATE") : "",
       dp: deat ? val(deat, "PLAC") : "",
       hasDeath: !!deat,
+      rp: val(r, "PLAC"),
       occ: val(r, "OCCU"),
       rel: val(r, "RELI"),
       note,
@@ -135,6 +136,7 @@ const persons = ids.map((id) => {
   if (p.bp) o.bp = clean(p.bp);
   if (p.d) o.d = iso(p.d);
   if (p.dp) o.dp = clean(p.dp);
+  if (p.rp) o.rp = clean(p.rp);
   if (p.occ) o.o = clean(p.occ);
   if (p.rel) o.r = clean(p.rel);
   if (p.note) o.no = p.note.trim();
@@ -154,8 +156,16 @@ const families = fids.map((id) => {
   return o;
 });
 
+// Koordinaten aus scripts/stammbaum-geocode.mjs (optional): { "Ort": [lat, lon, ungefähr] }
+const places = {};
+try {
+  const geo = JSON.parse(await readFile(path.join(ROOT, "scripts/stammbaum-places.local.json"), "utf8"));
+  const used = new Set(persons.flatMap((p) => [p.bp, p.dp, p.rp].filter(Boolean)));
+  for (const k of used) if (geo[k]) places[k] = geo[k].slice(0, 3);
+} catch { /* noch keine Koordinaten */ }
+
 const root = idx.get(rootArg);
 if (root === undefined) throw new Error(`Startperson ${rootArg} nicht gefunden`);
 await mkdir(path.dirname(OUT), { recursive: true });
-await writeFile(OUT, JSON.stringify({ root, persons, families }));
+await writeFile(OUT, JSON.stringify({ root, persons, families, places }));
 console.log(`${persons.length} Personen, ${families.length} Familien, ${persons.filter((p) => p.l).length} als lebend markiert -> ${path.relative(ROOT, OUT)}`);

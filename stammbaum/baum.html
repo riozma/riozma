@@ -29,22 +29,45 @@
   </header>
 
   <div class="sb-bar" role="toolbar" aria-label="Ansicht">
-    <div class="sb-seg" role="group" aria-label="Was soll angezeigt werden?">
-      <button type="button" data-mode="up">Vorfahren</button>
-      <button type="button" data-mode="both" class="on">Beides</button>
-      <button type="button" data-mode="down">Nachkommen</button>
+    <div class="sb-seg sb-views" role="group" aria-label="Stammbaum oder Karte">
+      <button type="button" id="sb-v-tree" class="on">Stammbaum</button>
+      <button type="button" id="sb-v-map">Karte</button>
     </div>
-    <div class="sb-seg" role="group" aria-label="Wie viele Generationen?">
-      <button type="button" id="sb-less">Weniger</button>
-      <button type="button" id="sb-more">Mehr Generationen</button>
+    <div class="sb-barg" id="sb-bar-tree">
+      <div class="sb-seg" role="group" aria-label="Was soll angezeigt werden?">
+        <button type="button" data-mode="up">Vorfahren</button>
+        <button type="button" data-mode="both" class="on">Beides</button>
+        <button type="button" data-mode="down">Nachkommen</button>
+      </div>
+      <div class="sb-seg" role="group" aria-label="Wie viele Generationen?">
+        <button type="button" id="sb-less">Weniger</button>
+        <button type="button" id="sb-more">Mehr Generationen</button>
+      </div>
+      <button type="button" id="sb-home" class="sb-btn">Zurück zum Anfang</button>
     </div>
-    <button type="button" id="sb-home" class="sb-btn">Zurück zum Anfang</button>
+    <div class="sb-barg" id="sb-bar-map" hidden>
+      <button type="button" class="sb-chip" id="sbm-b" aria-pressed="true"><i style="background:#2f8f4a"></i>Geburtsort <span class="n"></span></button>
+      <button type="button" class="sb-chip" id="sbm-d" aria-pressed="true"><i style="background:#c4372f"></i>Todesort <span class="n"></span></button>
+      <button type="button" class="sb-chip" id="sbm-r" aria-pressed="false"><i style="background:#2f6fb0"></i>Wohnort <span class="n"></span></button>
+      <div class="sb-seg" role="group" aria-label="Kartenausschnitt">
+        <button type="button" id="sbm-eu">Europa</button>
+        <button type="button" id="sbm-world">Ganze Welt</button>
+        <button type="button" id="sbm-all">Alle Punkte</button>
+      </div>
+    </div>
   </div>
 
   <main class="sb-stage" id="sb-stage" aria-label="Stammbaum">
     <div class="sb-world" id="sb-world">
       <svg class="sb-edges" id="sb-edges" aria-hidden="true"></svg>
       <div id="sb-nodes"></div>
+    </div>
+    <div class="sb-map" id="sb-map" hidden>
+      <svg id="sbm-svg" role="application" aria-label="Karte der Herkunftsorte">
+        <g id="sbm-gworld"><path id="sbm-land"/></g>
+        <g id="sbm-marks"></g>
+      </svg>
+      <p class="sb-mapnote" id="sbm-note"></p>
     </div>
     <div class="sb-zoom">
       <button type="button" id="sb-zin">Grösser</button>
@@ -74,6 +97,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/src/supabase-config.js"></script>
   <script src="/src/supabase-client.js"></script>
+  <script src="/stammbaum/karte.js"></script>
   <script src="/stammbaum/stammbaum.js"></script>
 </body>
 </html>

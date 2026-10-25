@@ -4,3 +4,4 @@
 supabase/.temp/
 .claude/
 stammbaum/data.json
+scripts/stammbaum-places.local.json

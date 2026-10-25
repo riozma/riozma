@@ -122,3 +122,23 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .sb-steps { padding-left: 1.3rem; margin: 0 0 16px; }
 .sb-steps li { margin: 10px 0; }
 .sb-credit-box { background: var(--bg-soft); border-radius: 12px; padding: 12px 14px; margin: 0 0 18px; font-size: 1rem; }
+
+.sb-barg { display: contents; }
+.sb-barg[hidden] { display: none; }
+.sb-views { border-color: var(--primary-dark); }
+.sb-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 2px solid var(--border); background: var(--surface); border-radius: 999px; cursor: pointer; font-size: 1rem; font-weight: 700; opacity: .55; }
+.sb-chip i { width: 16px; height: 16px; border-radius: 50%; display: inline-block; }
+.sb-chip .n { font-weight: 400; color: var(--muted); }
+.sb-chip[aria-pressed="true"] { opacity: 1; border-color: var(--accent); background: var(--bg-soft); }
+.sb-map { position: absolute; inset: 0; background: #dfeaec; }
+.sb-map[hidden] { display: none; }
+.sb-map svg { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+.sb-stage.drag .sb-map svg { cursor: grabbing; }
+#sbm-land { fill: #f4f8ef; stroke: #9bb39a; stroke-width: .8; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+#sbm-marks .m { cursor: pointer; }
+#sbm-marks .m:hover circle:last-of-type, #sbm-marks .m:focus-visible circle:last-of-type { stroke: #d68d00; stroke-width: 3; }
+#sbm-marks .m:focus { outline: none; }
+#sbm-marks .mt { fill: #fff; font-weight: 700; paint-order: stroke; stroke: rgba(0, 0, 0, .35); stroke-width: 2.5px; font-family: var(--ui, Helvetica, Arial, sans-serif); pointer-events: none; }
+#sbm-marks .ml { fill: #26332a; font-size: 13px; font-weight: 700; paint-order: stroke; stroke: #fff; stroke-width: 3.5px; stroke-linejoin: round; pointer-events: none; }
+.sb-mapnote { position: absolute; left: 14px; bottom: 14px; right: 150px; margin: 0; font-size: .9rem; color: var(--text); background: rgba(255, 255, 255, .88); padding: 6px 12px; border-radius: 12px; pointer-events: none; max-width: 640px; }
+@media (max-width: 720px) { .sb-mapnote { right: 14px; bottom: 74px; } }

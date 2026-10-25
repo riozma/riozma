@@ -175,9 +175,24 @@
     view.k = k;
     applyView(false);
   }
+  var mapOn = false;
+  function setView(map) {
+    mapOn = !!map;
+    $("sb-world").hidden = mapOn;
+    $("sb-map").hidden = !mapOn;
+    $("sb-bar-tree").hidden = mapOn;
+    $("sb-bar-map").hidden = !mapOn;
+    $("sb-v-tree").classList.toggle("on", !mapOn);
+    $("sb-v-map").classList.toggle("on", mapOn);
+    $("sb-fit").textContent = mapOn ? "Alle Punkte" : "Alles zeigen";
+    setTop();
+    if (mapOn) SBMap.show(true); else { SBMap.show(false); fitView(false); }
+  }
+  $("sb-v-tree").onclick = function () { setView(false); };
+  $("sb-v-map").onclick = function () { setView(true); };
   var pointers = new Map(), dragMoved = false, pinch0 = 0;
   stage.addEventListener("pointerdown", function (e) {
-    if (e.target.closest(".sb-zoom")) return;
+    if (mapOn || e.target.closest(".sb-zoom")) return;
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     dragMoved = false;
     if (pointers.size === 2) { var a = Array.from(pointers.values()); pinch0 = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y); }
@@ -208,6 +223,7 @@
   stage.addEventListener("pointerup", endPointer);
   stage.addEventListener("pointercancel", endPointer);
   stage.addEventListener("wheel", function (e) {
+    if (mapOn) return;
     e.preventDefault();
     var r = stage.getBoundingClientRect();
     zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * 0.0015));
@@ -215,13 +231,14 @@
   }, { passive: false });
   function hideHint() {}
   function zoomBtn(f) { zoomAt(stage.clientWidth / 2, stage.clientHeight / 2, f); }
-  $("sb-zin").onclick = function () { zoomBtn(1.25); };
-  $("sb-zout").onclick = function () { zoomBtn(0.8); };
-  $("sb-fit").onclick = function () { fitView(true, true); };
-  window.addEventListener("resize", function () { fitView(false); });
+  $("sb-zin").onclick = function () { if (mapOn) SBMap.zoom(1.6); else zoomBtn(1.25); };
+  $("sb-zout").onclick = function () { if (mapOn) SBMap.zoom(1 / 1.6); else zoomBtn(0.8); };
+  $("sb-fit").onclick = function () { if (mapOn) SBMap.fit(); else fitView(true, true); };
+  window.addEventListener("resize", function () { if (!mapOn) fitView(false); });
 
   // ---- Navigation ----
   function focusOn(i, push) {
+    if (mapOn) setView(false);
     state.focus = i;
     state.sel = i;
     showPanel(i);
@@ -424,6 +441,8 @@
     index = P.map(function (p) {
       return { name: norm(p.n + " " + p.s), extra: norm([p.b, p.d, p.bp, p.dp, p.o].filter(Boolean).join(" ")) };
     });
+    SBMap.init({ persons: P, places: d.places, panel: panel, esc: esc, plainName: plainName, lifeYears: lifeYears });
+    if (!SBMap.hasData()) $("sb-v-map").hidden = true;
     var start = idFromHash();
     state.focus = start != null ? start : ROOT;
     if (start != null) { state.sel = start; showPanel(start); }
