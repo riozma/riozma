@@ -6,7 +6,7 @@
   <script src="/src/site-init.js"></script>
   <title>Politik – Manuel Rio Zeltner</title>
   <link rel="icon" href="/src/img/favicon.svg">
-  <meta name="description" content="Politische Beiträge von Manuel Rio Zeltner.">
+  <meta name="description" content="Politische Beiträge von Manuel Rio Zeltner: Artikel, Videos und Podcast.">
   <meta name="theme-color" content="#dbedd8">
   <link rel="canonical" href="https://riozma.ch/politik/">
   <meta property="og:type" content="website">
@@ -20,10 +20,16 @@
   <header class="site-header" data-site-header data-header-context="main"></header>
 
   <main class="politik-main">
-    <div class="podcast-banner">
-      <p class="podcast-banner-label">Im Aufbau</p>
-      <p>Die Politik-Website wird gerade aufgebaut. Bis alles fertig ist, findest du mich im Podcast:</p>
-      <a href="https://esschlohtoeufi.ch" target="_blank" rel="noopener" class="btn btn-primary">Es schloht öufi → esschlohtoeufi.ch</a>
+    <div class="podcast-banner podcast-box">
+      <img src="/src/img/podcast-logo.png" alt="Logo Es schloht Öufi" class="podcast-box-logo">
+      <div>
+        <p class="podcast-banner-label">Podcast</p>
+        <p>Neben Artikeln und Videos gibt es Politik auch zum Hören: im Podcast «Es schloht Öufi».</p>
+        <div class="podcast-box-links">
+          <a href="https://esschlohtoeufi.ch" target="_blank" rel="noopener" class="btn btn-primary">esschlohtoeufi.ch</a>
+          <a href="https://esschlohtoeufi.ch/feed/podcast/es-schloht-oeufi/" target="_blank" rel="noopener" class="btn btn-outline-secondary">RSS-Feed</a>
+        </div>
+      </div>
     </div>
 
     <div class="politik-header">
@@ -72,6 +78,13 @@
       <div id="admin-posts-list"></div>
     </section>
 
+    <div id="posts-filter" class="posts-filter" role="group" aria-label="Beiträge filtern">
+      <button type="button" class="posts-filter-btn is-active" data-filter="alle">Alle</button>
+      <button type="button" class="posts-filter-btn" data-filter="artikel">Artikel</button>
+      <button type="button" class="posts-filter-btn" data-filter="video">Videos</button>
+      <button type="button" class="posts-filter-btn" data-filter="podcast">Podcast</button>
+    </div>
+
     <section id="posts-list" class="posts-grid">
       <p id="posts-loading">Beiträge werden geladen…</p>
     </section>
@@ -82,6 +95,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/src/supabase-config.js"></script>
   <script src="/src/supabase-client.js"></script>
+  <script src="/src/politik-feed.js"></script>
   <script src="/src/ui-feedback.js"></script>
   <script src="/src/image-upload.js"></script>
   <script src="/src/auth-ui.js"></script>

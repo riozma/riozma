@@ -20,47 +20,49 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupPostForm();
 });
 
+let feedItems = [];
+let feedFilter = "alle";
+
 async function loadPublishedPosts() {
   const container = document.getElementById("posts-list");
-  const client = getSupabase();
-
-  if (!client) {
-    container.innerHTML = `<p class="text-muted">Blog momentan nicht verfügbar.</p>`;
-    return;
-  }
-
-  const { data, error } = await client
-    .from("blog_posts")
-    .select("*")
-    .eq("published", true)
-    .order("published_at", { ascending: false });
-
-  if (error) {
-    container.innerHTML = `<p class="text-danger">Fehler beim Laden: ${escapeHtml(error.message)}</p>`;
-    return;
-  }
-
-  if (!data.length) {
-    container.innerHTML = `<p class="text-muted">Noch keine veröffentlichten Beiträge. Schau solange beim <a href="https://esschlohtoeufi.ch" target="_blank" rel="noopener">Podcast</a> vorbei.</p>`;
-    return;
-  }
-
-  container.innerHTML = data.map(renderPostTeaser).join("");
+  feedItems = await loadPolitikFeed();
+  setupFeedFilter();
+  renderFeed(container);
 }
 
-function renderPostTeaser(post) {
-  const cover = post.cover_image_path
-    ? storagePublicUrl("blog-images", post.cover_image_path)
-    : "";
-  const date = formatDateDE(post.published_at || post.created_at);
+function setupFeedFilter() {
+  const bar = document.getElementById("posts-filter");
+  if (!bar || bar.dataset.ready) return;
+  bar.dataset.ready = "1";
+  bar.querySelectorAll("[data-filter]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      feedFilter = btn.dataset.filter;
+      bar.querySelectorAll("[data-filter]").forEach((b) => b.classList.toggle("is-active", b === btn));
+      renderFeed(document.getElementById("posts-list"));
+    });
+  });
+}
+
+function renderFeed(container) {
+  const items = feedFilter === "alle" ? feedItems : feedItems.filter((i) => i.type === feedFilter);
+  if (!items.length) {
+    container.innerHTML = `<p class="text-muted">Noch keine Beiträge in dieser Kategorie. Schau solange beim <a href="${PODCAST_SITE_URL}" target="_blank" rel="noopener">Podcast</a> vorbei.</p>`;
+    return;
+  }
+  container.innerHTML = items.map(renderPostTeaser).join("");
+}
+
+function renderPostTeaser(item) {
+  const date = formatDateDE(item.date);
+  const ext = item.external ? ` target="_blank" rel="noopener"` : "";
   return `
-    <a href="/politik/artikel.html?slug=${encodeURIComponent(post.slug)}" class="post-teaser">
-      ${cover ? `<img src="${cover}" alt="" class="post-teaser-img">` : ""}
+    <a href="${escapeHtml(item.href)}" class="post-teaser post-teaser-${item.type}"${ext}>
+      ${item.image ? `<img src="${escapeHtml(item.image)}" alt="" class="post-teaser-img" loading="lazy">` : `<div class="post-teaser-img post-teaser-placeholder"></div>`}
       <div class="post-teaser-body">
-        <p class="post-teaser-date">${date}</p>
-        <h2 class="post-teaser-title">${escapeHtml(post.title)}</h2>
-        ${post.excerpt ? `<p class="post-teaser-excerpt">${escapeHtml(post.excerpt)}</p>` : ""}
-        <span class="post-teaser-link">Weiterlesen →</span>
+        <p class="post-teaser-date"><span class="post-type-badge post-type-${item.type}">${POLITIK_TYPE_LABELS[item.type] || ""}</span> ${date}${item.duration ? ` · ${escapeHtml(item.duration)}` : ""}</p>
+        <h2 class="post-teaser-title">${escapeHtml(item.title)}</h2>
+        ${item.text ? `<p class="post-teaser-excerpt">${escapeHtml(item.text)}</p>` : ""}
+        <span class="post-teaser-link">${POLITIK_TYPE_CTA[item.type] || "Mehr"} →</span>
       </div>
     </a>
   `;

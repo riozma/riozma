@@ -1,0 +1,27 @@
+{
+  "_hinweis": "Videos und andere Beiträge, die nicht in Supabase liegen. Neuster Eintrag zuoberst ist nicht nötig, der Feed sortiert nach Datum. Für YouTube: Link oder ID bei youtube eintragen, dann ersetzt der YouTube-Player die Videodatei. Anleitung: docs/politik-beitraege.md",
+  "items": [
+    {
+      "type": "video",
+      "slug": "externalitaeten",
+      "title": "Gute oder schlechte Staatsausgabe? Externalitäten einfach erklärt",
+      "excerpt": "Kampfjet, Armee, Sparpaket: Jede Partei hat ein Bauchgefühl. Externalitäten geben eine Struktur, um Ausgaben zu ordnen.",
+      "date": "2026-10-25",
+      "href": "/politik/videos/externalitaeten/",
+      "image": "/politik/videos/externalitaeten/poster.jpg",
+      "video": "/politik/videos/externalitaeten/video.mp4",
+      "youtube": "",
+      "duration": "18:52",
+      "chapters": [
+        ["0:00", "Einstieg: Kampfjet, Armee und Sparpaket"],
+        ["1:28", "Kosten und Nutzen"],
+        ["4:12", "Was ist eine Externalität?"],
+        ["6:15", "Was der Staat damit macht"],
+        ["9:51", "Report Card: Wo stimmt der Preis?"],
+        ["13:25", "Die Subventionsfalle"],
+        ["16:33", "Wann ein Verbot besser ist"],
+        ["17:16", "Ausblick"]
+      ]
+    }
+  ]
+}
