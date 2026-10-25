@@ -1,5 +1,267 @@
 {
   "feed": "https://esschlohtoeufi.ch/feed/podcast/es-schloht-oeufi/",
-  "updated": null,
-  "items": []
+  "updated": "2026-10-25T17:29:44.898Z",
+  "items": [
+    {
+      "title": "#28 Abstimmungsfolge 27. September",
+      "date": "2026-09-11T09:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/28-abstimmungsfolge-27-september/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2026/09/28_Ton_Full.mp3",
+      "duration": "1:02:44",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "In dieser Folge diskutieren wir die beiden Volksinitiativen, über die die Schweiz am 27. September 2026 abstimmt: die Neutralitätsinitiative und die Ernährungsinitiative. Timestamps: 01:13 Neutralitätsinitiative – …"
+    },
+    {
+      "title": "#27 Abstimmungsfolge 14. Juni",
+      "date": "2026-05-11T09:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/27-abstimmungsfolge-14-juni/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2026/05/FolgeCropped.mp3",
+      "duration": "1:09:38",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "Bei der 27. Folge des Podcasts «Es Schloht Öufi» aus Solothurn diskutieren Manuel und Sebastian die Vorlagen der Volksabstimmung vom 14. Juni 2026. Im Podcast analysieren sie die nationalen Vorlagen und teilen ihre …"
+    },
+    {
+      "title": "#26 Abstimmungsfolge 8. März",
+      "date": "2026-02-11T10:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/25-abstimmungsfolge-8-maerz/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2026/02/8maerz_bearbeitet.mp3",
+      "duration": "1:22:09",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "Bei der 26. Folge des Podcasts «Es schloht Öufi» handelt es sich um den elften Abstimmungspodcast. Sebastian Rüegg und Manuel Rio Zeltner besprechen die Vorlagen der Volksabstimmung vom 8. März 2026. Auf nationaler …"
+    },
+    {
+      "title": "#25 Abstimmungsfolge 30. November",
+      "date": "2025-11-11T10:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/25-abstimmungsfolge-30-november/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2025/11/24_Abstimmungsfolge_30_Nov.mp3",
+      "duration": "51:57",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "Bei der 25. Folge des Podcasts «Es schloht Öufi» handelt es sich um den zehnten Abstimmungspodcast. Sebastian Rüegg und Manuel Rio Zeltner besprechen die Vorlagen der Volksabstimmung vom 30. November 2025. Auf …"
+    },
+    {
+      "title": "#24 Abstimmungsfolge 28. September",
+      "date": "2025-09-11T09:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/24-abstimmungsfolge-28-september/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2025/09/24_28sept_cut.mp3",
+      "duration": "1:02:31",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2025/09/sticker3_druck-scaled.png",
+      "excerpt": "Bei der 24. Folge des Podcasts \"Es schloht Öufi\" handelt es sich um den neunten Abstimmungspodcast. Manuel und Sebastian diskutieren in dieser Ausgabe über die Vorlagen der Volksabstimmung vom 28. September 2025. Auf …"
+    },
+    {
+      "title": "#23 Politfrühling",
+      "date": "2025-07-11T09:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/23-politfruehling/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2025/07/23-Recap-Politfruehling.mp3",
+      "duration": "1:07:50",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "In dieser Folge von „Es schloht Öufi“ schauen Manuel und Sebastian zurück auf den politischen Frühling 2025. Zuerst sprechen sie über nationale Themen, die in den letzten Monaten für Gesprächsstoff gesorgt haben. Danach …"
+    },
+    {
+      "title": "#22 Wahlfolge zu den Solothurner Wahlen vom 9. März",
+      "date": "2025-02-11T10:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/21-wahlfolge-9-maerz/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2025/02/9maerz_Ferig.mp3",
+      "duration": "57:38",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "Bei der 22. Folge des Podcasts \"Es schloht Öufi\" handelt es sich um die Wahlfolge zum 9. März 2025. An diesem Sonntag werden im Kanton Solothurn der Kantonsrat und der Regierungsrat neu gewählt. Manuel und Sebastian …"
+    },
+    {
+      "title": "#21 Abstimmungsfolge 9. Februar",
+      "date": "2025-01-11T10:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/21-abstimmungsfolge-9-februar/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2025/01/9.feb_.mp3",
+      "duration": "46:08",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "Bei der 21. Folge des Podcasts \"Es schloht Öufi\" handelt es sich um den achten Abstimmungspodcast. Manuel und Sebastian diskutieren in dieser Ausgabe über die Vorlagen der Volksabstimmung vom 9. Februar 2025. Die …"
+    },
+    {
+      "title": "#20 Abstimmungsfolge 24. November",
+      "date": "2024-11-11T10:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/20-abstimmungsfolge-24-november/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2024/11/20-Abstimmungsfolge-20.-November.mp3",
+      "duration": "1:07:06",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "Bei der 20. Folge des Podcasts \"Es schloht Öufi\" handelt es sich um den siebten Abstimmungspodcast. Manuel und Sebastian diskutieren in dieser Ausgabe über die Vorlagen der nationalen Volksabstimmung vom 24. November …"
+    },
+    {
+      "title": "#19 Abstimmungsfolge 22. September",
+      "date": "2024-09-11T09:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/19-abstimmungsfolge-22-september/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2024/09/240916_Abstimmungspodcast_2209.mp3",
+      "duration": "1:04:03",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "Bei der 19. Folge des Podcast \"Es schloht Öufi\" handelt es sich um den sechsten Abstimmungspodcast. Manuel und Sebastian diskutieren in dieser Ausgabe über die Vorlagen der nationalen und kantonalen Volksabstimmung vom …"
+    },
+    {
+      "title": "#18 Abstimmungsfolge 9. Juni",
+      "date": "2024-05-11T09:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/18-abstimmungsfolge-9-juni/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2024/05/18-Abstimmungsfolge-9.-Juni.mp3",
+      "duration": "1:13:28",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "Bei der 18. Folge des Podcast «Es schloht Öufi» handelt es sich um den fünften Abstimmungspodcast. Manuel und Sebastian diskutieren in dieser Ausgabe über die Vorlagen der nationalen Volksabstimmung vom 9. Juni. Dabei …"
+    },
+    {
+      "title": "#17 Abstimmungsfolge 3. März",
+      "date": "2024-02-11T10:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/17-abstimmungsfolge-3-maerz/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2024/02/ahv_final.mp3",
+      "duration": "1:24:16",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "Bei der 17. Folge des Podcast \"Es schloht Öufi\" handelt es sich um den vierten Abstimmungspodcast. Manuel und Sebastian diskutieren in dieser Ausgabe über die Vorlagen der nationalen und kantonalen Volksabstimmung vom …"
+    },
+    {
+      "title": "#16 UN-Klimakonferenz in Dubai 2023 (COP 28)",
+      "date": "2023-12-11T10:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/16-un-klimakonferenz-in-dubai-2023-cop-28/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2023/12/15_cop28.mp3",
+      "duration": "1:01:18",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "In der 16. Folge des Podcast \"Es schloht Öufi\" diskutieren Manuel und Sebastian über die 28. UN-Klimakonferenz (COP 28), welche vom Donnerstag, 30. November 2023 bis (voraussichtlich) am Dienstag, 12. Dezember 2023 in …"
+    },
+    {
+      "title": "#15 Laberfolge",
+      "date": "2023-11-11T10:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/15-laberfolge/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2023/11/15-Die-Schweiz-1.mp3",
+      "duration": "1:22:29",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "In der 15. Folge des Podcast \"Es schloht Öufi\" sprechen Manuel und Sebastian zuerst rückblickend über die Nationalen Wahlen und danach über den anstehenden zweiten Ständerats-Wahlgang im Kanton Solothun. Anschliessend …"
+    },
+    {
+      "title": "#14 Wahlen 2023",
+      "date": "2023-09-11T09:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/14-wahlen-2023/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2023/09/wahlen23_geschnitten.mp3",
+      "duration": "59:20",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "In der 14. Folge des Podcast \"Es schloht Öufi\" diskutieren Manuel und Sebastian über die anstehenden Nationalrats- und Ständeratswahlen im Oktober 2023. Wer wird gewinnen? Wer muss mit Verlusten rechnen? Welche Partei …"
+    },
+    {
+      "title": "#13 Migration",
+      "date": "2023-08-11T09:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/13-migration/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2023/08/migration-1.mp3",
+      "duration": "1:15:29",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "In der 13. Folge des Podcast \"Es schloht Öufi\" sprechen Manuel und Sebastian über den aktuellen Diskurs rund um das Thema Migration und versuchen einen anderen Blick mit neuen Lösungsansätzen auf die Thematik zu werfen. …"
+    },
+    {
+      "title": "#12 Abstimmungsfolge 18. Juni",
+      "date": "2023-06-11T14:37:41.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/12-abstimmungspodcast-18-juni/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2023/06/12-Abstimmungspodcast-18.-Juni_komprimiert.mp3",
+      "duration": "1:04:10",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "Bei der zwölften Folge des Podcast \"Es schloht Öufi\" handelt es sich um den dritten Abstimmungspodcast. Manuel und Sebastian diskutieren in dieser Ausgabe über die Vorlagen der nationalen und kantonalen Volksabstimmung …"
+    },
+    {
+      "title": "#11 Arbeit und KI",
+      "date": "2023-05-11T09:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/11-arbeit-und-ki/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2023/05/11_Zukunftsfolge_Arbeitsmarkt.mp3",
+      "duration": "1:09:04",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "In der 11. Folge des Podcast \"Es schloht Öufi\" handelt es sich um eine Zukunftsfolge, in welcher Manuel und Sebastian über das Thema Arbeit in der Zukunft und KI diskutieren. Werden wir alle durch KI ersetzt? Wie sehen …"
+    },
+    {
+      "title": "#10 Informationsüberfluss",
+      "date": "2023-03-11T10:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/10-informationsueberfluss/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2023/03/10-Digitalisierung.mp3",
+      "duration": "56:34",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "In der zehnten Folge des Podcast \"Es schloht Öufi\" diskutieren Manuel und Sebastian über das Thema Informationsüberfluss und unseren Umgang mit den Digitalen Medien. Was haben die ständigen Benachrichtigungen in unserer …"
+    },
+    {
+      "title": "#9 Westliche Weltpolitik",
+      "date": "2023-01-11T10:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/9-westliche-weltpolitik/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2023/01/9-Blick-auf-die-Welt.mp3",
+      "duration": "1:11:07",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "Die neunte Folge des Podcasts «Es schloht Öufi» dreht sich um die westliche Weltpolitik. Ist in einer Welt, in der sich die Machtverhältnisse verschieben, die westliche Vormachtsstellung noch zeitgemäss? Wo darf der …"
+    },
+    {
+      "title": "#8 Laberfolge",
+      "date": "2022-12-11T10:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/8-laberfolge/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2022/12/Laberfolge_final.mp3",
+      "duration": "1:06:00",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "Die achte Folge des Podcasts «Es schloht Öufi» hat kein gesetztes Thema. Manuel und Sebastian lassen sich während des Gesprächs einfach treiben und stolpern von Thema zu Thema. Dabei erfahren die Zuhörer*innen unter …"
+    },
+    {
+      "title": "#7 Überfluss Teil 2",
+      "date": "2022-11-11T10:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/7-uberfluss-teil-2/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2022/11/ueberfuss2.mp3",
+      "duration": "1:02:46",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "In der siebten Folge des Podcast \"Es schloht Öufi\" diskutieren Manuel und Sebastian zum zweiten Mal über das Thema Überfluss. Während in der ersten Folge vorallem die Probleme rund um das Thema Überfluss erläutert …"
+    },
+    {
+      "title": "#6 Überfluss Teil 1",
+      "date": "2022-10-11T09:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/6-ueberfluss-teil-1/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2022/10/Ueberfluss-Teil-1.mp3",
+      "duration": "1:00:38",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "In der sechsten Folge des Podcast \"Es schloht Öufi\" diskutieren Manuel und Sebastian über das Thema \"Überfluss\". Wie kam es dazu, dass für uns Überfluss alltäglich geworden ist? Was bedeuten globale Probleme wie der …"
+    },
+    {
+      "title": "#5 Abstimmungsfolge 25. September",
+      "date": "2022-09-11T09:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/5-abstimmungspodcast-25-september-2022/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2022/09/5-Abstimmungspodcast-25.-September.mp3",
+      "duration": "51:51",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "Bei der fünften Folge des Podcast \"Es schloht Öufi\" handelt es sich um den zweiten Abstimmungspodcast. Manuel und Sebastian diskutieren in dieser Ausgabe über die Vorlagen der nationalen Volksabstimmung vom 25. …"
+    },
+    {
+      "title": "#4 Interrail",
+      "date": "2022-07-11T09:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/4-interrail/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2022/07/Interrail.mp3",
+      "duration": "1:04:01",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "In der vierten Folge von \"Es schloht Öufi\" erzählt Manuel von seiner fünfwöchigen Interrailreise durch Europa. Angeregt vom Reisebericht ensteht ein spannendes Gespräch."
+    },
+    {
+      "title": "#3 Generation Z",
+      "date": "2022-06-11T09:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/3-generation-z/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2022/06/3_Generation_Z.mp3",
+      "duration": "58:17",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "In der dritten Folge des Podcast \"Es schloht Öufi\" diskutieren Manuel und Sebastian über die Generation Z. \"Mit welchen Problemen ist diese Generation konfrontiert?\" und \"Was unterschiedet Sie von anderen Generationen?\" …"
+    },
+    {
+      "title": "#2 Abstimmungsfolge 15. Mai",
+      "date": "2022-05-11T09:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/2-abstimmungspodcast-15-mai-2022/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/2-Abstimmungspodcast-15.-Mai-2022.mp3",
+      "duration": "59:15",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "Bei der zweiten Folge des Podcast \"Es schloht Öufi\" handelt es sich um den ersten sogenannten Abstimmungspodcast. Manuel und Sebastian diskutieren in dieser Ausgabe über die Volksabstimmung vom 15. Mai 2022 (kantonal & …"
+    },
+    {
+      "title": "#1 Patriotismus und Europa",
+      "date": "2022-04-11T09:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/1-patriotismus-und-europa/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/1-Patriotismus-und-Europa.mp3",
+      "duration": "51:52",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "In der ersten Folge des Podcast \"Es schloht Öufi\" diskutieren Manuel und Sebastian, ausgelöst durch den Krieg in der Ukraine, über die Definition und Wahrnehmung des Begriffs \"Patriotismus\". Geleitet davon diskutieren …"
+    },
+    {
+      "title": "Pilotfolge: NFT, Meta und selbstfahrende Autos",
+      "date": "2022-01-11T10:00:00.000Z",
+      "link": "https://esschlohtoeufi.ch/podcast/pilotfolge-nft-meta-und-selbstfahrende-autos/",
+      "audio": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/1_Folge_NFTs_Meta_und_selbstfahrendi_Autos.mp3",
+      "duration": "51:37",
+      "image": "https://esschlohtoeufi.ch/wp-content/uploads/2022/05/rect833.png",
+      "excerpt": "In der Pilotfolge des Podcast \"Es schloht Öufi\" diskutieren Manuel und Sebastian über über die neu einstehende digitale Realität rund um NFT, Bockchain, dem Metaverse und selbstfahrenden Autos. Denk mit über Fragen wie …"
+    }
+  ]
 }
