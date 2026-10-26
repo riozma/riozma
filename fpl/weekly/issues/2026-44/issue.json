@@ -1,0 +1,162 @@
+{
+  "issue": 2,
+  "week": "2026-44",
+  "date": "2026-10-26",
+  "covers": { "from": "2026-10-19", "to": "2026-10-25" },
+  "title": "AI agents arrive in the site office, but where is the value?",
+  "summary": "Procore turned AI agents loose on submittals and procurement logs, and EarthCam plugged its jobsite cameras straight into ChatGPT and Claude. At the same time, two surveys show that most builders still struggle to measure what AI actually brings. In materials, Holcim recycled a third more demolition waste, a Zurich start-up sold its first carbon credits for timber buildings, and data centres may become the first big buyers of low-carbon concrete. Our focus: how large language models work, in plain terms.",
+  "generated": {
+    "by": "Claude (Anthropic), scheduled FPL Weekly task",
+    "method": "Web search over news from 19 to 25 October 2026, then reading the original or best available source for every item (company releases, specialist press, survey publishers). Selection, explanations and summaries are written by AI. Company and survey figures are given as reported and marked as claims where they cannot be checked. The funding round-up (item 6) was published in the window but covers rounds announced in August and September. No construction-robotics story from the window could be verified, so this issue has no robotics item. Bar values in the focus widget are illustrative, not measured.",
+    "created_at": "2026-10-26T07:30:00+01:00"
+  },
+  "news": [
+    {
+      "id": "procore-ai-agents-groundbreak",
+      "category": "digital",
+      "title": "Procore, the largest construction management platform, puts AI agents on submittals and procurement logs",
+      "body": "At its Groundbreak 2026 conference in Orlando on 21 October, Procore presented AI agents that take over routine document work. A submittal agent updates a submittal everywhere it is referenced in a drawing set, bulk editing now handles up to 500 submittals at once, and a procurement log agent (closed beta) is meant to replace the spreadsheets many teams use to track orders. Procore also showed a voice-first mobile app that is coming to Meta's AI glasses, a digital-twin integration with NVIDIA Omniverse, and its first connection through the Model Context Protocol (MCP), to the subcontractor prequalification platform Compass. Product chief Geoff Lewis called the agents a 'digital co-worker', but also said: 'We don't earn the right to talk about digital coworkers, until we've fixed the basics.'\n\nWhy it matters: submittals and procurement logs are exactly the coordination paperwork young engineers spend hours on. When the platform that holds the project data starts doing it, the job shifts from typing into the log to checking what the agent did.",
+      "background": "Procore (Carpinteria, California) sells cloud software in which builders manage drawings, RFIs, submittals, budgets and daily logs for a project in one place; it is mainly used by general contractors and owners in North America. A submittal is the package a contractor sends to the designers for approval before building something, for example shop drawings or product data sheets for a façade or a pump, and keeping hundreds of them in sync with changing drawings is classic manual work. In January 2026 Procore bought DataGrid, a start-up that builds AI agents, and according to ENR the agents are only now properly integrated. MCP is an open standard that lets AI assistants call external tools and data sources.",
+      "region": "US",
+      "topics": ["ai-agents", "submittals", "construction-management", "mcp"],
+      "source_type": "trade",
+      "source_name": "ENR",
+      "source_url": "https://www.enr.com/articles/64015-procore-unveils-ai-agents-for-submittals-procurement-logs-at-groundbreak-conference",
+      "more_sources": [],
+      "published_at": "2026-10-21",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "brg-ai-survey-teams",
+      "category": "market",
+      "title": "Survey of 109 construction executives: AI changes how teams work far more often than it cuts jobs",
+      "body": "The consultancy BRG surveyed 109 construction and development executives in July 2026, and Construction Dive reported the results on 21 October. Among North American respondents, 46% changed team structures because of AI, 38% retrained staff, 18% added people in certain areas and only 11% reduced headcount. Two thirds have spent at least $250,000 on AI over two years and 37% more than $1 million, yet only 15% say it is fully integrated. The biggest obstacles are a lack of skilled people (40%) and liability for errors made by AI (43%). A separate survey by the software firm Kahua, discussed on BNN Bloomberg on 23 October, found that only 8% of respondents saw significant value from their AI investments.\n\nWhy it matters: the work that changes first is the information-heavy part (estimating, procurement, design review, scheduling, contract review), which is where most graduates start. The skills in demand are people who can run and check these tools, not people the tools replace.",
+      "background": "BRG (Berkeley Research Group) is a US consulting firm that publishes an 'AI Industry Spotlight' series; this is its fourth report, after retail, energy and financial institutions. The sample is small and mostly North American: 58 builders (mainly small and mid-sized general contractors and construction managers) and 51 owners (mainly larger developers and real-estate funds), with most figures based on 65 North American respondents. Builders use AI most for planning and feasibility (80%). Only 42% have rules on human oversight of AI results, the lowest share of the four industries BRG surveyed. Kahua, whose CEO was interviewed, sells project management software, so its survey also supports its own pitch for 'AI built into core systems'.",
+      "region": "US",
+      "topics": ["ai-adoption", "workforce", "survey", "skills"],
+      "source_type": "trade",
+      "source_name": "Construction Dive",
+      "source_url": "https://www.constructiondive.com/news/construction-ai-reshape-teams-replace-jobs/833612/",
+      "more_sources": [
+        { "name": "BRG press release (13 Oct)", "url": "https://www.thinkbrg.com/news/construction-firms-are-investing-millions-in-ai-but-new-brg-research-shows-it-is-not-reducing-headcount-and-roi-remains-unclear/" },
+        { "name": "BNN Bloomberg (Kahua survey)", "url": "https://bnnbloomberg.ca/investing/investor-outlook/2026/10/23/investor-outlook-construction-firms-struggle-to-turn-ai-use-into-value" }
+      ],
+      "published_at": "2026-10-21",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "earthcam-ai-connectors",
+      "category": "digital",
+      "title": "EarthCam, a jobsite camera company, lets ChatGPT and Claude 'see' construction sites",
+      "body": "EarthCam launched connectors that bring analysed images from its jobsite cameras into general AI assistants: as an app in ChatGPT, as a connector in Claude, and addable to Gemini, Copilot and Perplexity. A project manager could then ask an assistant about progress, deliveries or safety on any of their sites. EarthCam also released seven new image-analysis models, including trench safety, housekeeping hazards, thermal analysis, delivery verification and dump-truck counting, plus schedule automation that compares planned milestones with what the cameras observe. The company claims its models analyse site images ten times faster than general AI agents reading raw images, with 'no hallucinations'; it gives no test method or numbers, so these are marketing claims.\n\nWhy it matters: the interesting part is not another camera feature, but the pattern. Specialised systems do the analysis and hand clean, structured results to a general assistant. That is how site data could reach planners without anyone opening five different apps.",
+      "background": "EarthCam (Upper Saddle River, New Jersey) has installed time-lapse and live cameras on construction sites for about three decades, and says its models are trained on billions of construction images from those cameras; its web platform is called Control Center 9. Until now, customers looked at the camera images or reports inside EarthCam's own software. The connectors use the Model Context Protocol (MCP), the same open standard Procore announced this week, which lets an AI assistant call another company's data and tools. Some of the image analysis runs directly on the camera ('at the edge'), so only results, not raw video, have to be sent.",
+      "region": "US",
+      "topics": ["computer-vision", "mcp", "site-monitoring", "safety"],
+      "source_type": "primary",
+      "source_name": "EarthCam press release (GlobeNewswire)",
+      "source_url": "https://globenewswire.com/news-release/2026/10/20/3384693/0/en/earthcam-launches-construction-ai-connectors-delivering-pre-analyzed-jobsite-intelligence-to-chatgpt-claude-gemini-and-other-ai-platforms.html",
+      "more_sources": [],
+      "published_at": "2026-10-20",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "timber-carbon-first-credits",
+      "category": "swiss",
+      "title": "Zurich start-up Timber Carbon sells its first carbon credits for CO₂ stored in timber buildings",
+      "body": "Timber Carbon Solutions, a Zurich company founded in 2021, says it has for the first time completed its full process for a timber building: from taking in the project, through calculating the stored CO₂, independent verification and registration, to selling the resulting carbon credit. Its portfolio holds 93 buildings (52 in Switzerland, 28 in Germany, 13 in Austria), almost half completed between 2024 and 2026 and 47 still in planning or construction, which together are expected to store about 72,000 tonnes of CO₂ (company figure). Named clients include Swiss Prime Site, Primus and the timber builder Wiehag. The company plans a first funding round to expand abroad; CEO Frank Vasek wants to bring 1,000 bio-based building projects to market within three years.\n\nWhy it matters: if the carbon stored in a timber structure can be sold, it becomes an extra revenue line for the owner, and the timber quantity in the structural design suddenly has a price. Engineers may be asked to document it as carefully as the loads.",
+      "background": "The company started in 2021 as Timber Finance and calls itself a 'carbon developer' for the building sector: it does the paperwork that owners cannot do themselves, for a participation fee plus a commission on credits sold. To qualify, a building must use at least 250 m³ of wood in its load-bearing structure, and the wood must come from sustainably managed forests. The credits are issued under the Rainbow Standard, a certification scheme that, according to the company, is recognised by the Integrity Council for the Voluntary Carbon Market (ICVCM). Until now, the CO₂ stored in timber buildings has mostly appeared only in life-cycle assessments, not as something with a market price.",
+      "region": "CH",
+      "topics": ["timber", "carbon-credits", "embodied-carbon", "startup"],
+      "source_type": "primary",
+      "source_name": "Startupticker.ch (press release, German)",
+      "source_url": "https://www.startupticker.ch/en/news/zuercher-proptech-timber-carbon-verkauft-erste-co2-zertifikate",
+      "more_sources": [],
+      "published_at": "2026-10-20",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "holcim-q3-recycling",
+      "category": "circular",
+      "title": "Holcim, the Swiss building materials group, recycled a third more demolition waste in nine months",
+      "body": "In its results for the first nine months of 2026, published on 23 October, Holcim reported that the volume of demolition material it recycled under its ECOCycle label rose by a third to 7.4 million tonnes. Low-carbon products are growing as a share of sales: ECOPact concrete made up 33% of ready-mix sales and ECOPlanet cement 43% of cement sales (up from 36%). Holcim now expects more than 20% growth in recycled demolition materials for the full year. Financially, sales were CHF 12.6 billion (+5.2% organic) and recurring operating profit rose 11.8% organically. The group closed ten acquisitions in the period and agreed to buy Fermacell, a maker of gypsum-fibre boards for drywall and timber construction.\n\nWhy it matters: recycled aggregate and low-clinker cement are leaving the niche at one of the largest suppliers in the world. For designers, specifying them is becoming a normal choice, which raises practical questions about mix design, standards and how the savings are documented.",
+      "background": "Holcim (Zug, Switzerland), the former LafargeHolcim, is one of the world's largest cement and building materials companies with about 50,000 employees. ECOCycle is its process for turning construction and demolition waste back into aggregates and cement raw material. ECOPlanet cements replace part of the clinker, the most CO₂-intensive ingredient, with other materials, and ECOPact concretes are its lower-carbon ready-mix range. The labels are Holcim's own; the CO₂ reduction differs from product to product and is stated per product, not here. All figures are company-reported results.",
+      "region": "CH",
+      "topics": ["recycled-concrete", "low-carbon-cement", "demolition-waste", "materials"],
+      "source_type": "trade",
+      "source_name": "World Cement",
+      "source_url": "https://www.worldcement.com/europe-cis/23102026/holcim-double-digit-organic-growth-in-recurring-ebit-of-118/",
+      "more_sources": [
+        { "name": "Holcim media release", "url": "https://www.holcim.com/media/media-releases/q3-2026-results" }
+      ],
+      "published_at": "2026-10-23",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "contech-funding-buildcheck-civilgrid",
+      "category": "market",
+      "title": "Six construction software start-ups raise $154M, from AI plan checking to utility maps",
+      "body": "Construction Dive's round-up of recent funding (published 21 October, covering rounds announced from late August to September) shows where investors see value in AI for construction. Buildcheck (Palo Alto) raised $12M for computer-vision models that read construction drawings and run hundreds of automatic checks for errors, omissions and coordination conflicts, plus a tool that compares plan versions; DPR's investment arm took part. CivilGrid (San Francisco) raised $26M to merge scattered records of underground utilities into one map. The others: Miter ($40M, site workforce and safety reports from photos or voice notes), Wint ($36M, water leak and waste detection in buildings), Adaptive ($30M, AI agents for builders' accounting) and Cura ($10M, an electric process for the limestone step of cement production).\n\nWhy it matters: two of these touch the engineer's own work directly. Automated plan checking and reliable utility data attack the coordination errors and unknown pipes that cause much of the rework on site.",
+      "background": "Buildcheck's customers include large contractors such as DPR, EllisDon and Power Construction; it checks drawings rather than BIM models, which matters because much of the industry still coordinates on PDFs. CivilGrid works on a familiar problem: information about pipes and cables in the ground is spread across many owners and formats, often outdated, and excavation strikes are a frequent cause of delays and accidents. Cura, based in Calgary, uses electricity instead of fuel combustion to break down limestone, producing a calcium product for cement and a concentrated CO₂ stream that is easier to capture; it plans a 100-tonne-per-year pilot plant in Alberta. Founding years were not given in the source.",
+      "region": "US",
+      "topics": ["funding", "plan-checking", "utilities", "computer-vision"],
+      "source_type": "trade",
+      "source_name": "Construction Dive",
+      "source_url": "https://www.constructiondive.com/news/contech-funding-miter-wint-civilgrid-buildcheck/833503/",
+      "more_sources": [],
+      "published_at": "2026-10-21",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "data-centres-low-carbon-concrete",
+      "category": "circular",
+      "title": "Canada debates whether data centres could become the first big buyers of low-carbon concrete",
+      "body": "A BetaKit feature looks at the concrete behind the AI boom. Meta's planned data centre in Sturgeon County, Alberta, may need up to 1.5 million m³ of concrete, according to Gil Yaron of the Vancouver non-profit Light House, who estimates 218,000 to 263,000 tonnes of CO₂ embodied in its concrete and steel. Low-carbon alternatives exist, for example from Cura Climate in Calgary, which claims 30 to 85% lower emissions, but they remain a niche product and cost decides. Genevieve Sherman of the investor Concrete Transition Capital says the big tech firms are buying low-carbon concrete for testing, but that their combined purchasing still trails what Canadian provinces could buy as public clients.\n\nWhy it matters: green materials need a first large buyer to get cheaper. Whether that is tech companies with climate targets or public owners with procurement rules, it is the specification and tender, written by engineers and planners, that turns a pilot into standard practice.",
+      "background": "Concrete is responsible for roughly 8% of global CO₂ emissions according to Chatham House, mostly from producing the clinker in cement. Data centres are built fast and in very large volumes, and their operators publish climate targets, which makes them interesting first customers for new materials. The numbers in this article are estimates by the people quoted and company claims, not measured values; the article is an opinion-led feature rather than a news report.",
+      "region": "Global",
+      "topics": ["low-carbon-concrete", "data-centres", "procurement", "embodied-carbon"],
+      "source_type": "general",
+      "source_name": "BetaKit",
+      "source_url": "https://betakit.com/low-carbon-concrete-could-lower-emissions-before-data-centres-even-go-online",
+      "more_sources": [],
+      "published_at": "2026-10-23",
+      "image_url": null,
+      "image_credit": null
+    }
+  ],
+  "focus": {
+    "title": "How large language models work, in plain terms",
+    "subtitle": "Module 3 · Concept 1: predicting the next word, and why that is enough to be useful and to be wrong",
+    "kind": "concept",
+    "concept_id": "m3-llm",
+    "file": "focus.html",
+    "glossary": [
+      { "term": "Large language model (LLM)", "definition": "A neural network trained on very large amounts of text to predict the next piece of text; the engine behind ChatGPT, Claude or Gemini." },
+      { "term": "Token", "definition": "The unit an LLM reads and writes: a word, part of a word or a symbol. A page of text is roughly 500 to 800 tokens." },
+      { "term": "Context window", "definition": "Everything the model can 'see' at once when it answers: the question, attached documents, earlier messages and tool results." },
+      { "term": "Hallucination", "definition": "A fluent, confident answer that is not supported by facts or sources; a side effect of predicting plausible text." },
+      { "term": "AI agent", "definition": "An LLM that can call tools (search, databases, other software) in a loop to complete a task, instead of only answering." }
+    ],
+    "further_reading": [
+      { "title": "3Blue1Brown: Large Language Models explained briefly (video)", "url": "https://www.youtube.com/watch?v=LPZh9BOjkQs" },
+      { "title": "Model Context Protocol: introduction", "url": "https://modelcontextprotocol.io/introduction" },
+      { "title": "BRG: AI in Construction: Measurable Results, Unclear Benchmarks", "url": "https://www.thinkbrg.com/insights/publications/ai-in-construction-measurable-results-unclear-benchmarks/" }
+    ]
+  },
+  "question": {
+    "text": "Which task in planning would you hand to an AI agent first?",
+    "options": [
+      "Searching standards and literature",
+      "Keeping submittals and RFIs in sync",
+      "Writing the specification (Leistungsverzeichnis)",
+      "Checking drawings for errors",
+      "None, I would not trust it yet"
+    ]
+  },
+  "whatsapp_teaser": "🏗️ *FPL Weekly #2* is out!\nAI agents move into the site office (Procore, EarthCam), but surveys say only a few builders see real value yet. Plus: Holcim recycles a third more demolition waste, and a Zurich start-up sells carbon credits for timber buildings.\n🔍 Focus: how large language models actually work, with an interactive next-word explainer.\n👉 https://riozma.ch/fpl/weekly/2026-44/"
+}

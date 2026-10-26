@@ -1,0 +1,157 @@
+<!-- FPL Weekly 2026-44 · Focus: How large language models work. Fragment, wird vom Renderer in .fplw-focus eingesetzt. -->
+<style>
+  .fplw-focus .f-lead { font-size: 1.1rem; }
+  .fplw-focus figure { margin: 28px 0; }
+  .fplw-focus figcaption { font-size: .85rem; opacity: .75; margin-top: 6px; }
+  .fplw-focus svg { width: 100%; height: auto; display: block; }
+  .fplw-focus .f-nwp { border: 2px solid var(--blue, #536a89); border-radius: 10px; padding: 16px; margin: 28px 0; }
+  .fplw-focus .f-prompts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .fplw-focus .f-prompts button, .fplw-focus .f-pick { font: inherit; font-size: .85rem; padding: 8px 10px; border: 1px solid var(--line, #d9dfe7); border-radius: 6px; background: var(--soft, #e8edf3); color: var(--ink, #1d2733); cursor: pointer; }
+  .fplw-focus .f-prompts button[aria-pressed="true"] { background: var(--blue, #536a89); color: #fff; }
+  .fplw-focus .f-pick { background: var(--orange, #d68d00); color: #fff; }
+  .fplw-focus .f-text { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .9rem; background: var(--soft, #e8edf3); border-radius: 6px; padding: 10px; margin: 0 0 12px; min-height: 2.6em; }
+  .fplw-focus .f-text b { color: var(--orange, #d68d00); }
+  .fplw-focus .f-bars { display: grid; gap: 6px; margin-bottom: 12px; }
+  .fplw-focus .f-bar { display: grid; grid-template-columns: 7.5rem 1fr 3rem; gap: 8px; align-items: center; font-size: .85rem; }
+  .fplw-focus .f-bar span:first-child { font-family: ui-monospace, Menlo, Consolas, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fplw-focus .f-track { display: block; background: var(--soft, #e8edf3); border-radius: 4px; height: 14px; overflow: hidden; }
+  .fplw-focus .f-fill { display: block; background: var(--blue, #536a89); height: 100%; width: 0; transition: width .35s; }
+  .fplw-focus .f-fill.warn { background: var(--red, #c4372f); }
+  .fplw-focus .f-ctrl { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; font-size: .85rem; }
+  .fplw-focus .f-ctrl input { width: 10rem; max-width: 100%; }
+  .fplw-focus .f-note { font-size: .8rem; opacity: .75; margin: 10px 0 0; }
+  .fplw-focus table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  .fplw-focus th, .fplw-focus td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line, #d9dfe7); vertical-align: top; }
+  @media (max-width: 600px) { .fplw-focus .f-bar { grid-template-columns: 6rem 1fr 2.6rem; } }
+</style>
+
+<p class="f-lead">This week, Procore and EarthCam both put "AI agents" into construction software, and a survey found that 43% of builders worry about liability for AI errors. To judge either, it helps to know what is actually inside these systems. The core idea is surprisingly simple.</p>
+
+<h3>One trick: predict the next word</h3>
+<p>A large language model (LLM), the engine behind ChatGPT, Claude or Gemini, does one thing: given a piece of text, it estimates how likely each possible next piece of text is, picks one, appends it and repeats. Those pieces are called <em>tokens</em>: whole words, parts of words or symbols. A model writes a three-page report by doing this a few thousand times in a row.</p>
+<p>To get good at it, the model was trained on an enormous amount of text: books, websites, code, papers. During training it guessed the next token billions of times and adjusted its internal numbers (the parameters, today hundreds of billions) whenever it was wrong. Nobody programmed rules like "C30/37 is a concrete class". The model picked up such patterns because predicting text well requires them. Try it:</p>
+
+<div class="f-nwp" data-widget="nwp">
+  <div class="f-prompts" role="group" aria-label="Choose a prompt">
+    <button type="button" data-p="0" aria-pressed="true">Concrete</button>
+    <button type="button" data-p="1" aria-pressed="false">Standard</button>
+    <button type="button" data-p="2" aria-pressed="false">Project fact</button>
+  </div>
+  <p class="f-text" data-out="text"></p>
+  <div class="f-bars" data-out="bars"></div>
+  <div class="f-ctrl">
+    <label>Temperature <input type="range" min="0.2" max="2" step="0.1" value="1" data-in="temp"> <span data-out="temp">1.0</span></label>
+    <button type="button" class="f-pick" data-in="pick">Pick next token</button>
+  </div>
+  <p class="f-note" data-out="note"></p>
+</div>
+
+<script>
+(function () {
+  var root = document.currentScript ? document.currentScript.previousElementSibling : null;
+  if (!root || root.getAttribute('data-widget') !== 'nwp') root = document.querySelector('.fplw-focus [data-widget="nwp"]');
+  if (!root) return;
+  // Illustrative scores (logits), not measured from a real model.
+  var prompts = [
+    { text: 'For the foundation slab we use concrete of strength class', opts: [[' C30/37', 3.2], [' C25/30', 2.6], [' C35/45', 1.7], [' C20/25', 1.2], [' XC4', 0.1]],
+      note: 'Several answers are plausible, and the model has learned which ones are common. None of them is checked against your project requirements.' },
+    { text: 'In Switzerland, the standard for concrete structures is SIA', opts: [[' 262', 4.2], [' 261', 1.4], [' 118', 0.9], [' 260', 0.8], [' 263', 0.6]],
+      note: 'A well-known fact appears often in the training text, so one answer dominates. This is why LLMs are often right about common knowledge.' },
+    { text: 'The live load for the lab floor, agreed in last week\'s site meeting, is', opts: [[' 3.0 kN/m²', 1.1], [' 5.0 kN/m²', 1.0], [' 2.0 kN/m²', 0.9], [' 4.0 kN/m²', 0.9], [' 7.5 kN/m²', 0.5]],
+      note: 'The decision is only in the meeting minutes, which the model has never seen. The scores are flat, yet it still picks a plausible-looking value and states it with confidence: a hallucination. Attach the minutes to the context and the problem disappears.', warn: true }
+  ];
+  var cur = 0, picked = [];
+  var temp = root.querySelector('[data-in="temp"]');
+  function probs(o, t) {
+    var ex = o.map(function (x) { return Math.exp(x[1] / t); });
+    var s = ex.reduce(function (a, b) { return a + b; }, 0);
+    return ex.map(function (e) { return e / s; });
+  }
+  function render() {
+    var p = prompts[cur], t = +temp.value, pr = probs(p.opts, t);
+    root.querySelector('[data-out="temp"]').textContent = t.toFixed(1);
+    var txt = root.querySelector('[data-out="text"]');
+    txt.textContent = p.text;
+    if (picked[cur]) { var b = document.createElement('b'); b.textContent = picked[cur]; txt.appendChild(b); }
+    var bars = root.querySelector('[data-out="bars"]');
+    bars.textContent = '';
+    p.opts.forEach(function (o, i) {
+      var row = document.createElement('div'); row.className = 'f-bar';
+      var l = document.createElement('span'); l.textContent = o[0].trim();
+      var tr = document.createElement('span'); tr.className = 'f-track';
+      var f = document.createElement('span'); f.className = 'f-fill' + (p.warn ? ' warn' : ''); tr.appendChild(f);
+      var v = document.createElement('span'); v.textContent = Math.round(pr[i] * 100) + '%';
+      row.appendChild(l); row.appendChild(tr); row.appendChild(v); bars.appendChild(row);
+      requestAnimationFrame(function () { f.style.width = (pr[i] * 100).toFixed(1) + '%'; });
+    });
+    root.querySelector('[data-out="note"]').textContent = p.note;
+  }
+  root.querySelectorAll('[data-p]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      cur = +b.getAttribute('data-p');
+      root.querySelectorAll('[data-p]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      render();
+    });
+  });
+  temp.addEventListener('input', render);
+  root.querySelector('[data-in="pick"]').addEventListener('click', function () {
+    var p = prompts[cur], pr = probs(p.opts, +temp.value), r = Math.random(), acc = 0;
+    for (var i = 0; i < pr.length; i++) { acc += pr[i]; if (r <= acc) break; }
+    picked[cur] = p.opts[Math.min(i, pr.length - 1)][0];
+    render();
+  });
+  render();
+})();
+</script>
+<p>The <em>temperature</em> setting controls how adventurous the pick is: low values almost always take the top token, high values spread the chances. The percentages in the widget are made up for illustration, but the mechanism is the real one.</p>
+
+<h3>Why it is useful, and why it is wrong sometimes</h3>
+<p>Because so much expert writing is in the training data, the patterns the model learned include a lot of real knowledge, reasoning steps and writing style. That is why it can summarise a standard, draft a specification text or explain a failure mechanism. But the model optimises for <strong>plausible</strong> text, not for <strong>true</strong> text. When it lacks the fact, it does not say "I don't know" by default; it produces the most plausible-looking answer, as the third prompt above shows. This is called a hallucination, and it is the reason BRG found that liability for AI errors is builders' top risk concern.</p>
+
+<h3>From chatbot to agent</h3>
+<p>Two additions turn a text predictor into the "digital co-worker" Procore talks about:</p>
+
+<figure>
+  <svg viewBox="0 0 640 230" role="img" aria-label="An AI agent: the language model reads the context, calls tools and reads their results in a loop">
+    <defs>
+      <marker id="fw44-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#536a89"/></marker>
+    </defs>
+    <g font-size="15" text-anchor="middle" fill="#1d2733">
+      <rect x="10" y="70" width="150" height="90" rx="8" fill="#e8edf3" stroke="#536a89" stroke-width="2"/>
+      <text x="85" y="100">Context window</text>
+      <text x="85" y="122" font-size="12">question, drawings,</text>
+      <text x="85" y="138" font-size="12">earlier results</text>
+      <rect x="240" y="70" width="150" height="90" rx="8" fill="#536a89"/>
+      <text x="315" y="110" fill="#fff">LLM</text>
+      <text x="315" y="132" fill="#fff" font-size="12">predicts next tokens</text>
+      <rect x="470" y="20" width="160" height="56" rx="8" fill="#fff" stroke="#d68d00" stroke-width="2"/>
+      <text x="550" y="44" font-size="13">Tools via MCP</text>
+      <text x="550" y="62" font-size="12">Procore, EarthCam, search</text>
+      <rect x="470" y="150" width="160" height="56" rx="8" fill="#fff" stroke="#1f8f86" stroke-width="2"/>
+      <text x="550" y="174" font-size="13">Answer or action</text>
+      <text x="550" y="192" font-size="12">checked by a human</text>
+    </g>
+    <g stroke="#536a89" stroke-width="2.5" fill="none" marker-end="url(#fw44-arr)">
+      <path d="M160 115 H232"/>
+      <path d="M390 95 C430 70 440 50 462 48"/>
+      <path d="M470 62 C380 20 120 20 85 62"/>
+      <path d="M390 135 C430 160 440 178 462 178"/>
+    </g>
+    <text x="300" y="34" font-size="12" text-anchor="middle" fill="#d68d00">tool result goes back into the context</text>
+  </svg>
+  <figcaption>An agent is a loop: the model decides to call a tool, the result is added to its context, and it predicts again until it can answer.</figcaption>
+</figure>
+
+<p>First, the <em>context window</em>: everything the model sees when it answers, including attached documents. If you give it the right drawings or the right SIA chapter, it predicts from those instead of from memory, and errors drop sharply. Second, <em>tools</em>: the model can output a structured request ("look up submittal 14") that software executes, and the result is fed back into the context. The Model Context Protocol (MCP), used by both Procore and EarthCam this week, is a common plug for exactly that. An agent is simply this loop running several times.</p>
+
+<table>
+  <tr><th>An LLM is good at</th><th>An LLM is weak at</th></tr>
+  <tr><td>Reading, summarising and comparing long documents</td><td>Facts it has not seen and cannot look up</td></tr>
+  <tr><td>Drafting text in a given format (reports, specs, emails)</td><td>Exact calculation without a calculator tool</td></tr>
+  <tr><td>Translating between jargon, languages and formats</td><td>Knowing when it is wrong</td></tr>
+  <tr><td>Using tools when they are connected</td><td>Taking responsibility: that stays with the engineer</td></tr>
+</table>
+
+<h3>What it means for us as future planners</h3>
+<p>The practical rule follows from the mechanism: an LLM is as reliable as the context you give it and the checks you put after it. The valuable skill is not prompting tricks but knowing which sources the model must read, which outputs need a calculation or a second look, and who signs off. That was also one of the five questions at our Kick-off: what skills will the planners and engineers of tomorrow need?</p>
+<p><strong>Next in Module 3:</strong> AI for standards and literature research: how to make a model answer from the SIA standard instead of from memory.</p>
