@@ -146,8 +146,8 @@
       "module": "M3",
       "order": 1,
       "prerequisites": [],
-      "status": "planned",
-      "issue": null
+      "status": "published",
+      "issue": "2026-44"
     },
     {
       "id": "m3-research",

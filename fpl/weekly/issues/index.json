@@ -1,6 +1,23 @@
 {
   "issues": [
     {
+      "week": "2026-44",
+      "issue": 2,
+      "date": "2026-10-26",
+      "title": "AI agents arrive in the site office, but where is the value?",
+      "summary": "Procore turned AI agents loose on submittals and procurement logs, and EarthCam plugged its jobsite cameras straight into ChatGPT and Claude. At the same time, two surveys show that most builders still struggle to measure what AI actually brings. In materials, Holcim recycled a third more demolition waste, a Zurich start-up sold its first carbon credits for timber buildings, and data centres may become the first big buyers of low-carbon concrete. Our focus: how large language models work, in plain terms.",
+      "focus_title": "How large language models work, in plain terms",
+      "focus_concept_id": "m3-llm",
+      "focus_kind": "concept",
+      "categories": [
+        "digital",
+        "market",
+        "swiss",
+        "circular"
+      ],
+      "news_count": 7
+    },
+    {
       "week": "2026-43",
       "issue": 1,
       "date": "2026-10-19",
