@@ -53,6 +53,10 @@ nur für die Nische Digitalisierung, KI, Automatisierung und Kreislaufwirtschaft
 5. **Mischung.** Etwa zwei Drittel «was gibt es, was passiert» (Markt, Produkte, Projekte, Forschung) und ein Drittel «wie funktioniert
    das, was ist das Konzept» (`background`, mindestens zwei Beiträge, die vor allem wegen des Konzepts gewählt wurden, dazu das
    Fokus-Thema). Höchstens zwei reine Finanzierungsmeldungen je Ausgabe.
+   **Mindestens ein Beitrag je Ausgabe in der Rubrik `tools` (AI Tools & Platforms):** KI-Plattformen, Marktplätze und Werkzeug-Ökosysteme
+   für Planung und Ingenieurwesen. Beispiele: der Autodesk Design and Make Marketplace, neue MCP-Server oder KI-Assistenten von Autodesk, Bentley,
+   Trimble, Bluebeam, Nemetschek/Allplan, Graphisoft, Dlubal oder SCIA, und Start-ups, die Werkzeuge verschiedener Hersteller verbinden,
+   Projektwissen mit Quellen festhalten oder KI-Ergebnisse prüfen und freigeben lassen. Neutral wie jeder andere Beitrag schreiben.
 6. **Gegenlesen (Redigat).** Jeden Beitrag noch einmal gegen seine Quelle lesen: Zahlen, Namen, Einheiten, Währung, Datum, Rechtschreibung.
    Doppelte Geschichten streichen, Titel prüfen, Reihenfolge der Beiträge nach Wichtigkeit festlegen (wichtigster zuerst),
    dann `node scripts/fpl-weekly-build.mjs --check`.
@@ -144,7 +148,7 @@ Das Schema steht in `issue.schema.json` und wird vom Build geprüft. Beispiel: `
 - `issue` (Ganzzahl), `week` (`YYYY-WW`, gleich Ordnername), `date`, `covers.from/to`, `title`, `summary` (40 bis 700 Zeichen).
 - `generated`: `by`, `method`, `created_at`. Daraus entsteht die Hinweisbox «researched and written by AI».
 - `news[]`, in redaktioneller Reihenfolge (wichtigstes zuerst):
-  - `id` (nur `a-z`, `0-9`, `-`, höchstens 60 Zeichen, einmalig in der Ausgabe), `category` (`digital`, `robotics`, `circular`, `swiss`, `market`)
+  - `id` (nur `a-z`, `0-9`, `-`, höchstens 60 Zeichen, einmalig in der Ausgabe), `category` (`digital`, `tools`, `robotics`, `circular`, `swiss`, `market`; `tools` = AI Tools & Platforms)
   - `title` (selbsterklärend), `body` (höchstens zwei Absätze mit Leerzeile, der zweite beginnt mit «Why it matters»)
   - `background` (konkret zum Artikel: was die Firma macht und wie sie vorgeht, wie es bisher gehandhabt wurde; 3 bis 6 Sätze), `region` (`CH`, `EU`, `UK`, `US`, `Asia`, `Global`), `topics` (1 bis 4 Tags in Kleinbuchstaben)
   - `source_type` (`primary` Urheber oder wortgetreuer Abdruck der Medienmitteilung, `trade` Fachpresse, `general` Allgemeinpresse, `branded` gesponsert), `source_name`, `source_url`, `more_sources[]`

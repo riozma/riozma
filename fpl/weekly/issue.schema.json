@@ -109,6 +109,7 @@
             "type": "string",
             "enum": [
               "digital",
+              "tools",
               "robotics",
               "circular",
               "swiss",

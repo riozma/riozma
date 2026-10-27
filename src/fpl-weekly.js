@@ -7,6 +7,7 @@
   const SITE = "https://riozma.ch";
   const CATS = {
     digital: "AI & Digitalization",
+    tools: "AI Tools & Platforms",
     robotics: "Robotics & Automation",
     circular: "Circular & Low-Carbon",
     swiss: "Swiss & ETH",

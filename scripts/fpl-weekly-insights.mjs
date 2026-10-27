@@ -25,7 +25,7 @@ const JSON_ONLY = args.includes("--json");
 const NO_NET = args.includes("--no-network");
 const SLOTS = Number(args[args.indexOf("--slots") + 1]) || 7;
 
-const CATEGORIES = ["digital", "robotics", "circular", "swiss", "market"];
+const CATEGORIES = ["digital", "tools", "robotics", "circular", "swiss", "market"];
 const REGIONS = ["CH", "EU", "UK", "US", "Asia", "Global"];
 const HALF_LIFE_WEEKS = 6; // Nach 6 Wochen zählt eine Ausgabe nur noch halb
 const K = 5; // Glättung: wenige Zahlen ziehen zum Durchschnitt
@@ -34,6 +34,7 @@ const MAX_PER_CATEGORY = 3;
 const MAX_PER_DOMAIN = 2;
 
 const RULES = [
+  "At least 1 item per issue in the 'tools' category (AI platforms, marketplaces, MCP servers and tool ecosystems for planning and engineering).",
   "Every item links to the original source or the best available source; prefer primary sources, then specialist press.",
   "Zahlen nie über Qualität stellen: Beiträge werden nicht übernommen, weil sie geklickt werden, sondern weil sie stimmen und etwas erklären.",
   "Branded or sponsored content only as a last resort and always labelled; it never fills an 'explore' slot.",
