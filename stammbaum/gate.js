@@ -185,6 +185,11 @@
     loadRequests();
     loadInvites();
   }
+  function roleSelect(attr, role) {
+    return '<select class="role" ' + attr + ' aria-label="Rolle">' +
+      '<option value="viewer"' + (role !== "editor" ? " selected" : "") + ">Ansehen</option>" +
+      '<option value="editor"' + (role === "editor" ? " selected" : "") + ">Bearbeiten</option></select>";
+  }
   async function loadRequests() {
     var r = await client.rpc("stammbaum_list_requests"), ul = $("ad-list");
     if (r.error) { ul.innerHTML = "<li>" + esc(r.error.message) + "</li>"; return; }
@@ -193,7 +198,7 @@
       var b = "";
       if (a.status !== "approved") b += '<button class="go" data-id="' + a.user_id + '" data-st="approved">Freigeben</button> ';
       if (a.status === "pending") b += '<button data-id="' + a.user_id + '" data-st="denied">Ablehnen</button>';
-      if (a.status === "approved") b = '<button data-id="' + a.user_id + '" data-st="denied">Entziehen</button>';
+      if (a.status === "approved") b = roleSelect('data-role-user="' + a.user_id + '"', a.role) + ' <button data-id="' + a.user_id + '" data-st="denied">Entziehen</button>';
       return '<li><div class="who"><strong>' + esc(a.name || "?") + "</strong><small>" + esc(a.email) + (a.message ? " · " + esc(a.message) : "") + '</small></div><span class="st ' + a.status + '">' + LABEL[a.status] + "</span><div>" + b + "</div></li>";
     }).join("");
   }
@@ -201,9 +206,26 @@
     var r = await client.rpc("stammbaum_list_invites"), ul = $("inv-list");
     if (r.error || !r.data.length) { ul.innerHTML = ""; return; }
     ul.innerHTML = r.data.map(function (a) {
-      return '<li><div class="who">' + esc(a.email) + '</div><button data-rm="' + esc(a.email) + '">Entfernen</button></li>';
+      return '<li><div class="who">' + esc(a.email) + "</div><div>" + roleSelect('data-role-mail="' + esc(a.email) + '"', a.role) +
+        ' <button data-rm="' + esc(a.email) + '">Entfernen</button></div></li>';
     }).join("");
   }
+  $("ad-list").addEventListener("change", async function (e) {
+    var s = e.target.closest("select[data-role-user]");
+    if (!s) return;
+    s.disabled = true;
+    var r = await client.rpc("stammbaum_set_role", { p_user: s.dataset.roleUser, p_role: s.value });
+    if (r.error) alert(r.error.message);
+    loadRequests();
+  });
+  $("inv-list").addEventListener("change", async function (e) {
+    var s = e.target.closest("select[data-role-mail]");
+    if (!s) return;
+    s.disabled = true;
+    var r = await client.rpc("stammbaum_invite", { p_email: s.dataset.roleMail, p_role: s.value });
+    if (r.error) alert(r.error.message);
+    loadInvites();
+  });
   $("ad-list").addEventListener("click", async function (e) {
     var b = e.target.closest("button[data-id]");
     if (!b) return;
@@ -220,10 +242,11 @@
   $("f-invite").addEventListener("submit", async function (e) {
     e.preventDefault();
     var mail = $("inv-mail").value.trim();
-    var r = await client.rpc("stammbaum_invite", { p_email: mail });
+    var role = $("inv-role").value;
+    var r = await client.rpc("stammbaum_invite", { p_email: mail, p_role: role });
     if (r.error) return say("inv-msg", r.error.message);
     $("inv-mail").value = "";
-    say("inv-msg", mail + " ist freigegeben.", true);
+    say("inv-msg", mail + " ist freigegeben (" + (role === "editor" ? "Bearbeiten" : "Ansehen") + ").", true);
     loadInvites();
   });
 

@@ -127,8 +127,9 @@
       }
       if (!line3) line3 = '<span class="y">' + esc(lifeYears(p)) + "</span>";
       else line3 = '<span class="y">' + esc(lifeYears(p)) + "</span>" + line3;
-      var cls = "sb-card " + genderClass(p) + (p.l ? " living" : "") + (n.id === root && n.gen === 0 ? " focus" : "") + (n.id === state.sel ? " sel" : "");
-      html += '<button type="button" class="' + cls + '" data-id="' + n.id + '" style="left:' + x + "px;top:" + y + 'px" title="' + esc(fullName(p)) + '">' +
+      var ph = SBEdit.photoUrl(n.id);
+      var cls = "sb-card " + genderClass(p) + (ph ? " has-ph" : "") + (p.l ? " living" : "") + (n.id === root && n.gen === 0 ? " focus" : "") + (n.id === state.sel ? " sel" : "");
+      html += '<button type="button" class="' + cls + '" data-id="' + n.id + '" style="left:' + x + "px;top:" + y + 'px" title="' + esc(fullName(p)) + '">' + (ph ? '<img class="ph" src="' + esc(ph) + '" alt="" loading="lazy">' : "") +
         '<span class="n">' + esc(p.n || "?") + '</span><span class="s">' + esc(p.s) + "</span>" + line3 + "</button>";
       if (n.more) {
         var mx = n.x < 0 ? x - 11 : x + W - 11;
@@ -270,17 +271,20 @@
 
   function showPanel(i) {
     var p = P[i], h = '<button class="x" type="button" data-close aria-label="Schliessen">Schliessen</button>';
+    h += SBEdit.panelTop(i);
     h += "<h2>" + esc(fullName(p)) + "</h2>";
-    var hasDetail = p.b || p.bp || p.o || p.no || p.d;
+    var hasDetail = p.b || p.bp || p.o || p.no || p.d || p.rp;
     h += '<p class="sub">' + (p.g === "M" ? "Mann" : p.g === "F" ? "Frau" : "") + (p.l ? " · lebt" : lifeYears(p) ? " · " + esc(lifeYears(p)) : "") + "</p>";
+    h += SBEdit.panelActions(i);
     if (p.l && !hasDetail) {
       h += '<p class="priv">Zu dieser Person sind keine weiteren Angaben gespeichert.</p>';
     } else {
       var age = yr(p.b) && yr(p.d) ? yr(p.d) - yr(p.b) : null;
-      h += "<h3>Lebensdaten</h3><dl>" + row("Geboren", fmtDate(p.b)) + row("in", p.bp) + row("Gestorben", fmtDate(p.d)) + row("in", p.dp) +
+      h += "<h3>Lebensdaten</h3><dl>" + row("Geboren", fmtDate(p.b)) + row("in", p.bp) + row("Gestorben", fmtDate(p.d)) + row("in", p.dp) + row("Wohnort", p.rp) +
         (age != null && age >= 0 && age < 120 ? row("Alter", "ca. " + age + " Jahre") : "") + row("Beruf", p.o) + row("Konfession", { LU: "lutherisch", RK: "römisch-katholisch", RE: "reformiert", EV: "evangelisch" }[p.r] || p.r) + "</dl>";
       if (p.no) h += '<h3>Notiz</h3><div class="note">' + esc(p.no) + "</div>";
     }
+    h += SBEdit.panelContact(i);
     var par = parentsOf(i);
     h += section("Eltern", par.map(function (q) { return personLi(q, P[q].g === "M" ? "Vater" : "Mutter"); }).join(""));
     h += section("Partner", partnersOf(i).map(function (q) {
@@ -405,7 +409,7 @@
   $("sb-home").onclick = function () { focusOn(ROOT); };
   $("sb-info").onclick = showOverview;
   document.addEventListener("keydown", function (e) {
-    if (e.key === "/" && document.activeElement !== qEl) { e.preventDefault(); qEl.focus(); }
+    if (e.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || "")) { e.preventDefault(); qEl.focus(); }
   });
 
   // ---- Hilfe ----
@@ -430,17 +434,33 @@
   var sb = typeof getSupabase === "function" ? getSupabase() : null;
   function toGate() { location.replace("/stammbaum/"); }
   if (!sb) { toGate(); return; }
+  function indexEntry(p) {
+    return { name: norm((p.n || "") + " " + (p.s || "")), extra: norm([p.b, p.d, p.bp, p.dp, p.o].filter(Boolean).join(" ")) };
+  }
   sb.rpc("stammbaum_get").then(function (res) {
     if (res.error || !res.data || !res.data.persons) throw new Error("kein Zugriff");
-    return sb.rpc("stammbaum_status").then(function (st) {
-      if (st.data === "admin") $("sb-admin").hidden = false;
-      return res.data;
-    });
+    var d = res.data;
+    if (d.role) return d;
+    // Fallback, falls die Rollen-Migration noch nicht eingespielt ist
+    return sb.rpc("stammbaum_status").then(function (st) { d.role = st.data === "admin" ? "admin" : "viewer"; return d; });
   }).then(function (d) {
     P = d.persons; F = d.families; ROOT = d.root;
-    index = P.map(function (p) {
-      return { name: norm(p.n + " " + p.s), extra: norm([p.b, p.d, p.bp, p.dp, p.o].filter(Boolean).join(" ")) };
+    if (d.role === "admin") $("sb-admin").hidden = false;
+    SBEdit.init({
+      P: P, sb: sb, role: d.role, edits: d.edits, contacts: d.contacts, panel: panel,
+      esc: esc, plainName: plainName, fullName: fullName,
+      onChange: function (i) {
+        index[i] = indexEntry(P[i]);
+        render(false);
+        showPanel(i);
+        if (i === state.focus) document.title = plainName(P[i]) + " – Stammbaum";
+      },
+    }).then(function (loaded) {
+      if (!loaded) return;
+      render(false);
+      if (!panel.hidden && state.sel != null) showPanel(state.sel);
     });
+    index = P.map(indexEntry);
     SBMap.init({ persons: P, places: d.places, panel: panel, esc: esc, plainName: plainName, lifeYears: lifeYears });
     if (!SBMap.hasData()) $("sb-v-map").hidden = true;
     var start = idFromHash();

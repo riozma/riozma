@@ -127,10 +127,13 @@
       <h3>Offene Anfragen und Zugänge</h3>
       <ul class="g-list" id="ad-list"></ul>
 
+      <p class="g-small"><strong>Rollen:</strong> «Ansehen» sieht den Stammbaum. «Bearbeiten» darf zusätzlich Angaben ändern, Fotos hochladen und sieht und pflegt die Kontaktdaten (Telefon, E-Mail, Adresse).</p>
+
       <h3>Jemanden vorab freigeben</h3>
       <p class="g-small">Wer sich mit dieser E-Mail-Adresse anmeldet, kommt sofort hinein, ohne Anfrage.</p>
       <form id="f-invite" class="g-inline" novalidate>
         <input id="inv-mail" type="email" placeholder="E-Mail-Adresse" aria-label="E-Mail-Adresse">
+        <select id="inv-role" aria-label="Rolle"><option value="viewer">Ansehen</option><option value="editor">Bearbeiten</option></select>
         <button type="submit" class="g-btn g-btn-small">Freigeben</button>
       </form>
       <p class="g-msg" id="inv-msg"></p>

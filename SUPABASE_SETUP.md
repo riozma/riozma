@@ -54,3 +54,17 @@ lädt die Daten erst per JS nach, das sehen Crawler nicht).
 ## Storage (Kunst/Politik-Bilder)
 
 Falls Upload fehlschlägt: Buckets `artworks` und `blog-images` im Dashboard anlegen (public).
+
+## Stammbaum: Rollen, Bearbeiten, Fotos, Kontakte
+
+Migration `supabase/migrations/20261101000000_stammbaum_roles_edit.sql` einspielen.
+
+- **Rollen** unter `/stammbaum/` (Admin-Ansicht): «Ansehen» oder «Bearbeiten», für freigegebene Personen und für
+  Einladungen. Admin bleibt fest `manuelzeltner@gmail.com`.
+- **Bearbeiten** darf Angaben zu Personen ändern, Fotos hochladen (privater Bucket `stammbaum-photos`, wird von der
+  Migration angelegt) und sieht/pflegt Kontaktdaten (Telefon, E-Mail, Adresse …). Betrachter sehen keine Kontaktdaten.
+- Änderungen liegen als Überlagerung in `stammbaum_edits` / `stammbaum_contacts`, jede Änderung zusätzlich im
+  Protokoll `stammbaum_edit_log` (wer, wann, vorher/nachher).
+- **Als Kontakt speichern**: pro Person eine `.vcf`-Datei (Name, Geburtstag, Foto, bei Bearbeitern auch Kontaktdaten).
+  Bearbeiter können über «Kontakte» alle auf einmal exportieren und in Google Kontakte importieren
+  (contacts.google.com → Importieren); Geburtstage erscheinen dann im Google Kalender.

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://lwxwcogvkhixfsfvkcvz.supabase.co; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://lwxwcogvkhixfsfvkcvz.supabase.co; connect-src 'self' https://lwxwcogvkhixfsfvkcvz.supabase.co; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>Stammbaum der Familie König</title>
   <link rel="icon" href="/src/img/favicon.svg">
   <meta name="theme-color" content="#edf7ea">
@@ -23,6 +23,7 @@
     <div class="sb-tools">
       <button type="button" id="sb-help" class="sb-btn">Hilfe</button>
       <button type="button" id="sb-info" class="sb-btn">Überblick</button>
+      <button type="button" id="sb-contacts" class="sb-btn" hidden title="Kontakte als Datei für Google, iPhone oder Outlook">Kontakte</button>
       <a href="/stammbaum/" id="sb-admin" class="sb-btn" hidden>Freigaben</a>
       <button type="button" id="sb-logout" class="sb-btn sb-btn-quiet">Abmelden</button>
     </div>
@@ -88,9 +89,82 @@
         <li><strong>Verschieben:</strong> Halte die Maustaste gedrückt und ziehe. Auf dem Tablet wischst du mit dem Finger.</li>
         <li><strong>Grösser und kleiner:</strong> Benutze die Knöpfe unten rechts oder das Mausrad.</li>
         <li><strong>Jemanden finden:</strong> Tippe oben einen Namen in das Suchfeld und wähle die Person aus.</li>
+        <li><strong>Als Kontakt speichern:</strong> Rechts bei einer Person auf «Als Kontakt speichern» tippen. So kommt sie mit Geburtstag in dein Handy oder Google-Konto.</li>
+        <li class="sb-editor-only" hidden><strong>Bearbeiten:</strong> Du darfst Angaben ändern, Fotos hochladen und Kontaktdaten erfassen. Person anklicken und rechts auf «Bearbeiten» tippen.</li>
       </ol>
       <p class="sb-credit-box">Dieser Stammbaum ist das Werk der Brüder <strong>Heinz und Erich König</strong>, die die Familiengeschichte gemeinsam über viele Jahre erforscht und zusammengetragen haben.</p>
       <button type="button" id="sb-modal-ok" class="sb-btn sb-btn-main">Verstanden, los geht's</button>
+    </div>
+  </div>
+
+  <div class="sb-modal" id="sb-edit" role="dialog" aria-modal="true" aria-labelledby="sbe-title" hidden>
+    <form class="sb-modal-box sb-form" id="sbe-form" novalidate>
+      <h2 id="sbe-title">Person bearbeiten</h2>
+      <div class="sbe-photo">
+        <div class="sbe-ph" id="sbe-ph"></div>
+        <div class="sbe-phbtns">
+          <label class="sb-btn" for="sbe-file">Foto wählen</label>
+          <input type="file" id="sbe-file" accept="image/jpeg,image/png,image/webp,image/*" class="sbe-file">
+          <button type="button" class="sb-btn sb-btn-quiet" id="sbe-ph-rm">Foto entfernen</button>
+        </div>
+      </div>
+      <fieldset>
+        <legend>Angaben</legend>
+        <div class="sbe-grid">
+          <label>Vorname<input name="n" autocomplete="off"></label>
+          <label>Nachname<input name="s" autocomplete="off"></label>
+          <label>Titel<input name="t" autocomplete="off"></label>
+          <label>Geschlecht<select name="g"><option value="">unbekannt</option><option value="M">Mann</option><option value="F">Frau</option></select></label>
+          <label>Geboren<input name="b" placeholder="z. B. 13.08.1952 oder 1952" autocomplete="off"></label>
+          <label>Geburtsort<input name="bp" autocomplete="off"></label>
+          <label>Gestorben<input name="d" placeholder="leer, wenn die Person lebt" autocomplete="off"></label>
+          <label>Sterbeort<input name="dp" autocomplete="off"></label>
+          <label>Wohnort<input name="rp" autocomplete="off"></label>
+          <label>Beruf<input name="o" autocomplete="off"></label>
+          <label>Konfession<input name="r" autocomplete="off"></label>
+          <label class="sbe-check"><input type="checkbox" name="l"> Person lebt</label>
+          <label class="full">Notiz<textarea name="no" rows="3"></textarea></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Kontaktdaten <small>nur für Personen mit Bearbeitungsrecht sichtbar</small></legend>
+        <div class="sbe-grid">
+          <label>Telefon<input name="c_tel" type="tel" autocomplete="off"></label>
+          <label>Mobile<input name="c_mob" type="tel" autocomplete="off"></label>
+          <label class="full">E-Mail<input name="c_mail" type="email" autocomplete="off"></label>
+          <label class="full">Strasse und Nr.<input name="c_str" autocomplete="off"></label>
+          <label>PLZ und Ort<input name="c_ort" placeholder="z. B. 8000 Zürich" autocomplete="off"></label>
+          <label>Land<input name="c_land" autocomplete="off"></label>
+          <label class="full">Webseite<input name="c_web" autocomplete="off"></label>
+          <label class="full">Notiz zum Kontakt<textarea name="c_notiz" rows="2"></textarea></label>
+        </div>
+      </fieldset>
+      <p class="sbe-msg" id="sbe-msg" role="alert"></p>
+      <div class="sbe-actions">
+        <button type="button" class="sb-btn" id="sbe-cancel">Abbrechen</button>
+        <button type="submit" class="sb-btn sb-btn-main" id="sbe-save">Speichern</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="sb-modal" id="sb-vcf" role="dialog" aria-modal="true" aria-labelledby="sbv-title" hidden>
+    <div class="sb-modal-box">
+      <h2 id="sbv-title">Kontakte exportieren</h2>
+      <p id="sbv-lead"></p>
+      <div id="sbv-bulk" hidden>
+        <label class="sbe-check"><input type="checkbox" id="sbv-bday" checked> Auch lebende Personen ohne Kontaktdaten, aber mit Geburtstag</label>
+        <label class="sbe-check"><input type="checkbox" id="sbv-ph" checked> Fotos mitnehmen</label>
+        <p class="sub">Enthält <strong id="sbv-count">0 Personen</strong>.</p>
+        <button type="button" class="sb-btn sb-btn-main" id="sbv-go">Datei herunterladen</button>
+      </div>
+      <h3>So kommen die Kontakte ins Google-Konto</h3>
+      <ol class="sb-steps">
+        <li><a href="https://contacts.google.com/" target="_blank" rel="noopener">contacts.google.com</a> öffnen und anmelden.</li>
+        <li>Links auf <strong>«Importieren»</strong> klicken.</li>
+        <li>Die heruntergeladene <strong>.vcf-Datei</strong> wählen und «Importieren» drücken.</li>
+      </ol>
+      <p class="sub">iPhone: Datei antippen und «Alle hinzufügen» wählen. Android: Datei öffnen und das Google-Konto als Speicherort wählen.</p>
+      <button type="button" class="sb-btn" id="sbv-close">Schliessen</button>
     </div>
   </div>
 
@@ -98,6 +172,7 @@
   <script src="/src/supabase-config.js"></script>
   <script src="/src/supabase-client.js"></script>
   <script src="/stammbaum/karte.js"></script>
+  <script src="/stammbaum/edit.js"></script>
   <script src="/stammbaum/stammbaum.js"></script>
 </body>
 </html>

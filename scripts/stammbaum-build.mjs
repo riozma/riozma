@@ -7,6 +7,10 @@
 // Personen ohne Todesdatum, die ab 1925 geboren sind (oder deren Geburtsjahr unbekannt ist und
 // die Kinder ab 1925 haben), gelten als lebend (Feld "l"). Die Daten liegen nur hinter Login und
 // Freigabe in Supabase; mit --anonymize-living bleiben von Lebenden nur Name und Geschlecht erhalten.
+//
+// Wichtig: Änderungen aus der Webseite (Angaben, Fotos, Kontaktdaten) sind in Supabase pro Person über den
+// Index im persons-Array gespeichert (Tabellen stammbaum_edits / stammbaum_contacts). Ein neuer Import muss
+// darum dieselbe Reihenfolge der Personen behalten (gleiche GEDCOM-Datei, neue Personen nur hinten anfügen).
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
