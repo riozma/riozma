@@ -1,0 +1,134 @@
+{
+  "issue": 3,
+  "week": "2026-45",
+  "date": "2026-11-02",
+  "covers": { "from": "2026-10-26", "to": "2026-11-01" },
+  "title": "AI moves into engineering software, excavators drive themselves",
+  "summary": "Nemetschek put an AI layer into Allplan, SCIA, FRILO, Archicad and Bluebeam, including connectors for outside AI assistants. Bedrock Robotics raised $600M for self-driving excavators, and a Swedish start-up was selected for EU money to make cement from industrial residues in Latvia. In Switzerland, the new Sisikon tunnel is blasted with a nitrate-free explosive so its rock can go into Lake Uri. Our focus: the basic idea of circular construction.",
+  "generated": {
+    "by": "Claude (Anthropic), scheduled FPL Weekly task",
+    "method": "Web search over news from 26 October to 1 November 2026, then reading the original or best available source for every item (company and agency releases, specialist press). Selection, explanations and summaries are written by AI. Company figures are marked as claims. Bedrock Robotics had not published its own announcement of the round when this issue was written, so that item relies on TechCrunch. The funding round-up (item 6) was published in the window but includes rounds announced a few days earlier. No verifiable story for the 'AI & Digitalization' category was found this week.",
+    "created_at": "2026-11-02T07:30:00+01:00"
+  },
+  "news": [
+    {
+      "id": "nemetschek-max-ai-layer",
+      "category": "tools",
+      "title": "Nemetschek, the Munich group behind Allplan, Archicad and Bluebeam, adds an AI layer to its design and engineering software",
+      "body": "On 29 October the Nemetschek Group released three paid 'Max' versions of its software, all running on its own Nemetschek Intelligence Platform. Allplan Max 2027 covers the engineering tools Allplan, SCIA, FRILO, RISA and SDS2, with AI functions such as an AI BIM Modeler, AI Structural Analyst, AI Drafter, AI Formula Writer and a Feature Builder; Nemetschek says early beta users completed selected tasks up to 36% faster (company figure, not independently tested). Archicad Max adds an agentic AI assistant that works inside the architectural model and a public Archicad MCP server (beta), and Bluebeam Max, available since May, can be used from Anthropic's Claude, GitHub Copilot CLI and AnythingLLM through MCP. Allplan Max and Bluebeam Max are available worldwide; Bluebeam Max is free for eligible students and teachers.\n\nWhy it matters: SCIA and FRILO are structural analysis tools many Swiss and German engineers use daily. AI is no longer an add-on from a start-up but built into the software where the calculation happens, and the MCP connectors mean outside AI assistants can now read and act in these programs too.",
+      "background": "Nemetschek (Munich) owns a family of software brands: Allplan for structural and civil engineering drawings and reinforcement, SCIA and FRILO for structural analysis, RISA and SDS2 for structural and steel detailing, Graphisoft's Archicad for architects and Bluebeam for reviewing and marking up construction PDFs. Until now each brand had its own, mostly separate, AI experiments; the 'Max' tier bundles them on one shared platform and sells them as a premium subscription. MCP (Model Context Protocol) is the open standard that lets an AI assistant such as Claude call another program's functions and data; issue #2 explained it with Procore and EarthCam. Nemetschek reported revenue of EUR 1.19 billion for 2025 and says its software has 7.5 million users.",
+      "region": "EU",
+      "topics": ["ai-assistants", "structural-analysis", "mcp", "bim"],
+      "source_type": "primary",
+      "source_name": "Nemetschek Group press release",
+      "source_url": "https://www.nemetschek.com/en/news-media/ngroup-brings-ai-to-aec-with-max-releases",
+      "more_sources": [
+        { "name": "Contractor AI Shop (independent summary of Allplan Max 2027)", "url": "https://contractoraishop.com/news/2026-10-30-allplan-max-2027" }
+      ],
+      "published_at": "2026-10-29",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "bedrock-robotics-series-c",
+      "category": "robotics",
+      "title": "Bedrock Robotics, a 2024 start-up from former self-driving car engineers, raises $600M for autonomous excavators",
+      "body": "San Francisco-based Bedrock Robotics raised a $600 million Series C co-led by CapitalG and Emergence Capital, valuing it at $4.1 billion, TechCrunch reported on 26 October. It has now raised nearly $1 billion in total; in February it had raised $270 million at a $1.75 billion valuation. Bedrock retrofits a self-driving kit onto excavators that contractors already own. Since August its machines have worked without an operator on paying job sites: a water treatment facility in Nevada, earthworks for Champion Site Prep in Texas and a 1.2 million cubic yard (about 920,000 m³) civil sitework project with Zachry Construction. CEO Boris Sofman says the company has proven 'that fully autonomous excavators can perform real work of value alongside the crews'. How widely the machines are deployed is not public.\n\nWhy it matters: earthworks are a large share of every civil project, and the excavator is one of the hardest machines to learn. If excavation becomes software-controlled, the digital terrain model and the excavation plan become direct machine input, so their accuracy matters more than ever.",
+      "background": "Bedrock was founded in 2024 by engineers from Waymo and other autonomous-vehicle companies; Sofman helped develop Waymo's driverless cars. Instead of building new machines, it fits sensors with full coverage around the vehicle and a computer onto standard excavators, which the company says make up about a quarter of most earthmoving fleets. The crews stay on site; the machine works within their existing workflow. Bedrock argues that a skilled excavator operator needs five years or more to master the machine, while many experienced operators are close to retirement. Investors include Nvidia and Singapore's Temasek.",
+      "region": "US",
+      "topics": ["autonomous-machines", "earthworks", "funding", "robotics"],
+      "source_type": "trade",
+      "source_name": "TechCrunch",
+      "source_url": "https://techcrunch.com/2026/10/26/this-startups-self-driving-excavators-help-dig-up-600m-in-new-funding/",
+      "more_sources": [
+        { "name": "The Real Deal (valuation, earlier round)", "url": "https://therealdeal.com/national/2026/10/28/ai-construction-startup-ratches-up-valuation-past-4b/" },
+        { "name": "Bedrock Robotics: first fully autonomous fleets", "url": "https://bedrockrobotics.com/news/building-fully-autonomous-fleets-with-the-crews-who-need-them" }
+      ],
+      "published_at": "2026-10-26",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "sisikon-tunnel-nitrate-free-explosive",
+      "category": "swiss",
+      "title": "Canton Schwyz blasts the new Sisikon tunnel with a nitrate-free explosive, a first for a large Swiss road tunnel",
+      "body": "For the new Sisikon tunnel on the Axenstrasse, the Schwyz road department uses Hypex Bio, an emulsion explosive in which hydrogen peroxide replaces nitrate as the oxygen supplier. The reason is where the rock goes: barges take the excavated material to Flüelen, where it is used to reshape shallow-water zones in Lake Uri (Urnersee). According to the canton, this is the first time such an explosive is used for a large road tunnel in Switzerland. It adds about one percent to the contract sum for the tunnel. At the neighbouring Morschach tunnel, the rock is processed into concrete aggregate instead, so conventional explosives are still used there. 'We are aware that using Hypex Bio comes with additional costs,' says deputy project lead Peter Vorwerk.\n\nWhy it matters: excavated material is one of the largest material flows in civil engineering. Deciding early where it will be reused can change choices as small as the explosive, and planners need to know these options and their cost.",
+      "background": "The Neue Axenstrasse (A4) is a major project to move the road between Brunnen and Flüelen along Lake Lucerne into tunnels, mainly for protection against rockfall and debris flows; Sisikon is one of its tunnels. In drill-and-blast tunnelling, holes are drilled into the rock face, charged with explosive and fired, and the broken rock (the muck) is removed after each round. Conventional emulsion explosives use nitrate as the oxygen carrier. Hypex Bio was developed in Sweden; in Switzerland it is made under licence by Société Suisse des Explosifs (SSE Group). The canton's statement does not give quantities.",
+      "region": "CH",
+      "topics": ["tunnelling", "excavated-material", "water-protection", "reuse"],
+      "source_type": "trade",
+      "source_name": "Baublatt (German)",
+      "source_url": "https://www.baublatt.ch/baupraxis/neuer-sisikoner-tunnel-schwyz-setzt-auf-umweltschonenden-sprengstoff-39826",
+      "more_sources": [],
+      "published_at": "2026-10-30",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "cemvision-latvia-innovation-fund",
+      "category": "circular",
+      "title": "Swedish start-up Cemvision selected for up to €27.5M in EU money to make cement from industrial residues in Latvia",
+      "body": "Cemvision has been selected for a grant of up to €27.5 million from the EU Innovation Fund for its RE-MENT project: a plant in Ventspils, western Latvia, that is to produce up to 500,000 tonnes of low-carbon cement per year, the Latvian Investment and Development Agency announced on 27 October. The plant does not burn clinker: according to the environmental documents reported by International Cement Review, it grinds and blends previously heat-treated secondary materials rich in calcium oxide, such as steel slag, using electricity instead of fossil fuels. The product is a supersulfated cement, which the company says emits more than 90% less CO₂ than conventional cement production (company claim). The grant agreement is expected by March 2027 and commissioning is targeted for 2028.\n\nWhy it matters: clinker is where most of the CO₂ in concrete comes from. Binders that avoid it entirely are still rare at industrial scale; if plants like this work, designers will need to know how such cements behave and where standards allow them.",
+      "background": "Cemvision, based in Sweden, already runs demonstration production in Poland; Ventspils would be its first commercial-scale plant. Ordinary Portland cement is made by burning limestone and clay at about 1,450 °C to make clinker, which releases CO₂ both from the fuel and from the limestone itself. Supersulfated cements instead combine a large share of ground slag with a sulfate source and only a small activator, so little or no clinker is needed. The EU Innovation Fund, financed from the EU emissions trading system, supports first-of-a-kind low-carbon plants; Cemvision's is one of two Latvian projects selected in this round. CEO Claes Kollberg wants to show 'that Europe can make the cement it needs from its own industrial residues'.",
+      "region": "EU",
+      "topics": ["low-carbon-cement", "industrial-residues", "slag", "eu-funding"],
+      "source_type": "primary",
+      "source_name": "LIAA release via LV portāls (Latvian)",
+      "source_url": "https://lvportals.lv/dienaskartiba/396278-cemvision-izraudzits-275-milj-eiro-granta-sanemsanai-zemu-emisiju-cementa-razotnes-izveidei-latvija-2026",
+      "more_sources": [
+        { "name": "International Cement Review (CemNet)", "url": "https://www.cemnet.com/News/story/182316/cemvision-selected-for-eu-grant-for-latvian-plant.html" },
+        { "name": "Global Cement", "url": "https://globalcement.com/news/21385-cemvision-selected-for-grant-to-build-low-carbon-cement-plant-in-latvia" }
+      ],
+      "published_at": "2026-10-27",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "contech-roundup-mach9-noble",
+      "category": "market",
+      "title": "Construction tech funding of the week: AI that drafts CAD from 3D scans, a humanoid robot backed by Japan's Shimizu",
+      "body": "The weekly Bricks & Bytes round-up (week ending 26 October) lists nine deals. The largest technology round went to Mach9 ($34M Series A, First Round Capital and Bessemer), whose software turns 3D scans of roads and utilities into CAD drawings: the AI drafts curbs, signs, poles, lane markings and wires, and surveyors check and finish them. Mach9 names WSP, HNTB, Caltrans and Minnesota DOT as customers and claims work up to ten times faster at a fifth of the cost. Noble Machines (California), which develops humanoid robots for construction, got a strategic investment from Shimizu, one of Japan's largest contractors. Two Canadian start-ups raised pre-seed money for AI bid review (Tyce) and AI take-offs for building services trades (PataBid), and the document software maker Newforma bought Lumi AI.\n\nWhy it matters: much of this money goes into the information work around construction (survey drafting, bid checking, quantity take-off) rather than the building itself. These are tasks young engineers and surveyors often do, and where AI drafts and the professional checks.",
+      "background": "Bricks & Bytes is a London-based podcast and newsletter on construction technology; its weekly list is compiled from Bhragan Paramanantham's 'Last Week in ConTech'. Mach9 was founded by robotics researchers who met at Carnegie Mellon University; it reads scans from common hardware such as Leica, RIEGL, Trimble and NavVis and exports DXF, DGN and GIS formats, and says it has worked on more than 2,500 projects in all 50 US states. Shimizu is one of Japan's five big general contractors and has a long history of construction robotics research; its stake in a US humanoid start-up shows that Asian contractors are also scouting abroad. Amounts and customer numbers are company figures.",
+      "region": "Global",
+      "topics": ["funding", "reality-capture", "survey", "humanoid-robots"],
+      "source_type": "trade",
+      "source_name": "Bricks & Bytes",
+      "source_url": "https://bricks-bytes.com/funding-ma/latest-construction-technology-funding-rounds-26th-oct-2026/",
+      "more_sources": [
+        { "name": "Mach9 press release (21 Oct)", "url": "https://mach9.ai/news/34-million-series-a" }
+      ],
+      "published_at": "2026-10-27",
+      "image_url": null,
+      "image_credit": null
+    }
+  ],
+  "focus": {
+    "title": "Circular construction: the basic idea",
+    "subtitle": "Module 5 · Concept 1: from take, make, dispose to keeping materials at their highest value",
+    "kind": "concept",
+    "concept_id": "m5-basics",
+    "file": "focus.html",
+    "glossary": [
+      { "term": "Circular construction", "definition": "Designing, building and operating so that buildings, components and materials stay in use as long as possible and at the highest possible value, instead of becoming waste." },
+      { "term": "Embodied (grey) emissions", "definition": "Greenhouse gas emissions caused by producing, transporting, building, maintaining and demolishing a building, as opposed to emissions from operating it." },
+      { "term": "Downcycling", "definition": "Recycling into a lower-value use, for example crushing concrete into road base instead of reusing the element." },
+      { "term": "Urban mining", "definition": "Treating the existing building stock as a store of materials and components that can be recovered for new construction." }
+    ],
+    "further_reading": [
+      { "title": "Ellen MacArthur Foundation: circular economy introduction", "url": "https://www.ellenmacarthurfoundation.org/topics/circular-economy-introduction/overview" },
+      { "title": "BAFU: Aushub- und Ausbruchmaterial (Swiss Federal Office for the Environment, German)", "url": "https://www.bafu.admin.ch/de/aushub-und-ausbruchmaterial" },
+      { "title": "Empa NEST: Urban Mining & Recycling unit", "url": "https://www.empa.ch/web/nest/urban-mining" }
+    ]
+  },
+  "question": {
+    "text": "What should come first to make construction more circular?",
+    "options": [
+      "Keep and convert existing buildings",
+      "Design new buildings for disassembly",
+      "Reuse components from demolition",
+      "Better recycling of materials",
+      "Rules and prices that reward it"
+    ]
+  },
+  "whatsapp_teaser": "🏗️ *FPL Weekly #3* is out!\nAI arrives inside SCIA, FRILO and Allplan (Nemetschek Max), self-driving excavators raise $600M, and a Swiss tunnel is blasted with a nitrate-free explosive so its rock can go into Lake Uri.\n🔍 Focus: circular construction, the basic idea, with an interactive 'value ladder'.\n👉 https://riozma.ch/fpl/weekly/2026-45/"
+}

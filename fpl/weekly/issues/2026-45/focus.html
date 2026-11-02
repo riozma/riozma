@@ -1,0 +1,129 @@
+<!-- FPL Weekly 2026-45 · Focus: Circular construction, the basic idea. Fragment, wird vom Renderer in .fplw-focus eingesetzt. -->
+<style>
+  .fplw-focus .f-lead { font-size: 1.1rem; }
+  .fplw-focus figure { margin: 28px 0; }
+  .fplw-focus figcaption { font-size: .85rem; opacity: .75; margin-top: 6px; }
+  .fplw-focus svg { width: 100%; height: auto; display: block; }
+  .fplw-focus .f-ladder { border: 2px solid var(--blue, #536a89); border-radius: 10px; padding: 16px; margin: 28px 0; }
+  .fplw-focus .f-rungs { display: grid; gap: 4px; }
+  .fplw-focus .f-rungs button { display: grid; grid-template-columns: 2.2rem 1fr; align-items: center; gap: 8px; text-align: left; font: inherit; font-size: .9rem; padding: 8px 10px; border: 1px solid var(--line, #d9dfe7); border-radius: 6px; color: var(--ink, #1d2733); cursor: pointer; background: var(--soft, #e8edf3); }
+  .fplw-focus .f-rungs button b { display: block; text-align: center; border-radius: 4px; color: #fff; padding: 2px 0; font-size: .8rem; }
+  .fplw-focus .f-rungs button[aria-pressed="true"] { outline: 3px solid var(--orange, #d68d00); outline-offset: 1px; }
+  .fplw-focus .f-detail { margin-top: 14px; padding: 12px; border-radius: 6px; background: var(--soft, #e8edf3); }
+  .fplw-focus .f-detail h4 { margin: 0 0 6px; }
+  .fplw-focus .f-detail p { margin: 0 0 6px; }
+  .fplw-focus .f-meter { display: block; height: 10px; border-radius: 5px; background: var(--line, #d9dfe7); overflow: hidden; margin-top: 8px; }
+  .fplw-focus .f-meter span { display: block; height: 100%; background: var(--green, #1f8f86); transition: width .35s; }
+  .fplw-focus .f-small { font-size: .8rem; opacity: .75; }
+  .fplw-focus table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  .fplw-focus th, .fplw-focus td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line, #d9dfe7); vertical-align: top; }
+</style>
+
+<p class="f-lead">Three stories this week share one idea. Cemvision wants to make cement from industrial residues, the Sisikon tunnel chose its explosive so the rock can be used in Lake Uri, and last week Holcim reported a third more recycled demolition material. Behind all three is the same shift: treating what used to be waste as a resource. That is the core of circular construction.</p>
+
+<h3>From a line to a loop</h3>
+<p>Most of the construction economy still works in a line: extract raw materials, make products, build, use, demolish, dispose. Circular construction tries to close that line into loops, so that buildings, components and materials stay in use for as long as possible and at the highest possible value. It is not the same as recycling. Recycling is one loop, and usually the outermost and least valuable one.</p>
+
+<figure>
+  <svg viewBox="0 0 640 266" role="img" aria-label="Linear versus circular material flow in construction">
+    <defs>
+      <marker id="fw45-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#536a89"/></marker>
+      <marker id="fw45-g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1f8f86"/></marker>
+    </defs>
+    <g font-size="14" text-anchor="middle" fill="#1d2733">
+      <rect x="10" y="150" width="100" height="44" rx="6" fill="#e8edf3" stroke="#536a89"/><text x="60" y="177">Extract</text>
+      <rect x="140" y="150" width="100" height="44" rx="6" fill="#e8edf3" stroke="#536a89"/><text x="190" y="177">Produce</text>
+      <rect x="270" y="150" width="100" height="44" rx="6" fill="#536a89"/><text x="320" y="177" fill="#fff">Build &amp; use</text>
+      <rect x="400" y="150" width="100" height="44" rx="6" fill="#e8edf3" stroke="#536a89"/><text x="450" y="177">Demolish</text>
+      <rect x="530" y="150" width="100" height="44" rx="6" fill="#c4372f"/><text x="580" y="177" fill="#fff">Landfill</text>
+    </g>
+    <g stroke="#536a89" stroke-width="2.5" marker-end="url(#fw45-a)">
+      <path d="M110 172 H134"/><path d="M240 172 H264"/><path d="M370 172 H394"/><path d="M500 172 H524"/>
+    </g>
+    <g fill="none" stroke="#1f8f86" stroke-width="3" marker-end="url(#fw45-g)">
+      <path d="M335 150 C345 115 300 115 310 146"/>
+      <path d="M440 150 C430 85 340 85 330 146"/>
+      <path d="M460 150 C450 40 200 40 190 144"/>
+      <path d="M470 196 C460 250 70 250 60 200"/>
+    </g>
+    <g font-size="15" fill="#1f8f86" text-anchor="middle">
+      <text x="250" y="128">keep &amp; adapt</text>
+      <text x="530" y="100">reuse components</text>
+      <text x="325" y="28">recycle into new products</text>
+      <text x="265" y="258">recycled raw material (aggregate, slag)</text>
+    </g>
+  </svg>
+  <figcaption>The linear chain (grey to red) and the loops that close it (green). The smaller the loop, the more of the original value it keeps.</figcaption>
+</figure>
+
+<h3>The value ladder</h3>
+<p>A useful way to compare options is a ladder of strategies, often called the R-strategies. The higher the rung, the more of the material, the work and the embodied emissions are kept. Click through it with construction examples:</p>
+
+<div class="f-ladder" data-widget="rladder">
+  <div class="f-rungs" role="group" aria-label="Circular strategies from highest to lowest value"></div>
+  <div class="f-detail" aria-live="polite">
+    <h4 data-out="title"></h4>
+    <p data-out="text"></p>
+    <p class="f-small" data-out="example"></p>
+    <span class="f-meter" aria-hidden="true"><span data-out="meter"></span></span>
+    <p class="f-small">Bar: how much of the original value is kept (qualitative, not a measured number).</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  var root = document.currentScript ? document.currentScript.previousElementSibling : null;
+  if (!root || root.getAttribute('data-widget') !== 'rladder') root = document.querySelector('.fplw-focus [data-widget="rladder"]');
+  if (!root) return;
+  var rungs = [
+    { r: 'R0', t: 'Refuse / rethink', s: 'Question whether a new building or element is needed at all, or whether the need can be met differently.', e: 'Example: a feasibility study shows the extra office space can be found by using existing floors more intensively.', v: 100, c: '#1f8f86' },
+    { r: 'R1', t: 'Reduce', s: 'Use less material for the same function, through efficient structures and only the precision that is actually needed.', e: 'Example: optimised slab thicknesses or hollow-core and ribbed slabs instead of massive ones.', v: 92, c: '#1f8f86' },
+    { r: 'R2', t: 'Keep and adapt', s: 'Keep the existing building and its structure, and change its use or layout instead of demolishing.', e: 'Example: converting an office building into flats while keeping the load-bearing structure, where most of the embodied emissions sit.', v: 85, c: '#1f8f86' },
+    { r: 'R3', t: 'Reuse components', s: 'Take elements out of one building and use them again with the same function in another.', e: 'Example: steel beams, façade panels or windows from a demolition reused in a new project; requires careful dismantling, testing and documentation.', v: 70, c: '#536a89' },
+    { r: 'R4', t: 'Remanufacture / repurpose', s: 'Rework components so they can serve again, possibly in a different role.', e: 'Example: cutting slabs from a demolished concrete building into new wall elements.', v: 55, c: '#536a89' },
+    { r: 'R5', t: 'Recycle', s: 'Break materials down and use them as raw material for new products.', e: 'Example: crushed concrete as recycled aggregate, steel scrap remelted, or slag as a cement ingredient (like Cemvision this week).', v: 35, c: '#d68d00' },
+    { r: 'R6', t: 'Recover', s: 'Use the material in a low-grade way or recover energy from it.', e: 'Example: excavated rock used to reshape lake shores (Sisikon), or burning waste wood for energy.', v: 18, c: '#d68d00' },
+    { r: 'R7', t: 'Dispose', s: 'Landfill. The material and the effort put into it are lost.', e: 'Example: mixed demolition waste or contaminated soil going to a landfill.', v: 3, c: '#c4372f' }
+  ];
+  var list = root.querySelector('.f-rungs');
+  var btns = rungs.map(function (x, i) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-pressed', 'false');
+    var tag = document.createElement('b'); tag.textContent = x.r; tag.style.background = x.c;
+    var label = document.createElement('span'); label.textContent = x.t;
+    b.appendChild(tag); b.appendChild(label);
+    b.addEventListener('click', function () { show(i); });
+    list.appendChild(b);
+    return b;
+  });
+  function show(i) {
+    var x = rungs[i];
+    btns.forEach(function (b, j) { b.setAttribute('aria-pressed', j === i ? 'true' : 'false'); });
+    root.querySelector('[data-out="title"]').textContent = x.r + ' · ' + x.t;
+    root.querySelector('[data-out="text"]').textContent = x.s;
+    root.querySelector('[data-out="example"]').textContent = x.e;
+    var m = root.querySelector('[data-out="meter"]');
+    m.style.width = x.v + '%';
+    m.style.background = x.c;
+  }
+  show(2);
+})();
+</script>
+
+<h3>Why it matters in Switzerland</h3>
+<p>Construction is by far the largest material flow in the Swiss economy. Excavated and tunnelling material alone amounts to roughly 40 to 60 million tonnes per year, according to the Federal Office for the Environment (BAFU), the largest waste quantity by far. Mineral demolition waste is already widely recycled into aggregates, so the easy loop is largely closed. The real gains now lie higher up the ladder: keeping buildings, reusing components, and using binders with less clinker. At the same time, for a new, energy-efficient building the grey (embodied) emissions can be similar to, or larger than, its operating emissions over decades, which moves the focus from the boiler room to the structure.</p>
+<p>Swiss practice already has reference projects higher up the ladder. A well-known one is the K.118 extension in Winterthur by baubüro in situ, completed in 2021 and built largely from components taken from other buildings, such as steel beams, windows and façade panels. To compare options with numbers, Swiss planners use life-cycle assessment data published by KBOB, the federal coordination body for public builders, which gives the grey emissions of common building materials. Reused components are the hard case: their emissions were already "spent" in the first building, but how to count them, and how much testing they need, is still being worked out.</p>
+
+<h3>Why it is harder than it sounds</h3>
+<table>
+  <tr><th>Hurdle</th><th>What it means for planners</th></tr>
+  <tr><td>Information</td><td>Nobody knows exactly what is inside an existing building: which steel grade, which concrete, which connections. Reuse starts with documentation.</td></tr>
+  <tr><td>Design</td><td>Most buildings are glued, cast and welded together. Elements that cannot be taken apart cannot be reused.</td></tr>
+  <tr><td>Liability and standards</td><td>Who guarantees a reused beam? Standards are written for new products with certificates.</td></tr>
+  <tr><td>Logistics and cost</td><td>Careful dismantling, storage and testing cost time and money; landfill and new material are often cheaper today.</td></tr>
+</table>
+
+<h3>What it means for us as future planners</h3>
+<p>The strongest circular decisions are made early and by planners, not at the demolition site: whether to keep a building, how to join elements so they can come apart again, which binder to specify, and where excavated material will go, as the Sisikon tunnel shows. These choices need engineers who can assess existing structures, document materials and accept a little more uncertainty in exchange for much less waste.</p>
+<p><strong>Next in Module 5:</strong> Design for disassembly: how to connect elements so a building can be taken apart instead of demolished.</p>
