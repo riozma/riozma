@@ -257,3 +257,17 @@ html { scroll-behavior: smooth; }
 .fplw-btnrow { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 #fplw-dlg button.fplw-ai { display: block; width: 100%; text-align: left; margin: 0 0 8px; padding: 12px 16px; border-radius: 10px; background: var(--white); color: var(--ink); border: 1.5px solid var(--line); font-size: 1rem; }
 #fplw-dlg button.fplw-ai:hover { border-color: var(--orange); background: #fffaf0; }
+
+/* Finanzierungsmeldungen: fester Kontext-Block und Sammelzeile */
+.fplw-fund { border: 1px solid #ecd9b0; background: #fdf8ee; border-radius: 8px; padding: 10px 14px; margin: 14px 0; }
+.fplw-fund-h { font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #9a6a00; margin: 0 0 6px !important; }
+.fplw-fund dl { display: grid; grid-template-columns: 5.2rem 1fr; gap: 6px 10px; margin: 0; font-size: .93rem; }
+.fplw-fund dt { font-weight: 700; color: var(--blue-dark, #2c3e55); }
+.fplw-fund dd { margin: 0; }
+@media (max-width: 480px) { .fplw-fund dl { grid-template-columns: 1fr; gap: 2px; } .fplw-fund dd { margin-bottom: 6px; } }
+.fplw-also { margin: 18px 0 0; padding: 12px 16px; border: 1px solid var(--line); border-radius: 10px; }
+.fplw-also h3 { margin: 0 0 8px; font-size: .8rem; text-transform: uppercase; letter-spacing: .1em; color: #647386; }
+.fplw-also ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.fplw-also li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; font-size: .92rem; }
+.fplw-also a { font-weight: 700; color: var(--ink); }
+.fplw-also-amt { font-variant-numeric: tabular-nums; color: #9a6a00; font-weight: 600; }

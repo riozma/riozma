@@ -133,6 +133,42 @@
             "maxLength": 1000,
             "description": "Explains what THIS item needs as prior knowledge, specific to the article: what the (small or foreign) company does and its approach or solution, how things were handled so far, the technical idea. Not a generic definition. Aimed at a Bachelor graduate who is not a specialist in this niche."
           },
+          "funding_context": {
+            "type": "object",
+            "description": "Required for every item in category 'market' that reports a funding round, acquisition or valuation. Four short lines that make the number readable. Estimates are marked as such ('estimate:' or 'roughly').",
+            "required": [
+              "what",
+              "size",
+              "signal",
+              "for_us"
+            ],
+            "properties": {
+              "what": {
+                "type": "string",
+                "minLength": 20,
+                "maxLength": 400,
+                "description": "What the company actually builds or sells, in one or two plain sentences."
+              },
+              "size": {
+                "type": "string",
+                "minLength": 20,
+                "maxLength": 400,
+                "description": "How big the round is compared to typical rounds in this niche, earlier rounds of the company or a known reference. Name the comparison basis; mark estimates."
+              },
+              "signal": {
+                "type": "string",
+                "minLength": 20,
+                "maxLength": 400,
+                "description": "What it says about where the industry is heading (which technology or business model attracts money and why)."
+              },
+              "for_us": {
+                "type": "string",
+                "minLength": 20,
+                "maxLength": 400,
+                "description": "What it means for planners and students in Switzerland: is it available here, does it change a task, a skill or a workflow? Mark guesses."
+              }
+            }
+          },
           "region": {
             "type": "string",
             "enum": [
@@ -209,6 +245,43 @@
               "string",
               "null"
             ]
+          }
+        }
+      }
+    },
+    "also_funded": {
+      "type": "array",
+      "maxItems": 8,
+      "description": "Other funding rounds of the week that do not get their own item, shown as one compact line 'Also funded this week'. No separate roundup items in news.",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "amount",
+          "what",
+          "url"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 60
+          },
+          "amount": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 40,
+            "description": "E.g. 'USD 12M Series A'."
+          },
+          "what": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 120,
+            "description": "What the company does, a few words."
+          },
+          "url": {
+            "type": "string",
+            "pattern": "^https://"
           }
         }
       }

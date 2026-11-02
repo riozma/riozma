@@ -276,6 +276,10 @@ async function main() {
     for (const n of issue.news) {
       if (ids.has(n.id)) fail(`${where}: duplicate news id "${n.id}"`);
       ids.add(n.id);
+      // Ab Ausgabe 4: Finanzierungsmeldungen brauchen den Kontext-Block (README, Regel 5)
+      const looksLikeFunding = /\b(raises?|raised|funding|series [a-e]\b|seed round|valuation|acquires?|acquired|acquisition)\b/i.test(n.title);
+      if (issue.issue >= 4 && n.category === "market" && looksLikeFunding && !n.funding_context) fail(`${where}: ${n.id} looks like a funding/deal item but has no funding_context`);
+      if (issue.issue >= 4 && /\b(roundup|round-up|funding round[s]? of the week)\b/i.test(n.title)) fail(`${where}: ${n.id} is a funding roundup; put those rounds into also_funded`);
     }
     if (issue.focus.concept_id && !conceptIds.has(issue.focus.concept_id)) warn(`${where}: concept_id ${issue.focus.concept_id} is not in curriculum.json`);
     if (issue.focus.kind === "breaking" && issue.focus.concept_id) warn(`${where}: a breaking focus normally has no concept_id`);

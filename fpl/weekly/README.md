@@ -52,7 +52,16 @@ nur für die Nische Digitalisierung, KI, Automatisierung und Kreislaufwirtschaft
    («Ein Series-D-Investment ist …») genügt nicht, sie darf höchstens ein Halbsatz sein. 3 bis 6 Sätze.
 5. **Mischung.** Etwa zwei Drittel «was gibt es, was passiert» (Markt, Produkte, Projekte, Forschung) und ein Drittel «wie funktioniert
    das, was ist das Konzept» (`background`, mindestens zwei Beiträge, die vor allem wegen des Konzepts gewählt wurden, dazu das
-   Fokus-Thema). Höchstens zwei reine Finanzierungsmeldungen je Ausgabe.
+   Fokus-Thema).
+   **Finanzierungsmeldungen (ab Ausgabe 4):** Eine Finanzierungsrunde, Übernahme oder Bewertung bekommt nur dann einen eigenen Beitrag,
+   wenn sie zeigt, wohin sich die Branche bewegt: neue Technik zieht viel Geld an, die Runde ist für die Nische ungewöhnlich gross,
+   oder sie betrifft die Schweiz bzw. den DACH-Raum. Höchstens zwei solche Beiträge je Ausgabe. Jeder davon braucht den Block
+   `funding_context` mit vier Zeilen: **What** (was die Firma konkret baut oder verkauft), **How big** (Runde im Vergleich zu üblichen
+   Runden der Nische, früheren Runden der Firma oder einer bekannten Referenz, Vergleichsbasis nennen), **Signal** (was das über die
+   Richtung der Branche sagt) und **For us** (was es für Planerinnen, Planer und Studierende in der Schweiz bedeutet). Schätzungen und
+   Vermutungen als solche kennzeichnen («estimate», «roughly», «probably»). Alle übrigen Runden der Woche kommen kompakt in
+   `also_funded` (Name, Betrag, wenige Worte zur Firma, Link) und erscheinen als eine Zeile «Also funded this week». Keine eigenen
+   Sammelbeiträge («funding roundup») mehr. Der Build prüft beides ab Ausgabe 4.
    **Mindestens ein Beitrag je Ausgabe in der Rubrik `tools` (AI Tools & Platforms):** KI-Plattformen, Marktplätze und Werkzeug-Ökosysteme
    für Planung und Ingenieurwesen. Beispiele: der Autodesk Design and Make Marketplace, neue MCP-Server oder KI-Assistenten von Autodesk, Bentley,
    Trimble, Bluebeam, Nemetschek/Allplan, Graphisoft, Dlubal oder SCIA, und Start-ups, die Werkzeuge verschiedener Hersteller verbinden,
@@ -153,6 +162,8 @@ Das Schema steht in `issue.schema.json` und wird vom Build geprüft. Beispiel: `
   - `background` (konkret zum Artikel: was die Firma macht und wie sie vorgeht, wie es bisher gehandhabt wurde; 3 bis 6 Sätze), `region` (`CH`, `EU`, `UK`, `US`, `Asia`, `Global`), `topics` (1 bis 4 Tags in Kleinbuchstaben)
   - `source_type` (`primary` Urheber oder wortgetreuer Abdruck der Medienmitteilung, `trade` Fachpresse, `general` Allgemeinpresse, `branded` gesponsert), `source_name`, `source_url`, `more_sources[]`
   - `published_at`, `image_url` (`null` = Build holt `og:image`), `image_credit`
+  - `funding_context` (nur Rubrik `market` bei Finanzierung, Übernahme, Bewertung; Pflicht ab Ausgabe 4): `what`, `size`, `signal`, `for_us`, je 20 bis 400 Zeichen
+- `also_funded[]` (optional, höchstens 8): weitere Runden der Woche als `name`, `amount` (z. B. «USD 12M Series A»), `what`, `url`.
 - `focus`: `title`, `subtitle`, `kind` (`concept` oder `breaking`), `concept_id` (aus `curriculum.json`, nur bei `concept`), `file` (`focus.html`), `glossary[]`, `further_reading[]`.
 - `question`: `text` und 2 bis 10 `options` (Umfrage).
 - `whatsapp_teaser`: fertiger WhatsApp-Text, endet mit der Ausgaben-URL.

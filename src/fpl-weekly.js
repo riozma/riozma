@@ -535,6 +535,16 @@
       bg.append(el("summary", "", "Background: what you need to know"), el("p", "", n.background));
       body.append(bg);
     }
+    if (n.funding_context) {
+      const fc = el("div", "fplw-fund");
+      fc.append(el("p", "fplw-fund-h", "Funding in context"));
+      const dl = el("dl");
+      [["What", "what"], ["How big", "size"], ["Signal", "signal"], ["For us", "for_us"]].forEach(([label, key]) => {
+        if (n.funding_context[key]) dl.append(el("dt", "", label), el("dd", "", n.funding_context[key]));
+      });
+      fc.append(dl);
+      body.append(fc);
+    }
     body.append(paragraphs(n.body));
     const src = el("a", "fplw-btn", "Read the original article →");
     src.href = n.source_url;
@@ -797,6 +807,22 @@
     const list = el("div", "fplw-items");
     order.forEach((r) => list.append(newsItem(r.n, images, { popular: r.popular })));
     news.append(list);
+    if (issue.also_funded && issue.also_funded.length) {
+      const af = el("div", "fplw-also");
+      af.append(el("h3", "", "Also funded this week"));
+      const ul = el("ul");
+      issue.also_funded.forEach((f) => {
+        const li = el("li");
+        const a = el("a", "", f.name);
+        a.href = f.url;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        li.append(a, el("span", "fplw-also-amt", f.amount), el("span", "fplw-muted", f.what));
+        ul.append(li);
+      });
+      af.append(ul);
+      news.append(af);
+    }
     app.append(news);
 
     // Fokus-Thema: breiter Abschnitt
