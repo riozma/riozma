@@ -282,7 +282,10 @@ function fplRender() {
       await fplLoad();
     });
 
-    sec.append(h, grid, form);
+    const study = typeof fplStudyEl === "function" ? fplStudyEl(q) : null;
+    sec.append(h);
+    if (study) sec.append(study);
+    sec.append(grid, form);
     root.append(sec);
   });
 }
