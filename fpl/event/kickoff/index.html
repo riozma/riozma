@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/src/site-init.js"></script>
+  <title>Kick-Off 2.0 – Future Planning Lab</title>
+  <link rel="icon" href="/src/img/fpl-mark.svg" type="image/svg+xml">
+  <meta name="description" content="FPL Kick-Off 2.0: five questions on the future of construction planning. Add your post-its.">
+  <meta name="theme-color" content="#536A89">
+  <link rel="canonical" href="https://riozma.ch/fpl/event/kickoff/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Kick-Off 2.0 – Future Planning Lab">
+  <meta property="og:description" content="Five questions on the future of construction planning. Share your thoughts on a post-it.">
+  <meta property="og:url" content="https://riozma.ch/fpl/event/kickoff/">
+  <link rel="stylesheet" href="/src/fpl.css">
+</head>
+<body>
+  <header class="hero hero-sm">
+    <nav class="topbar">
+      <a class="brand" href="/fpl/">FPL</a>
+      <div class="topnav">
+        <a href="/fpl/event/" aria-current="page">Events</a>
+        <a href="/fpl/weekly/">Newsletter</a>
+        <a href="/fpl/wimmelblock/">Wimmelblock</a>
+      </div>
+      <div class="authbar" id="authbar"></div>
+    </nav>
+    <div class="hero-inner">
+      <div class="hero-text">
+        <p class="eyebrow">Event · Wed 4 Nov 2026 · 17:00 · F15, at the back</p>
+        <h1>Kick-Off 2.0</h1>
+        <p class="lead">Five questions on where construction planning is heading. Stick your post-its, reply to others and give a thumbs up to the ideas you agree with.</p>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="board" aria-label="Five questions">
+      <h2>Five questions, your post-its</h2>
+      <p class="board-lead">These are the thoughts from the kick-off so far. Add your own to any question, or give a thumbs up to the ones you agree with.</p>
+      <p class="board-lead hint">Under each question, “What a study says” shows what the <a href="https://bauen-digital.ch/download/digital-next-gen-trendmonitor-2026/?tmstv=1793684938" target="_blank" rel="noopener">Digital Next Gen Trendmonitor 2026</a> found. Agree or disagree? Stick a post-it.</p>
+      <p class="board-lead hint">Post-its that overlap belong together: the one in front is a reply to the one behind it. Use 💬 to reply.</p>
+      <p class="board-lead hint" id="anon-hint">Post-its added without logging in can be edited and deleted by anyone. Log in (top right) to make yours editable only by you.</p>
+      <div id="questions"></div>
+      <p id="status" class="status" role="status" hidden></p>
+    </section>
+  </main>
+
+  <dialog id="dlg"><form id="dlg-form" method="dialog"></form></dialog>
+
+  <footer>
+    <p>Future Planning Lab · ETH Zurich · <a href="/fpl/">FPL</a> · <a href="/fpl/event/">All events</a></p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/src/supabase-config.js"></script>
+  <script src="/src/supabase-client.js"></script>
+  <script src="/src/fpl-study.js"></script>
+  <script src="/src/fpl.js"></script>
+</body>
+</html>
