@@ -2,6 +2,7 @@
 
 # Supabase CLI temp & lokale Claude-Einstellungen
 supabase/.temp/
-.claude/
+.claude/*
+!.claude/skills/
 stammbaum/data.json
 scripts/stammbaum-places.local.json
