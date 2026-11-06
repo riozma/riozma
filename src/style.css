@@ -4391,3 +4391,53 @@ img.werk-image.img-progressive { filter: none; transform: none; }
     column-count: 1;
   }
 }
+
+/* ---- Kunst-Karte (privat) ---- */
+.kunst-admin-links { margin-bottom: 1rem; font-weight: 600; }
+.karte-map {
+  height: min(70vh, 560px);
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid var(--color-border, #ddd);
+  margin-bottom: 0.75rem;
+  z-index: 0;
+}
+.karte-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-primary-dark, #2f5d3a);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+.karte-popup-holder { margin-top: 0.4rem; font-size: 0.85rem; color: #555; }
+.karte-popup-thumbs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 0.25rem; }
+.karte-popup-thumbs img { width: 56px; height: 56px; object-fit: cover; border-radius: 4px; }
+.karte-summary { color: #555; margin-bottom: 1.5rem; }
+.karte-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 1.25rem; }
+.karte-place h2 { font-size: 1.1rem; margin-bottom: 0.1rem; }
+.karte-count {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 0 0.4em;
+  border-radius: 999px;
+  background: var(--color-primary-dark, #2f5d3a);
+  color: #fff;
+  font-size: 0.8rem;
+  text-align: center;
+}
+.karte-holders { color: #666; font-size: 0.9rem; margin-bottom: 0.5rem; }
+.karte-items { list-style: none; padding: 0; margin: 0; }
+.karte-item { display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.4rem 0; border-top: 1px solid var(--color-border, #e5e5e5); }
+.karte-item-thumb img { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; }
+.karte-item-body { flex: 1; min-width: 0; }
+.karte-item-title { font-weight: 600; }
+.karte-item-where { font-size: 0.9rem; color: #555; }
+.karte-edit { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.4rem; }
+.karte-edit.d-none { display: none; }
+.karte-edit input { flex: 1 1 120px; }
+.karte-edit select { flex: 1 1 140px; }
+.karte-edit-toggle { background: none; border: 0; color: #777; cursor: pointer; font-size: 1rem; padding: 0 0.25rem; }
