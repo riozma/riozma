@@ -10,5 +10,6 @@ Disallow: /trouvo/planning.html
 Disallow: /trouvo/feedback.html
 Disallow: /auth/
 Disallow: /snake/
+Disallow: /kunst/karte.html
 
 Sitemap: https://riozma.ch/sitemap.xml
