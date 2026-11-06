@@ -4014,6 +4014,39 @@ body.site-body :where(button, input, textarea, select, .btn, .form-control, .nav
   margin: 0;
 }
 
+.werk-versions {
+  display: flex;
+  line-height: 1.2;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.werk-version {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: none;
+  font-size: 0.85rem;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.werk-version img {
+  width: 72px;
+  height: auto;
+  border-radius: 4px;
+}
+
+.werk-version.is-active {
+  border-color: currentColor;
+  opacity: 1;
+}
+
 .werk-actions {
   margin: 1.25rem 0;
 }

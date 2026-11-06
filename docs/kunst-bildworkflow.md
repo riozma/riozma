@@ -10,3 +10,8 @@ Ziel: alle Gemälde einheitlich – gleiche Wand (#EEEBE6), 4:5-Format, gleich g
    - Danach `ART_IMG_VERSION` in `src/artworks-data.js` erhöhen (Browser-Cache).
 5. Eintrag in `src/artworks.json` (id = Dateiname ohne Endung; title, year, size, medium, available).
 6. Gemälde-Ordner in Google Drive (Kunst/Gemälde) mit der bearbeiteten highRes-Version aktualisieren.
+
+## Mehrere Fassungen eines Werks (z.B. übermalt)
+Neues Foto wie oben bearbeiten (eigene Bild-ID, z.B. `stadtplan_ueberarbeitet`), aber **keinen** neuen Eintrag in `artworks.json` anlegen. Stattdessen beim bestehenden Werk ergänzen:
+`"versions":[{"img":"stadtplan_ueberarbeitet","label":"überarbeitet"},{"img":"<alte-id>","label":"ursprünglich"}]`
+Die erste Fassung ist das Titelbild in der Galerie (Werk erscheint nur einmal), auf der Werkseite kann man zwischen allen Fassungen umschalten. Die Werk-ID (URL) bleibt gleich.

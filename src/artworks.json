@@ -12,7 +12,7 @@
 {"id":"IMG_20211225_093259","title":"Gwitter","year":"2021","size":"40x50","medium":"Acrylic on canvas","available":"True"},
 {"id":"IMG_20210829_135425__01","title":"fräch","year":"2021","size":"85x95","medium":"Acrylic on canvas","available":null},
 {"id":"IMG_20210905_191900","title":"wave","year":"2020","size":"95x85","medium":"Acrylic on canvas","available":null},
-{"id":"PXL_20220723_152954029","title":"Stadtplan","year":"2022","size":"120x90","medium":"Acrylic on canvas","available":null},
+{"id":"PXL_20220723_152954029","title":"Stadtplan","year":"2022 / 2026","size":"120x90","medium":"Acrylic on canvas","available":null,"versions":[{"img":"stadtplan_ueberarbeitet","label":"überarbeitet 2026"},{"img":"PXL_20220723_152954029","label":"ursprünglich 2022"}]},
 {"id":"PXL_20220724_193030410","title":"Weize","year":"2022","size":"120x90","medium":"Acrylic on canvas","available":null},
 {"id":"PXL_20220724_193303289","title":"","year":"2022","size":"120x90","medium":"Acrylic on canvas","available":"True"},
 {"id":"PXL_20230822_191239286","title":"Adler","year":"2022","size":"100x80","medium":"Acrylic on canvas","available":"True"},

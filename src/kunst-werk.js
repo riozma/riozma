@@ -27,8 +27,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         ${art.medium ? `<div><dt>Medium</dt><dd>${escapeHtml(art.medium)}</dd></div>` : ""}
         <div><dt>Status</dt><dd>${avail ? "verfügbar *" : "nicht verfügbar"}</dd></div>
       </dl>
+      ${art.versions && art.versions.length > 1 ? `
+      <div class="werk-versions" role="group" aria-label="Fassungen">
+        ${art.versions.map((v, i) => `
+          <button type="button" class="werk-version${i === 0 ? " is-active" : ""}" data-version="${i}" aria-pressed="${i === 0}">
+            <img src="${escapeHtml(v.thumb_url)}" alt="" loading="lazy">
+            <span>${escapeHtml(v.label || `Fassung ${i + 1}`)}</span>
+          </button>`).join("")}
+      </div>` : ""}
       <div class="werk-actions">
-        <a href="${escapeHtml(art.high_res_url)}" download="${escapeHtml(art.id)}.jpg" class="btn btn-secondary">herunterladen</a>
+        <a href="${escapeHtml(art.high_res_url)}" download="${escapeHtml(art.id)}.jpg" class="btn btn-secondary" id="werk-download">herunterladen</a>
       </div>
       <nav class="werk-nav" aria-label="Weitere Kunstwerke">
         <a href="${artworkPageUrl(prev.id)}">← ${escapeHtml(prev.title || "Zurück")}</a>
@@ -38,4 +46,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   hydrateProgressiveImages(content);
   document.getElementById("werk-image").addEventListener("click", (e) => e.currentTarget.classList.toggle("is-zoomed"));
+
+  content.querySelectorAll("[data-version]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const v = art.versions[Number(btn.dataset.version)];
+      const img = document.getElementById("werk-image");
+      img.dataset.current = v.high_res_url;
+      img.src = v.image_url;
+      const full = new Image();
+      full.onload = () => { if (img.dataset.current === v.high_res_url) img.src = v.high_res_url; };
+      full.src = v.high_res_url;
+      const dl = document.getElementById("werk-download");
+      dl.href = v.high_res_url;
+      dl.download = `${art.id}-${(v.label || "fassung").replace(/[^a-z0-9äöü]+/gi, "_")}.jpg`;
+      content.querySelectorAll("[data-version]").forEach((b) => {
+        b.classList.toggle("is-active", b === btn);
+        b.setAttribute("aria-pressed", String(b === btn));
+      });
+    });
+  });
 });
