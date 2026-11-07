@@ -4,23 +4,47 @@
     {
       "type": "video",
       "slug": "externalitaeten",
-      "title": "Gute oder schlechte Staatsausgabe? Externalitäten einfach erklärt",
-      "excerpt": "Kampfjet, Armee, Sparpaket: Jede Partei hat ein Bauchgefühl. Externalitäten geben eine Struktur, um Ausgaben zu ordnen.",
-      "date": "2026-10-25",
+      "title": "Sparen kann teurer sein als Ausgeben: Externalitäten einfach erklärt",
+      "excerpt": "Der Bund spart 1,4 Milliarden. Aber welche Kürzung spart wirklich, und welche wird am Ende teurer? Externalitäten einfach erklärt.",
+      "date": "2026-11-07",
       "href": "/politik/videos/externalitaeten/",
       "image": "/politik/videos/externalitaeten/poster.jpg",
       "video": "/politik/videos/externalitaeten/video.mp4",
       "youtube": "",
-      "duration": "18:52",
+      "duration": "17:31",
       "chapters": [
-        ["0:00", "Einstieg: Kampfjet, Armee und Sparpaket"],
-        ["1:28", "Kosten und Nutzen"],
-        ["4:12", "Was ist eine Externalität?"],
-        ["6:15", "Was der Staat damit macht"],
-        ["9:51", "Report Card: Wo stimmt der Preis?"],
-        ["13:25", "Die Subventionsfalle"],
-        ["16:33", "Wann ein Verbot besser ist"],
-        ["17:16", "Ausblick"]
+        [
+          "0:00",
+          "Sparen, aber wo?"
+        ],
+        [
+          "0:31",
+          "Kosten und Nutzen"
+        ],
+        [
+          "2:42",
+          "Was ist eine Externalität?"
+        ],
+        [
+          "5:26",
+          "Was der Bund damit macht"
+        ],
+        [
+          "9:30",
+          "Report Card: Wo stimmt der Preis?"
+        ],
+        [
+          "12:31",
+          "Die Subventionsfalle"
+        ],
+        [
+          "15:49",
+          "Wann ein Verbot besser ist"
+        ],
+        [
+          "16:26",
+          "Zurück zum Sparpaket"
+        ]
       ]
     }
   ]
