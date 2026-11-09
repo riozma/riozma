@@ -36,6 +36,7 @@ const MAX_PER_DOMAIN = 2;
 const RULES = [
   "At least 1 item per issue in the 'tools' category (AI platforms, marketplaces, MCP servers and tool ecosystems for planning and engineering).",
   "Funding news (from issue 4): an own item only if the round signals where the industry is heading (new tech attracting big money, unusually large round, CH/DACH relevance), at most 2 per issue, each with funding_context (what, size, signal, for_us; estimates marked). All other rounds go into also_funded, never a roundup item.",
+  "Check every topic in fpl/weekly/watchlist.md each issue (targeted search), update its status table, and give a material change its own item.",
   "Every item links to the original source or the best available source; prefer primary sources, then specialist press.",
   "Zahlen nie über Qualität stellen: Beiträge werden nicht übernommen, weil sie geklickt werden, sondern weil sie stimmen und etwas erklären.",
   "Branded or sponsored content only as a last resort and always labelled; it never fills an 'explore' slot.",
