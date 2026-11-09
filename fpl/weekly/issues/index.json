@@ -1,6 +1,23 @@
 {
   "issues": [
     {
+      "week": "2026-46",
+      "issue": 4,
+      "date": "2026-11-09",
+      "title": "AI agents move into the BIM model, robots patrol Japanese sites, 3D-printed housing reaches Portugal",
+      "summary": "Qonic put AI agents directly into its cloud BIM platform and opened it to outside AI assistants, while a German overview shows where MCP servers for Revit, Archicad and Allplan stand. Kajima is rolling out autonomous robots on more than 10 Japanese sites. A cement group launched a 3D construction brand after printing 32 homes in Portugal, and the US Air Force wants mobile concrete printers. In Switzerland, SIA 405 gets one register for all utility operators. Our focus: 3D printing in construction.",
+      "focus_title": "3D printing in construction",
+      "focus_concept_id": "m4-printing",
+      "focus_kind": "concept",
+      "categories": [
+        "tools",
+        "robotics",
+        "circular",
+        "swiss"
+      ],
+      "news_count": 8
+    },
+    {
       "week": "2026-45",
       "issue": 3,
       "date": "2026-11-02",

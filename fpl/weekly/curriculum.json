@@ -211,8 +211,8 @@
       "module": "M4",
       "order": 1,
       "prerequisites": [],
-      "status": "planned",
-      "issue": null
+      "status": "published",
+      "issue": "2026-46"
     },
     {
       "id": "m4-robots",
