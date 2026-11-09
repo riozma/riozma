@@ -1,0 +1,270 @@
+{
+  "issue": 4,
+  "week": "2026-46",
+  "date": "2026-11-09",
+  "covers": {
+    "from": "2026-11-02",
+    "to": "2026-11-08"
+  },
+  "title": "AI agents move into the BIM model, robots patrol Japanese sites, 3D-printed housing reaches Portugal",
+  "summary": "Qonic put AI agents directly into its cloud BIM platform and opened it to outside AI assistants, while a German overview shows where MCP servers for Revit, Archicad and Allplan stand. Kajima is rolling out autonomous robots on more than 10 Japanese sites. A cement group launched a 3D construction brand after printing 32 homes in Portugal, and the US Air Force wants mobile concrete printers. In Switzerland, SIA 405 gets one register for all utility operators. Our focus: 3D printing in construction.",
+  "generated": {
+    "by": "Claude (Anthropic), scheduled FPL Weekly task",
+    "method": "Web search over news from 2 to 8 November 2026, then reading the original or best available source for every item (company releases, specialist press). Selection, explanations and summaries are written by AI. Company figures are marked as claims. The SBB item relies on Baublatt because no SBB release was found; the closure itself started in late October, the report is from 6 November. The SIA 405 article gives two start dates for the register (30 October and 1 November). No verifiable story for the 'AI & Digitalization' and 'Funding & Market' categories was found; two smaller deals are listed under 'Also funded this week'. From this issue on, funding rounds get their own item only when they signal a trend.",
+    "created_at": "2026-11-09T08:30:00+01:00"
+  },
+  "news": [
+    {
+      "id": "qonic-ai-agents-mcp",
+      "category": "tools",
+      "title": "Qonic builds AI agents into its cloud BIM platform and lets outside assistants such as Claude work in the model",
+      "body": "On 5 November Qonic introduced Qonic AI, a set of AI agents that work directly inside its collaborative, browser-based BIM modelling platform. Users type tasks in plain language into an 'Ask Qonic' chat: completing missing properties, building reports or editing geometry. In demos the agents isolated furniture and coloured it by level, found windows without a fire rating and widened windows by 0.5 m. 'Anything you can do in Qonic in terms of geometry and data creation, editing, and manipulation can be done through prompting', says Jacob De Sutter of Qonic. Users can only change what they are allowed to edit, and every AI change can be undone like a manual one. Qonic also launched an MCP server so that users can connect their own assistant, for example Claude, Codex or Mistral Le Chat, to look up models, query elements, calculate quantities, export IFC and change elements. AI use is paid in tokens; free-plan users can buy a one-off pack from EUR 50.\n\nWhy it matters: until now most AI help in BIM sat next to the model, as a chatbot that answers questions. Here the agent edits the model itself, which makes permissions, undo and checking the result as important as the AI.",
+      "background": "Qonic is a BIM modelling tool that runs in the web browser, so several people can work on the same model at the same time without exchanging files, similar to how Google Docs works for text. A BIM model is not just 3D geometry: every element carries properties such as material, fire rating or cost group, and these properties are what reports, quantity take-offs and checks rely on. Missing or wrong properties are a classic source of errors, which is why the demos focus on finding and filling gaps. MCP (Model Context Protocol) is the open standard that lets an AI assistant call another program's functions; issue #3 explained how Nemetschek uses it.",
+      "region": "EU",
+      "topics": [
+        "ai-agents",
+        "bim",
+        "mcp",
+        "model-checking"
+      ],
+      "source_type": "trade",
+      "source_name": "AEC Magazine",
+      "source_url": "https://aecmag.com/bim/qonic-ai-launches-inside-bim-platform/",
+      "more_sources": [
+        {
+          "name": "AEC Magazine: Autom8Labs launches 22 free AEC skills for AI agents (3 Nov)",
+          "url": "https://aecmag.com/automation/autom8labs-launches-aec-skills-for-ai-agents/"
+        }
+      ],
+      "published_at": "2026-11-05",
+      "image_url": "https://aecmag.com/wp-content/uploads/2026/11/QonicAI_1.jpg",
+      "image_credit": "Qonic / AEC Magazine"
+    },
+    {
+      "id": "kajima-fieldai-robots-rollout",
+      "category": "robotics",
+      "title": "Japanese contractor Kajima rolls out self-navigating robots on more than 10 sites after 2,000 autonomous missions",
+      "body": "Kajima, one of Japan's largest construction companies, announced on 5 November the full-scale deployment of autonomous robots on its sites. The robots run autonomy software from FieldAI, a California company. A unit with cameras, LiDAR and an edge AI computer can be mounted on different robots. On its first run the robot explores an unknown area and builds a 3D map; afterwards it patrols on its own, avoids obstacles, takes photos and point-cloud scans, updates the map and returns to its charging station to upload the data. It works indoors and underground without satellite positioning. Kajima says the robots have completed more than 2,000 autonomous missions on more than 10 sites in Japan in roughly a year under an enterprise agreement signed in 2025 (company figures). Uses include night-time security patrols, scanning the whole site for progress records and entering disaster sites before they are confirmed safe.\n\nWhy it matters: a construction site changes every day, which is exactly what has kept robots out so far. Software that re-maps the site on each round turns a robot into a regular data collector, and the scans become an input for progress tracking and as-built models.",
+      "background": "Most robots in factories follow fixed paths in a known, unchanging space. On a site, walls appear, material is stored in new places and floors are still open, so a robot needs to perceive and decide on its own. FieldAI calls its approach 'Field Foundation Models', AI models that combine learning from data with physics-based reasoning and an estimate of how uncertain the robot is about what it sees. Kajima has worked with FieldAI since 2023. Japan's contractors push such robots hard because the construction workforce is shrinking and ageing. A point cloud is a 3D scan made of millions of measured points, which can be compared with the BIM model to check what has been built.",
+      "region": "Asia",
+      "topics": [
+        "site-robots",
+        "autonomy",
+        "reality-capture",
+        "monitoring"
+      ],
+      "source_type": "primary",
+      "source_name": "Kajima Corporation press release (PDF)",
+      "source_url": "https://www.kajima.co.jp/english/news/info/pdf/20261105.pdf",
+      "more_sources": [
+        {
+          "name": "Unite.AI summary",
+          "url": "https://www.unite.ai/kajima-begins-full-scale-rollout-of-robots-with-fieldai-autonomy/"
+        }
+      ],
+      "published_at": "2026-11-05",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "havelar-cimpor-3d-construction",
+      "category": "circular",
+      "title": "Cement maker CIMPOR launches a 3D construction brand after printing 32 homes in Portugal with low-carbon concrete",
+      "body": "CIMPOR launched 'Havelar by CIMPOR', an international brand for 3D-printed buildings, World Cement reported on 3 November. It follows CIMPOR's strategic investment in the 3D construction company Havelar. CIMPOR brings cement, concrete, calcined clay, slag (GGBFS), recycled concrete materials and research; Havelar brings the printers, digital construction and on-site delivery. Its reference is the Mariadeira development in Póvoa de Varzim in northern Portugal: 16 blocks with 32 homes, which the article calls the first 3D-printed housing development in Portugal built with ready-mixed concrete delivered only by ordinary truck mixers. OYAK Çimento, the group's Turkish brand, is developing a 3D-printed passive house project in Hatay. 'We see 3D construction not simply as a new construction method, but as a new industrial platform', says Berkan Fidan, CIMPOR's global CTO. The company also names an 'urban mining' and 'rubble-to-reconstruction' approach, but gives no figures or timelines for it.\n\nWhy it matters: when a cement group owns the printer business, the mix, the low-carbon binder and the delivery come from one hand. Printing with normal truck-mixed concrete instead of special dry mortar would make the method much easier to use on ordinary sites.",
+      "background": "Most building-scale 3D printers push out a stiff mortar through a nozzle, layer by layer, without formwork (see this week's focus). The material must be pumpable, must keep its shape immediately and must bond to the next layer, so many projects use expensive pre-bagged special mortars mixed on site. Calcined clay is clay heated to about 700 to 850 °C so it reacts like part of the cement; together with limestone it can replace a large share of clinker, the most CO2-intensive part of cement (Swiss LC3 research at EPFL works on exactly this). CIMPOR is a cement group with roots in Portugal; the article names OYAK Çimento as its Turkish brand.",
+      "region": "EU",
+      "topics": [
+        "3d-printing",
+        "low-carbon-cement",
+        "housing",
+        "calcined-clay"
+      ],
+      "source_type": "trade",
+      "source_name": "World Cement",
+      "source_url": "https://www.worldcement.com/europe-cis/03112026/-havelar-by-cimpor-launched-to-accelerate-low-carbon-3d-construction-at-global-scale/",
+      "more_sources": [],
+      "published_at": "2026-11-03",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "sia-405-organisation-register",
+      "category": "swiss",
+      "title": "SIA 405: one Swiss register replaces dozens of spellings of who owns a pipe or cable",
+      "body": "Utility line data in Switzerland now draws its organisation names from one central register, Espazium reported on 4 November. Under the revised standard SIA 405 'Geodaten zu Ver- und Entsorgungsleitungen' (revised August 2025), a dataset no longer stores the name of the operator, owner or data supplier itself, but refers to an entry in the SIA organisation register. Until now the same company could appear as 'SBB', 'SBB AG' or 'Schweizerische Bundesbahnen'. The platform was developed for SIA between January and October 2026 and went live at the end of October; it took over the list of more than 2,200 organisations kept by the wastewater association VSA, including all municipalities of thirteen cantons. New entries are matched automatically with the federal UID business register. The register is public and offers a daily export for GIS systems. Associations, the Confederation and cantons fund its development and operation for the next five years.\n\nWhy it matters: a utility map is only useful if you can tell whose line it is. One shared reference is a small, unglamorous step, but it is the kind of data quality that AI tools and automatic checks depend on.",
+      "background": "SIA 405 is the Swiss standard for geodata on supply and disposal lines: water, wastewater, gas, district heating, electricity and telecom. Municipalities and utilities use it to build the 'Leitungskataster', the map of everything buried under streets, which planners consult before every excavation. Different organisations collect this data in different systems, so names, codes and formats drift apart. A separate register was needed because not every organisation in this field has a UID, the Swiss business identification number. The article's author is a member of the SIA 405 commission.",
+      "region": "CH",
+      "topics": [
+        "geodata",
+        "standards",
+        "data-quality",
+        "utilities"
+      ],
+      "source_type": "trade",
+      "source_name": "Espazium (TEC21 / SIA)",
+      "source_url": "https://www.espazium.ch/de/aktuelles/sia-405-vereinheitlicht",
+      "more_sources": [
+        {
+          "name": "SIA organisation register",
+          "url": "https://org405.sia.ch/"
+        }
+      ],
+      "published_at": "2026-11-04",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "mcp-servers-cad-bim-status",
+      "category": "tools",
+      "title": "Which CAD and BIM programs can AI assistants already use? A German overview of MCP servers from Revit to Allplan",
+      "body": "The German site Internet für Architekten published an overview on 4 November of which design programs now offer an MCP server, the connector that lets an AI assistant such as Claude or ChatGPT read and change data in the program (status 1 November). Autodesk's Revit MCP server started read-only in April with Revit 2027; since the 2027.2 update of 29 September it also has 'Write' and 'Experimental' variants, and Autodesk advises a backup and working on a copy. The AutoCAD and Civil 3D server is a public beta that works only with Autodesk's own assistant. Graphisoft offers a public Archicad MCP server in beta for Archicad 30 with certain subscriptions, rolled out by region. Allplan 2027, available since 28 October, has an MCP server in two forms. McNeel offers one for Rhino and Grasshopper, Trimble a Claude connector for SketchUp, Bluebeam MCP in Bluebeam Max since May, and Bentley an early-access server for MicroStation. For Vectorworks, BricsCAD and Tekla Structures the author found only community projects. Manufacturers give no dates for general availability.\n\nWhy it matters: within a few months almost every major design program has opened a door for AI assistants, but most are betas with different rules. Whoever uses them in projects has to know which version can only read and which can change the model.",
+      "background": "MCP (Model Context Protocol) is an open standard published in 2024: a program offers a list of functions ('give me all walls', 'change this parameter'), and an AI assistant can call them. Without such a connector an assistant can only talk about a model; with it, it can act in it. 'Read-only' means the assistant can query data but not change it; 'write' access is where the risk lies, because an error spreads straight into the model. A 'tech preview' or 'beta' is a test version without guarantees.",
+      "region": "EU",
+      "topics": [
+        "mcp",
+        "bim",
+        "cad",
+        "ai-assistants"
+      ],
+      "source_type": "trade",
+      "source_name": "Internet für Architekten (German)",
+      "source_url": "https://internet-fuer-architekten.de/mcp-server-cad-bim-revit-archicad-allplan/",
+      "more_sources": [],
+      "published_at": "2026-11-04",
+      "image_url": "https://internet-fuer-architekten.de/wp-content/uploads/2026/11/ifa-ki-chatbot-mcp-server-konnektor-cad-bim-update.jpg",
+      "image_credit": "Internet für Architekten"
+    },
+    {
+      "id": "carbicrete-amazon-cement-free-pavers",
+      "category": "circular",
+      "title": "Cement-free pavers made with steel slag and CO2 cover 6,400 m² at an Amazon depot in England",
+      "body": "Montreal-based CarbiCrete announced on 2 November that it has supplied three products for about 6,400 m² of paving across parking spaces and footpaths at a new Amazon UK delivery station in Stockton-on-Tees. The company calls it the first wide-scale deployment of its cement-free pavers anywhere. The building is Amazon's first to pursue Living Future's Zero Carbon Certification. CarbiCrete replaces all of the cement in masonry and paving products with a by-product of steelmaking and then cures the concrete with CO2, which the company says stores the carbon permanently in the product. It gives no carbon saving for this project. 'Seeing CarbiCrete products deployed at this scale is an important milestone for our technology', says CEO Gary Belisle.\n\nWhy it matters: paving stones and blocks are small, standard products with simple requirements, which makes them a good first market for new binders. If they prove themselves at this scale, the same approach can move to blocks and other precast elements.",
+      "background": "Ordinary concrete gets its strength from cement, whose production releases a lot of CO2; the company cites about 8% of global emissions and over 900 kg of CO2 per tonne of material (company figures). Steel slag is a residue from steelmaking that is normally landfilled or used as low-grade fill. CarbiCrete's process uses it as the binder and hardens the fresh product in a chamber with CO2 instead of letting it cure with water over days, so the CO2 is bound as a mineral. This only works for precast products made in a factory, not for concrete poured on site.",
+      "region": "UK",
+      "topics": [
+        "cement-free",
+        "steel-slag",
+        "co2-curing",
+        "precast"
+      ],
+      "source_type": "primary",
+      "source_name": "CarbiCrete press release",
+      "source_url": "https://carbicrete.com/2026-amazon-deployment/",
+      "more_sources": [
+        {
+          "name": "PR Newswire version",
+          "url": "https://www.prnewswire.com/news-releases/carbicrete-supplies-amazon-with-cement-free-concrete-in-first-large-scale-paver-deployment-302926503.html"
+        }
+      ],
+      "published_at": "2026-11-02",
+      "image_url": "https://carbicrete.com/wp-content/uploads/2026/11/CarbiCrete-Amazon-1024x576.png",
+      "image_credit": "CarbiCrete"
+    },
+    {
+      "id": "sbb-pieterlen-embankment-subsidence",
+      "category": "swiss",
+      "title": "SBB closes a track near Biel because the railway embankment is sinking into peat and lake marl",
+      "body": "SBB has closed the northern track between Biel and Grenchen Süd at Pieterlen BE because the railway embankment is sinking, Baublatt reported on 6 November. The ground there contains peat and lake marl (Seekreide). 'In particular, lake marl can practically liquefy under sufficient pressure', the article quotes SBB. The area has been watched since August 2024 by a permanent measuring system: two automatic theodolites read survey targets every half hour, and SBB has added daily checks on site since summer. When the latest readings pointed to cracks in the subsoil, SBB said it could no longer justify the risk. Since late October the S20 regional trains are replaced by buses between Biel and Grenchen Süd, adding about 10 minutes, up to 30 with connections. The southern track remains open at reduced speed, and long-distance trains run normally. SBB is checking whether a renovation planned for summer 2027 can be brought forward.\n\nWhy it matters: this is geotechnical monitoring doing its job. Automatic measurements turned a slow, invisible movement into data, and the data gave a clear reason to act before an accident.",
+      "background": "Along the foot of the Jura and on the Swiss Plateau, former lakes and marshes left soft layers of peat and lake marl, a fine lime mud. These soils are very compressible: under the weight of an embankment and passing trains they settle over years, and under high pressure they can lose strength. A theodolite is a surveying instrument that measures angles; motorised versions automatically aim at reflectors fixed on the track and embankment and calculate their position to millimetres, so even small movements show up as a trend. Remedies for such ground range from lighter fills to piles or replacing the soft soil.",
+      "region": "CH",
+      "topics": [
+        "geotechnics",
+        "monitoring",
+        "rail",
+        "infrastructure"
+      ],
+      "source_type": "trade",
+      "source_name": "Baublatt (German)",
+      "source_url": "https://www.baublatt.ch/baupraxis/bahnverkehr-am-jurasuedfuss-voraussichtlich-fuer-mehrere-monate-eingeschraenkt-39853",
+      "more_sources": [],
+      "published_at": "2026-11-06",
+      "image_url": "https://www.baublatt.ch/storage/images/crop1/163135_1.jpg",
+      "image_credit": "SBB CFF FFS / Baublatt"
+    },
+    {
+      "id": "us-air-force-mobile-3d-concrete-printers",
+      "category": "robotics",
+      "title": "US Air Force asks for mobile 3D concrete printers that lightly trained crews can use to rebuild damaged bases",
+      "body": "The US Air Force is looking for mobile 3D concrete printers that can quickly put up protective buildings, Defense News reported on 4 November. The request is a Small Business Innovation Research (SBIR) solicitation that closes in January 2027. Military engineers should be able to 'rapidly print protective structures' with automated or semi-automated workflows, less skilled labour and, where feasible, cement-based materials available locally; the printer should work 'in austere conditions by lightly trained military personnel'. The project will test materials for strength, layer adhesion and local availability, and develop shapes that reduce blast reflection and fragments. The background is damage: a September report by the Pentagon's Inspector General found hundreds of US military buildings in eight Middle Eastern countries damaged by Iranian attacks. The Air Force already used 3D printing to rebuild hurricane-damaged Tyndall Air Force Base in Florida in 2023. It sees civil uses such as infrastructure and disaster relief, but notes that commercial use will need approvals such as building codes.\n\nWhy it matters: the requirements are the same as for disaster relief anywhere: fast, with local material and few specialists. They also name the open questions for every printed building: layer bonding, material quality and approval.",
+      "background": "SBIR is a US government programme that pays small companies to develop technology for a specific public need; a 'direct-to-Phase II' call skips the feasibility stage and funds development straight away. Printing on site with local materials is attractive where supply lines are long, because cement and aggregate are heavy to transport. The hard part is that local sand and cement vary, while a printer needs a mix that flows through the hose and still stands up immediately after leaving the nozzle (see this week's focus).",
+      "region": "US",
+      "topics": [
+        "3d-printing",
+        "disaster-relief",
+        "materials",
+        "defence"
+      ],
+      "source_type": "trade",
+      "source_name": "Defense News",
+      "source_url": "https://www.defensenews.com/global/mideast-africa/2026/11/04/under-threat-of-air-strikes-us-looks-to-bolster-base-infrastructure-with-3d-printing/",
+      "more_sources": [],
+      "published_at": "2026-11-04",
+      "image_url": null,
+      "image_credit": null
+    }
+  ],
+  "also_funded": [
+    {
+      "name": "AC3D",
+      "amount": "USD 3M late-seed round (open)",
+      "what": "UAE construction 3D printing with mobile near-site precast; Transgulf Readymix invested",
+      "url": "https://www.constructionweekonline.com/products-services/transgulf-readymix-invests-in-ac3d-to-accelerate-construction-3d-printing"
+    },
+    {
+      "name": "Technis buys Konstl",
+      "amount": "Acquisition, terms undisclosed",
+      "what": "Swiss energy-optimisation group takes over a Geneva building-sensor and data firm",
+      "url": "https://www.startupticker.ch/en/news/technis-se-renforce-avec-l-acquisition-de-konstl"
+    }
+  ],
+  "focus": {
+    "title": "3D printing in construction",
+    "subtitle": "Module 4 · Concept 1: building without formwork, one layer at a time",
+    "kind": "concept",
+    "concept_id": "m4-printing",
+    "file": "focus.html",
+    "glossary": [
+      {
+        "term": "Extrusion printing",
+        "definition": "The most common construction printing method: a pump pushes stiff mortar or concrete through a nozzle that moves along a path and deposits it layer by layer."
+      },
+      {
+        "term": "Buildability",
+        "definition": "The ability of freshly printed layers to carry the weight of the layers above without deforming or collapsing."
+      },
+      {
+        "term": "Open time",
+        "definition": "The period during which a printed layer is still fresh enough for the next layer to bond well to it."
+      },
+      {
+        "term": "Cold joint",
+        "definition": "A weak plane that forms when fresh material is placed on material that has already set too far, so the two do not bond properly."
+      },
+      {
+        "term": "Near-site precast",
+        "definition": "Printing elements in a temporary production area close to the site and then lifting them into place, instead of printing in their final position."
+      }
+    ],
+    "further_reading": [
+      {
+        "title": "Wikipedia: Construction 3D printing (overview of methods and projects)",
+        "url": "https://en.wikipedia.org/wiki/Construction_3D_printing"
+      },
+      {
+        "title": "ETH Zurich, Digital Building Technologies: Tor Alva project",
+        "url": "https://dbt.arch.ethz.ch/project/tor-alva/"
+      }
+    ]
+  },
+  "question": {
+    "text": "Where would you use 3D concrete printing first?",
+    "options": [
+      "Housing and small buildings",
+      "Complex, one-off elements (columns, nodes, façades)",
+      "Disaster relief and emergency shelters",
+      "Infrastructure (walls, culverts, noise barriers)",
+      "Nowhere yet: too many open questions"
+    ]
+  },
+  "whatsapp_teaser": "🏗️ *FPL Weekly #4* is out!\nAI agents now edit the BIM model directly (Qonic), robots patrol more than 10 Japanese sites on their own (Kajima), and a cement group printed 32 homes in Portugal.\n🔍 Focus: 3D printing in construction, with an interactive 'layer timer'.\n👉 https://riozma.ch/fpl/weekly/2026-46/"
+}

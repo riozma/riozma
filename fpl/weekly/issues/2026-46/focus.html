@@ -1,0 +1,158 @@
+<!-- FPL Weekly 2026-46 · Focus: 3D printing in construction. Fragment, wird vom Renderer in .fplw-focus eingesetzt. -->
+<style>
+  .fplw-focus .f-lead { font-size: 1.1rem; }
+  .fplw-focus figure { margin: 28px 0; }
+  .fplw-focus figcaption { font-size: .85rem; opacity: .75; margin-top: 6px; }
+  .fplw-focus svg { width: 100%; height: auto; display: block; }
+  .fplw-focus .f-box { border: 2px solid var(--blue, #536a89); border-radius: 10px; padding: 16px; margin: 28px 0; }
+  .fplw-focus .f-box h4 { margin: 0 0 10px; }
+  .fplw-focus .f-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; margin: 10px 0; font-size: .92rem; }
+  .fplw-focus .f-row input { grid-column: 1 / -1; width: 100%; }
+  .fplw-focus .f-row output { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .fplw-focus .f-res { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin: 14px 0 8px; }
+  .fplw-focus .f-res div { background: var(--soft, #e8edf3); border-radius: 6px; padding: 8px 10px; }
+  .fplw-focus .f-res small { display: block; font-size: .75rem; opacity: .75; }
+  .fplw-focus .f-res b { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+  .fplw-focus .f-track { display: block; position: relative; height: 14px; border-radius: 7px; margin: 14px 0 4px; background: linear-gradient(90deg, #c4372f 0 12%, #1f8f86 12% 68%, #d68d00 68% 100%); }
+  .fplw-focus .f-pin { display: block; position: absolute; top: -5px; width: 4px; height: 24px; margin-left: -2px; background: #1d2733; border-radius: 2px; transition: left .25s; }
+  .fplw-focus .f-scale { display: flex; justify-content: space-between; font-size: .72rem; opacity: .75; }
+  .fplw-focus .f-msg { margin: 12px 0 0; padding: 10px 12px; border-radius: 6px; border-left: 4px solid #1f8f86; background: var(--soft, #e8edf3); }
+  .fplw-focus .f-small { font-size: .8rem; opacity: .75; }
+  .fplw-focus table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  .fplw-focus th, .fplw-focus td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line, #d9dfe7); vertical-align: top; }
+  .fplw-focus .f-scroll { overflow-x: auto; }
+</style>
+
+<p class="f-lead">Three stories this week print concrete. A cement group printed 32 homes in Portugal with ordinary truck-mixed concrete, the US Air Force wants printers that lightly trained crews can drive into a damaged base, and a Dubai printing company raised money to build elements next to the site. What all of them do is simple to describe and hard to get right: build a wall without formwork, one thin layer at a time.</p>
+
+<h3>How a building printer works</h3>
+<p>Almost all building-scale printers today use extrusion. A mixer prepares a stiff mortar or fine concrete, a pump pushes it through a hose, and a nozzle moves along a programmed path and lays down a bead, typically a few millimetres to a few centimetres high. When one layer is finished, the nozzle rises and prints the next one on top. The nozzle is carried either by a gantry, a frame that spans the whole building like a small crane, or by an industrial robot arm, which can reach around corners and tilt the nozzle but covers a smaller area.</p>
+
+<figure>
+  <svg viewBox="0 0 640 300" role="img" aria-label="Schematic of extrusion printing: mixer and pump feed a hose to a nozzle on a gantry that lays down layers">
+    <defs>
+      <marker id="fw46-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#536a89"/></marker>
+    </defs>
+    <!-- Gantry -->
+    <g stroke="#536a89" stroke-width="6" fill="none" stroke-linecap="round">
+      <path d="M250 270 V40 M600 270 V40 M240 46 H610"/>
+    </g>
+    <rect x="395" y="36" width="50" height="22" rx="4" fill="#536a89"/>
+    <path d="M420 58 V150" stroke="#536a89" stroke-width="8"/>
+    <path d="M410 150 h20 l-6 18 h-8 z" fill="#1d2733"/>
+    <!-- Hose -->
+    <path d="M120 200 C150 80 300 20 400 47" fill="none" stroke="#d68d00" stroke-width="5"/>
+    <!-- Mixer + pump -->
+    <rect x="30" y="200" width="120" height="70" rx="8" fill="#e8edf3" stroke="#536a89"/>
+    <text x="90" y="230" font-size="15" text-anchor="middle" fill="#1d2733">Mixer</text>
+    <text x="90" y="252" font-size="15" text-anchor="middle" fill="#1d2733">+ pump</text>
+    <!-- Printed wall: layers -->
+    <g fill="#bfc8d4" stroke="#8592a3" stroke-width="1">
+      <rect x="300" y="250" width="250" height="16" rx="7"/>
+      <rect x="300" y="233" width="250" height="16" rx="7"/>
+      <rect x="300" y="216" width="250" height="16" rx="7"/>
+      <rect x="300" y="199" width="250" height="16" rx="7"/>
+      <rect x="300" y="182" width="120" height="16" rx="7" fill="#d68d00" stroke="#a86f00"/>
+    </g>
+    <path d="M430 175 H520" stroke="#536a89" stroke-width="2.5" marker-end="url(#fw46-a)"/>
+    <g font-size="15" fill="#1d2733">
+      <text x="455" y="30" text-anchor="middle">gantry moves x, y, z</text>
+      <text x="200" y="100" text-anchor="middle" fill="#a86f00">hose</text>
+      <text x="470" y="166">nozzle path</text>
+      <text x="300" y="295">printed layers, no formwork</text>
+    </g>
+  </svg>
+  <figcaption>Extrusion printing on a gantry. The orange bead is the fresh layer being laid on the layers below; a robot arm works the same way but carries the nozzle on a jointed arm.</figcaption>
+</figure>
+
+<h3>The material has to do three contradictory things</h3>
+<p>Printing concrete is above all a materials problem. The same mix must be:</p>
+<ul>
+  <li><strong>Pumpable:</strong> fluid enough to travel through tens of metres of hose without blocking.</li>
+  <li><strong>Extrudable and buildable:</strong> stiff enough the moment it leaves the nozzle to keep its shape and carry the layers that follow, because there is no formwork holding it.</li>
+  <li><strong>Bondable:</strong> still fresh enough when the next layer arrives that the two layers grow together. If the layer below has set too far, a <em>cold joint</em> forms, a weak plane between layers.</li>
+</ul>
+<p>This creates a time window for every layer. Print too fast and the wall rises faster than the lower layers gain strength, so it bulges or collapses. Print too slowly and each layer dries or sets before the next one comes, so the layers bond poorly. The size of the window depends on the mix, the temperature, wind and sun. Try it:</p>
+
+<div class="f-box" data-widget="layertimer">
+  <h4>Layer timer</h4>
+  <div class="f-row"><label for="fw46-len">Path length of one layer (all walls)</label><output data-out="len"></output><input id="fw46-len" type="range" min="5" max="120" step="1" value="40"></div>
+  <div class="f-row"><label for="fw46-spd">Nozzle speed</label><output data-out="spd"></output><input id="fw46-spd" type="range" min="40" max="400" step="10" value="150"></div>
+  <div class="f-row"><label for="fw46-h">Layer height</label><output data-out="h"></output><input id="fw46-h" type="range" min="5" max="40" step="1" value="15"></div>
+  <div class="f-res">
+    <div><small>Time per layer</small><b data-out="t"></b></div>
+    <div><small>Wall rises per hour</small><b data-out="rise"></b></div>
+    <div><small>Layers per hour</small><b data-out="lph"></b></div>
+  </div>
+  <span class="f-track" aria-hidden="true"><span class="f-pin" data-out="pin"></span></span>
+  <div class="f-scale"><span>0 min</span><span>too fast</span><span>good window</span><span>risk of cold joints</span><span>25+ min</span></div>
+  <p class="f-msg" aria-live="polite" data-out="msg"></p>
+  <p class="f-small">The window in this widget (about 3 to 17 minutes per layer) is an invented example to show the principle. Real limits come from tests on the specific mix and change with temperature and weather.</p>
+</div>
+
+<script>
+(function () {
+  var root = document.currentScript ? document.currentScript.previousElementSibling : null;
+  if (!root || root.getAttribute('data-widget') !== 'layertimer') root = document.querySelector('.fplw-focus [data-widget="layertimer"]');
+  if (!root) return;
+  var MIN = 3, MAX = 17, SCALE = 25;
+  var inLen = root.querySelector('#fw46-len'), inSpd = root.querySelector('#fw46-spd'), inH = root.querySelector('#fw46-h');
+  function out(k) { return root.querySelector('[data-out="' + k + '"]'); }
+  function fmt(x, d) { return x.toFixed(d); }
+  function update() {
+    var len = +inLen.value, spd = +inSpd.value, h = +inH.value;
+    var tMin = len / (spd / 1000) / 60;
+    var lph = 60 / tMin;
+    var rise = lph * h / 1000;
+    out('len').textContent = len + ' m';
+    out('spd').textContent = spd + ' mm/s';
+    out('h').textContent = h + ' mm';
+    out('t').textContent = tMin < 1 ? Math.round(tMin * 60) + ' s' : fmt(tMin, 1) + ' min';
+    out('rise').textContent = fmt(rise, 2) + ' m';
+    out('lph').textContent = fmt(lph, 1);
+    out('pin').style.left = Math.min(100, tMin / SCALE * 100) + '%';
+    var msg = out('msg');
+    if (tMin < MIN) {
+      msg.textContent = 'Too fast: the next layer arrives before the one below has stiffened. The wall would rise ' + fmt(rise, 2) + ' m per hour and could bulge or collapse. Print several walls or elements in turn so each layer gets more time, slow down, or use a mix that stiffens faster.';
+      msg.style.borderLeftColor = '#c4372f';
+    } else if (tMin > MAX) {
+      msg.textContent = 'Slow: each layer waits ' + fmt(tMin, 1) + ' minutes. Stability is no problem, but the surface may already have set, so layers bond poorly (cold joints). Split the building into zones, print faster, or keep the surface moist.';
+      msg.style.borderLeftColor = '#d68d00';
+    } else {
+      msg.textContent = 'Inside the window: each layer has time to stiffen but is still fresh enough to bond with the next one. At this pace the wall rises about ' + fmt(rise, 2) + ' m per hour.';
+      msg.style.borderLeftColor = '#1f8f86';
+    }
+  }
+  [inLen, inSpd, inH].forEach(function (i) { i.addEventListener('input', update); });
+  update();
+})();
+</script>
+
+<p>The widget shows why printing is not just "a faster mason". The geometry and the material are coupled: a small house with long walls gives each layer plenty of time, a single slender column printed alone may be too fast for the material. Planners and printing teams therefore plan the print sequence together with the design.</p>
+
+<h3>Where to print: on site, near the site, in a factory</h3>
+<div class="f-scroll">
+<table>
+  <tr><th>Approach</th><th>How</th><th>Strengths</th><th>Limits</th></tr>
+  <tr><td>In place</td><td>Gantry set up over the building, walls printed where they stand</td><td>No transport or lifting of elements</td><td>Weather, setting up the printer, printer must span the whole building</td></tr>
+  <tr><td>Near-site precast</td><td>Elements printed in a temporary yard next to the site, then lifted in (AC3D's model this week)</td><td>Protected conditions, still short transport</td><td>Crane needed, joints between elements</td></tr>
+  <tr><td>Factory</td><td>Robot cell prints elements in a plant</td><td>Best quality control, complex shapes</td><td>Transport, element size limited by trucks</td></tr>
+</table>
+</div>
+
+<h3>What it is good at, and what is still hard</h3>
+<p>The clearest advantage is that formwork disappears. Formwork is custom work, it is built, stripped and often thrown away, and it makes every non-standard shape expensive. A printer does not care whether a wall is straight or curved, so material can be placed only where the structure needs it. Printing also needs fewer people on the wall itself, which matters in countries with labour shortages.</p>
+<p>The open questions are just as clear:</p>
+<ul>
+  <li><strong>Reinforcement.</strong> Concrete needs steel to carry tension, and a nozzle cannot easily print around a rebar cage. Solutions include placing bars between layers, printing hollow shells that are later filled with reinforced concrete, or adding fibres.</li>
+  <li><strong>Layers are interfaces.</strong> A printed wall can behave differently along the layers than across them, and every interface is a possible weak spot. Engineers must know the direction of the layers when they check the structure.</li>
+  <li><strong>Material and CO2.</strong> Printable mortars are often rich in cement and fine sand, which can cancel the material saved by smart shapes. That is why cement groups combine printing with low-clinker binders such as calcined clay, as CIMPOR does in Portugal.</li>
+  <li><strong>Approval.</strong> Standards are written for cast concrete. Printed buildings usually need project-specific tests and approvals; even the US Air Force notes that civilian use will need building-code approval.</li>
+</ul>
+
+<h3>The Swiss angle</h3>
+<p>ETH Zurich is one of the leading research sites. Its Digital Building Technologies group designed Tor Alva in Mulegns on the Julier Pass for the Origen foundation: a 30-metre tower whose structure consists of 32 individually printed, branching concrete columns. According to ETH, a robot laid down about 4,000 layers, the columns are hollow and are reinforced with horizontal and vertical bars, concrete is placed only where the structure needs it, and no formwork was used. The tower is designed to be taken apart and rebuilt elsewhere. It shows the Swiss focus well: less mass housing, more complex, material-saving elements where printing beats formwork most clearly.</p>
+
+<h3>What it means for us as future planners</h3>
+<p>Printing moves decisions forward. Wall paths, layer heights, print sequence, how reinforcement and services get in, and where the joints go all belong in the design, not on site. The design model becomes the machine program, so its accuracy is the accuracy of the building. Engineers who understand both the structure and the process, and who can argue for a test programme instead of a standard calculation, will be the ones who make printed buildings approvable.</p>
+<p><strong>Next in Module 4:</strong> Robots on the building site: what they already do today, from layout marking to drilling and site patrols.</p>
