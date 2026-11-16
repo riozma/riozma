@@ -5,7 +5,14 @@
     <link>https://riozma.ch/fpl/weekly/</link>
     <description>Weekly briefing on digitalization, AI, automation and circular construction from the Future Planning Lab.</description>
     <language>en</language>
-    <lastBuildDate>Mon, 09 Nov 2026 08:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 16 Nov 2026 08:00:00 GMT</lastBuildDate>
+    <item>
+      <title>FPL Weekly #5: Trimble builds AI agents into Connect, a new benchmark shows AI still fails half of real engineering tasks</title>
+      <link>https://riozma.ch/fpl/weekly/2026-47/</link>
+      <guid isPermaLink="true">https://riozma.ch/fpl/weekly/2026-47/</guid>
+      <pubDate>Mon, 16 Nov 2026 08:00:00 GMT</pubDate>
+      <description>Trimble put an AI assistant and custom agents into its Connect platform, including drafts of change orders for human review. A new Google benchmark finds that no AI model completes half of realistic engineering projects, and Bentley brings reality models into Cesium. BKW buys Gerber Architekten, one of Germany's largest architecture firms, Bern awards its first renovation prize, and Infomaniak plans a data centre in Bulle that heats the town. Our focus: IFC in practice, and what survives an export.</description>
+    </item>
     <item>
       <title>FPL Weekly #4: AI agents move into the BIM model, robots patrol Japanese sites, 3D-printed housing reaches Portugal</title>
       <link>https://riozma.ch/fpl/weekly/2026-46/</link>

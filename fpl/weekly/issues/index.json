@@ -1,6 +1,24 @@
 {
   "issues": [
     {
+      "week": "2026-47",
+      "issue": 5,
+      "date": "2026-11-16",
+      "title": "Trimble builds AI agents into Connect, a new benchmark shows AI still fails half of real engineering tasks",
+      "summary": "Trimble put an AI assistant and custom agents into its Connect platform, including drafts of change orders for human review. A new Google benchmark finds that no AI model completes half of realistic engineering projects, and Bentley brings reality models into Cesium. BKW buys Gerber Architekten, one of Germany's largest architecture firms, Bern awards its first renovation prize, and Infomaniak plans a data centre in Bulle that heats the town. Our focus: IFC in practice, and what survives an export.",
+      "focus_title": "IFC in practice: what survives an export",
+      "focus_concept_id": "m1-ifc",
+      "focus_kind": "concept",
+      "categories": [
+        "tools",
+        "digital",
+        "market",
+        "circular",
+        "swiss"
+      ],
+      "news_count": 7
+    },
+    {
       "week": "2026-46",
       "issue": 4,
       "date": "2026-11-09",
