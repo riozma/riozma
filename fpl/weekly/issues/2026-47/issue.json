@@ -1,0 +1,248 @@
+{
+  "issue": 5,
+  "week": "2026-47",
+  "date": "2026-11-16",
+  "covers": {
+    "from": "2026-11-09",
+    "to": "2026-11-15"
+  },
+  "title": "Trimble builds AI agents into Connect, a new benchmark shows AI still fails half of real engineering tasks",
+  "summary": "Trimble put an AI assistant and custom agents into its Connect platform, including drafts of change orders for human review. A new Google benchmark finds that no AI model completes half of realistic engineering projects, and Bentley brings reality models into Cesium. BKW buys Gerber Architekten, one of Germany's largest architecture firms, Bern awards its first renovation prize, and Infomaniak plans a data centre in Bulle that heats the town. Our focus: IFC in practice, and what survives an export.",
+  "generated": {
+    "by": "Claude (Anthropic), scheduled FPL Weekly task",
+    "method": "Web search over news from 9 to 15 November 2026, plus targeted searches for the topics on the editorial watchlist (MCP connections for engineering software, AI benchmarks for construction). Then reading the original or best available source for every item. Selection, explanations and summaries are written by AI. Company figures are marked as claims. The benchmark item (Google, 3 November) and Archiboost's round (3 November) fall into the previous week; they were missed in issue #4 and are added here under the watchlist rule. No verifiable story for the 'Robotics & Automation' category was found this week.",
+    "created_at": "2026-11-16T08:30:00+01:00"
+  },
+  "news": [
+    {
+      "id": "trimble-connect-ai-agents",
+      "category": "tools",
+      "title": "Trimble builds an AI assistant and custom agents into Connect, including draft change orders for human review",
+      "body": "At its Dimensions conference in Las Vegas on 9 November, Trimble added a set of AI functions to Trimble Connect, its platform that links design, project management, site and financial data. 'Trimble Assist' is a chat interface that lets users ask for information across Trimble's software, and 'Trimble Agent Studio' lets customers build their own AI agents for specific tasks. Agentic workflows analyse contract risk across documents and drawings and draft potential change orders with labour, material and markup, synced to the ERP system, for a person to review. Trimble Connect Scheduling uses AI to flag delays and suggest schedule changes; it imports Primavera P6 and Microsoft Project schedules and is available in North America. Trimble says some tools are available now and others are in development or testing with selected customers; no prices were given. 'AI is moving faster than anything I have seen in my career', said CEO Rob Painter.\n\nWhy it matters: the big vendors are now putting AI agents between the documents and the money. A drafted change order is only useful if someone checks it, which is why Trimble keeps a human approval step in the loop.",
+      "background": "Trimble, based in Colorado, is known for surveying instruments, machine control for excavators and graders, and software such as Tekla for steel and concrete detailing and SketchUp. Trimble Connect is its common data environment: the shared place where a project's models, drawings and documents live. The contract-risk function comes from Document Crunch, a start-up that reads construction contracts and specifications and that Trimble acquired in April. A change order is a formal change to the contract scope and price; disputes over them are one of the most common causes of cost overruns. Unlike recent announcements by Nemetschek or Autodesk, Trimble's announcements did not mention connectors for outside assistants such as Claude or ChatGPT.",
+      "region": "US",
+      "topics": [
+        "ai-agents",
+        "cde",
+        "change-orders",
+        "scheduling"
+      ],
+      "source_type": "trade",
+      "source_name": "Construction Briefing",
+      "source_url": "https://www.constructionbriefing.com/news/trimble-ceo-ai-will-change-how-construction-works/8136114.article",
+      "more_sources": [
+        {
+          "name": "ENR: Trimble shows new Connect project review abilities",
+          "url": "https://www.enr.com/articles/64256-trimble-shows-new-connect-project-review-abilities-debuts"
+        },
+        {
+          "name": "Trimble press release (PR Newswire)",
+          "url": "https://www.prnewswire.com/news-releases/trimble-launches-new-trimble-connect-platform-ai-capabilities-aimed-at-de-risking-construction-302933579.html"
+        }
+      ],
+      "published_at": "2026-11-10",
+      "image_url": "https://www.constructionbriefing.com/Images/1260x628/20261109-233619-Trimble-Dimensions.jpg",
+      "image_credit": "Construction Briefing"
+    },
+    {
+      "id": "google-physical-engineering-last-exam",
+      "category": "digital",
+      "title": "Google's new engineering benchmark: no AI model completes half of realistic civil, structural and mechanical projects",
+      "body": "Google has published 'Physical-Engineering's Last Exam' (PLE), a benchmark built with the expert platform Mercor that tests AI agents on long, realistic engineering projects. Its 85 tasks cover mechanical (30), electrical (27), civil (18) and structural engineering (10); each comes with about 61 files on average, such as PDFs, spreadsheets, e-mails, 2D CAD, 3D BIM models and document revisions. 44 tasks were written entirely by practising engineers, 41 were assembled by an AI pipeline from engineering standards and then checked and made harder by engineers. Google tested 14 frontier models in 7 agent environments, including Claude Code and Codex. All scored below 50% on the private test set; the best reached a mean of 48.3%. A deliverable only counts if it passes every hard safety and feasibility check first: the best configuration met 91% of individual requirements on the co-authored tasks, but only 41.3% of its deliverables passed all safety checks. The choice of model changed scores by up to 50 points, the agent environment by a median of only 3. A separate leaderboard by the Japanese company ONESTRUCTION, published on 7 November, ranks models on five construction benchmarks with Claude Opus 5.5 narrowly ahead of Gemini 4 Argon (73.7 and 73.6 points, own test runs).\n\nWhy it matters: 91% of requirements met sounds good, but in engineering one missed safety check makes the whole design unusable. That gap is exactly why engineers who check AI results will stay necessary for a while.",
+      "background": "A benchmark is a fixed set of tasks with known correct answers used to compare AI models; this one was published on 3 November and is added here because issue #4 missed it. Most earlier tests asked short questions; PLE gives an AI agent a whole project folder and expects a finished deliverable, closer to real work. An 'agent environment' or harness is the software around the model that lets it open files, run code and use tools; examples are Claude Code or Codex. 29 of the tasks are public with grading tools, so others can check the results; the rest stay private. Our watchlist of construction AI benchmarks is updated every week.",
+      "region": "Global",
+      "topics": [
+        "ai-benchmarks",
+        "structural-engineering",
+        "ai-agents",
+        "verification"
+      ],
+      "source_type": "primary",
+      "source_name": "Google Cloud blog",
+      "source_url": "https://cloud.google.com/blog/products/ai-machine-learning/introducing-physical-engineerings-last-exam-for-agents",
+      "more_sources": [
+        {
+          "name": "ONESTRUCTION: Construction AI Leaderboard (Hugging Face blog, 7 Nov)",
+          "url": "https://huggingface.co/blog/ONESTRUCTION/construction-ai-leaderboard"
+        }
+      ],
+      "published_at": "2026-11-03",
+      "image_url": null,
+      "image_credit": null
+    },
+    {
+      "id": "bkw-acquires-gerber-architekten",
+      "category": "market",
+      "title": "Swiss energy group BKW buys Gerber Architekten, one of Germany's largest architecture firms",
+      "body": "BKW announced on 12 November that its engineering arm BKW Engineering is taking over Gerber Architekten, Baublatt reported. The Dortmund-based firm was founded in 1966, has about 280 employees and offices in Dortmund, Hamburg, Berlin, Münster and Düsseldorf plus branches abroad; it works in architecture, urban planning, landscape architecture and interior design. No price was disclosed. BKW says it wants to strengthen its position in German building construction, expand its planning services and consolidate its presence in important regional markets. BKW Engineering's network already has more than 4,400 employees in over 40 companies at about 170 locations in Germany, Austria and Switzerland.\n\nWhy it matters: an energy utility from Bern is now one of the large planning groups in the German-speaking world. For graduates this means that many well-known engineering and architecture offices now belong to a few large groups.",
+      "background": "BKW is a Bernese energy company, majority-owned by the Canton of Bern, that produces and sells electricity. Over the last decade it has bought dozens of engineering, building-services and installation companies and grouped them into BKW Engineering and BKW Building Solutions. The idea is to offer planning, energy and building technology from one hand.",
+      "funding_context": {
+        "what": "Gerber Architekten works in architecture, urban planning, landscape architecture and interior design, from five offices in Germany plus branches abroad.",
+        "size": "About 280 people joining a network of more than 4,400, so roughly 6% more staff for BKW Engineering. The price is not disclosed; by headcount it is a mid-sized addition, not a transformative deal (our estimate).",
+        "signal": "Consolidation of planning firms continues: large groups with deep pockets, here an energy utility, buy established architecture and engineering offices to offer full planning services and secure scarce staff.",
+        "for_us": "Many Swiss students will work for or compete with such groups. Large groups can invest more in digital tools and standards, while small offices compete on specialisation and speed (our assessment)."
+      },
+      "region": "CH",
+      "topics": [
+        "acquisitions",
+        "engineering-firms",
+        "consolidation",
+        "architecture"
+      ],
+      "source_type": "trade",
+      "source_name": "Baublatt (German)",
+      "source_url": "https://www.baublatt.ch/baubranche/bkw-uebernimmt-eines-der-groessten-architekturbueros-deutschlands-39881",
+      "more_sources": [],
+      "published_at": "2026-11-12",
+      "image_url": "https://www.baublatt.ch/storage/images/crop1/145856_1.jpg",
+      "image_credit": "zvg / Baublatt"
+    },
+    {
+      "id": "bern-renovation-prize-2026",
+      "category": "circular",
+      "title": "Bern's first renovation prize: a 1967 block cuts energy demand by 95% and most tenants come back",
+      "body": "The City of Bern and the homeowners' association HEV Bern awarded the first Bern renovation prize on 11 November; nine projects were submitted. First place (CHF 10,000) went to Giacomettistrasse 4, a residential block from 1967. The facade and building envelope were renovated, new earthquake-resistant cores added, and a ground-source heat pump, a 15 kWp photovoltaic system and ventilation installed. According to the calculations, final energy demand fell by 95%, and the energy label (GEAK) improved from F to B. The building now has 40 flats and two commercial units instead of 48 flats; the project cost CHF 11.24 million including subsidies, and about 80% of the former residents returned. Second place went to a 1950 terraced house in Mittelholzerstrasse converted into a plus-energy house with a prefabricated timber loft extension; third place to a 1926 house in Staufferstrasse renovated while occupied, with reused materials and components.\n\nWhy it matters: keeping the structure and renovating it avoids most of the grey emissions of a new building. The winning projects show that this can also work for ordinary rental housing, not only for listed buildings.",
+      "background": "A large part of Switzerland's housing stock is several decades old and many buildings still heat with oil or gas, so renovating them is one of the biggest levers for climate goals in buildings. The alternative, demolition and a new building, releases a lot of grey (embodied) emissions, mostly from new concrete and steel (see issue #3 on circular construction). GEAK is the Swiss cantonal building energy certificate, with classes from A (best) to G. Renovations often raise rents; the jury explicitly looked at tenant involvement and rents after renovation.",
+      "region": "CH",
+      "topics": [
+        "retrofit",
+        "existing-buildings",
+        "energy",
+        "housing"
+      ],
+      "source_type": "primary",
+      "source_name": "City of Bern",
+      "source_url": "https://www.bern.ch/themen/umwelt-natur-und-energie/energie/berner-sanierungspreis",
+      "more_sources": [
+        {
+          "name": "Baublatt report (German)",
+          "url": "https://www.baublatt.ch/baubranche/erster-berner-sanierungspreis-plattenbau-und-plusenergiehaus-ausgezeichnet-39879"
+        }
+      ],
+      "published_at": "2026-11-12",
+      "image_url": "https://www.baublatt.ch/storage/images/crop1/163169_1.jpg",
+      "image_credit": "Baublatt"
+    },
+    {
+      "id": "infomaniak-bulle-datacentre-heat",
+      "category": "swiss",
+      "title": "Infomaniak plans a data centre in Bulle whose server heat would warm the town's district heating network",
+      "body": "The Geneva cloud provider Infomaniak and the utility Gruyère Energie plan a 2.5 MW data centre in Bulle FR, Baublatt reported on 13 November. Waste heat from the servers would be raised by heat pumps and fed into the district heating network, about 28 GWh per year. The building would have a footprint of about 1,200 m² on an already sealed plot in an industrial zone and hold 170 server racks. Cooling is a closed liquid loop without cooling towers or water withdrawal. Construction is to start in the first half of 2027 and operation in 2028, subject to permits; the building application has been public since 13 November. The partners claim up to 7,500 tonnes of CO2 savings per year compared with heating oil.\n\nWhy it matters: data centres are being built across Switzerland for AI and cloud services. Planning them as heat sources from the start, rather than as boxes that blow heat into the air, turns a problem into part of the local energy system.",
+      "background": "Servers turn almost all the electricity they use into heat, which normally has to be removed by cooling and is lost. The heat is typically only lukewarm, too cool for most heating networks, which is why heat pumps raise its temperature first. District heating networks distribute hot water from central sources to many buildings; Swiss cities and towns are expanding them to replace oil and gas heating.",
+      "region": "CH",
+      "topics": [
+        "data-centres",
+        "waste-heat",
+        "district-heating",
+        "energy"
+      ],
+      "source_type": "trade",
+      "source_name": "Baublatt (German)",
+      "source_url": "https://www.baublatt.ch/baubranche/infomaniak-plant-rechenzentrum-mit-abwaermenutzung-in-bulle-39891",
+      "more_sources": [],
+      "published_at": "2026-11-13",
+      "image_url": "https://www.baublatt.ch/storage/images/crop1/157742_1.jpg",
+      "image_credit": "Unsplash / Baublatt"
+    },
+    {
+      "id": "bentley-cesium-reality-modeling",
+      "category": "digital",
+      "title": "Bentley brings reality models from drone and photo capture into Cesium, the open 3D map platform it bought",
+      "body": "At its Year in Infrastructure conference in Amsterdam, Bentley Systems announced on 14 November that its reality modelling services are now available within Cesium. With iTwin Capture, users turn photos and drone imagery into engineering-grade 3D reality models, with AI that detects features; the results can be delivered as reality meshes, point clouds or Gaussian splats and hosted on Cesium ion, Cesium's cloud service for 3D geospatial content. Bentley also announced iTwin Engage, an app that uses Cesium and game-engine technology to create interactive, photorealistic views linked to live digital twin data. No prices were given.\n\nWhy it matters: infrastructure projects always start with the existing terrain and structures. When the scan, the map and the engineering model live on one open platform, the step from 'what is there' to 'what we plan' gets shorter.",
+      "background": "Bentley Systems makes software for infrastructure design, such as MicroStation and OpenRoads, and iTwin, its platform for digital twins of roads, bridges and plants. In 2024 it acquired Cesium, the company behind an open format (3D Tiles) for streaming huge 3D geodata in a web browser. A reality model is a 3D model reconstructed from many overlapping photos or laser scans (photogrammetry). Gaussian splatting is a newer method that represents a scene as millions of small coloured blobs, which looks very realistic and renders quickly but is not yet a measuring tool like a point cloud.",
+      "region": "EU",
+      "topics": [
+        "reality-capture",
+        "digital-twin",
+        "geodata",
+        "infrastructure"
+      ],
+      "source_type": "trade",
+      "source_name": "Construction & Property News (Bentley announcement)",
+      "source_url": "https://construction-property.com/bentley-systems-bolsters-cesium-with-reality-modeling-capabilities-and-brings-geospatial-context-to-infrastructure-engineering/",
+      "more_sources": [],
+      "published_at": "2026-11-14",
+      "image_url": "https://construction-property.com/wp-content/uploads/2026/11/CPM_Dailynews_cesium.jpg",
+      "image_credit": "Construction & Property News"
+    },
+    {
+      "id": "gleeds-visualise-reality-capture-scale",
+      "category": "digital",
+      "title": "From 16 to 1,900 users: how cost consultant Gleeds scaled 360° site capture to 340 projects",
+      "body": "The international cost and project consultant Gleeds has expanded Visualise, its reality-capture service built on OpenSpace's platform, The Construction Index reported around 12 November. The pilot started in 2022 with 16 users; Visualise now has 1,900 users in ten countries across 340 projects. Gleeds says clients saved about £2 million last year with it (company figure, not independently verified). 'Visualise is changing the way we support clients on projects', says Sheldon Atkinson, head of Visualise at Gleeds.\n\nWhy it matters: many digital tools in construction never get past the pilot. This one did, run by a consultant rather than a contractor, which shows that site documentation is becoming a service planners and cost consultants can sell.",
+      "background": "OpenSpace is a US company whose software turns 360° video, recorded by someone walking the site with a helmet camera, into a navigable record of the site linked to the floor plan, similar to Google Street View for a building under construction. Repeated walks show progress over time and can be compared with the plan or BIM model. Gleeds is a UK-based consultancy for cost management and project management that works in many countries.",
+      "region": "UK",
+      "topics": [
+        "reality-capture",
+        "progress-tracking",
+        "adoption",
+        "site-documentation"
+      ],
+      "source_type": "trade",
+      "source_name": "The Construction Index",
+      "source_url": "https://www.theconstructionindex.co.uk/news/view/gleeds-expands-use-of-visual-intelligence",
+      "more_sources": [],
+      "published_at": "2026-11-12",
+      "image_url": "https://www.theconstructionindex.co.uk/assets/news_articles/2026/11/1794384088_c-260803-visualise-n17.jpeg",
+      "image_credit": "The Construction Index"
+    }
+  ],
+  "also_funded": [
+    {
+      "name": "Archiboost",
+      "amount": "USD 6.2M pre-seed and seed (3 Nov)",
+      "what": "AI checks of construction drawings for errors, omissions and code questions",
+      "url": "https://archiboost.ai/blogs/archiboost-raises-6-2-million"
+    }
+  ],
+  "focus": {
+    "title": "IFC in practice: what survives an export",
+    "subtitle": "Module 1 · Concept 2: the open BIM format, and why the receiving side matters as much as the sending side",
+    "kind": "concept",
+    "concept_id": "m1-ifc",
+    "file": "focus.html",
+    "glossary": [
+      {
+        "term": "IFC (Industry Foundation Classes)",
+        "definition": "The open, vendor-neutral data format for BIM models, maintained by buildingSMART International and standardised as ISO 16739."
+      },
+      {
+        "term": "Entity / class",
+        "definition": "The type of an element in IFC, for example IfcWall, IfcSlab or IfcColumn. A wrong or generic class (IfcBuildingElementProxy) makes the element hard to use for the receiver."
+      },
+      {
+        "term": "Property set (Pset)",
+        "definition": "A named group of properties attached to an element, such as Pset_WallCommon with fire rating and load-bearing status."
+      },
+      {
+        "term": "Model View Definition (MVD)",
+        "definition": "A defined subset of IFC for a specific purpose, for example a Reference View for coordination, where elements are shown and checked but not edited."
+      },
+      {
+        "term": "IDS (Information Delivery Specification)",
+        "definition": "A buildingSMART standard for writing machine-readable requirements, such as 'every load-bearing wall needs a fire rating', so that an IFC model can be checked automatically."
+      }
+    ],
+    "further_reading": [
+      {
+        "title": "buildingSMART International: Industry Foundation Classes",
+        "url": "https://technical.buildingsmart.org/standards/ifc/"
+      },
+      {
+        "title": "buildingSMART: Information Delivery Specification (IDS)",
+        "url": "https://technical.buildingsmart.org/projects/information-delivery-specification-ids/"
+      }
+    ]
+  },
+  "question": {
+    "text": "What goes wrong most often when you exchange models?",
+    "options": [
+      "Elements arrive as the wrong type",
+      "Properties are missing or named differently",
+      "Geometry is wrong or too heavy",
+      "Coordinates and levels do not match",
+      "I have not exchanged models yet"
+    ]
+  },
+  "whatsapp_teaser": "🏗️ *FPL Weekly #5* is out!\nTrimble puts AI agents into Connect, Google's new benchmark shows no AI completes half of realistic engineering projects, and BKW buys one of Germany's largest architecture firms.\n🔍 Focus: IFC in practice, and what survives an export, with an interactive export check.\n👉 https://riozma.ch/fpl/weekly/2026-47/"
+}

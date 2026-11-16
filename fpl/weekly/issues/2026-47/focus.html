@@ -1,0 +1,146 @@
+<!-- FPL Weekly 2026-47 · Focus: IFC in practice. Fragment, wird vom Renderer in .fplw-focus eingesetzt. -->
+<style>
+  .fplw-focus .f-lead { font-size: 1.1rem; }
+  .fplw-focus figure { margin: 28px 0; }
+  .fplw-focus figcaption { font-size: .85rem; opacity: .75; margin-top: 6px; }
+  .fplw-focus svg { width: 100%; height: auto; display: block; }
+  .fplw-focus .f-box { border: 2px solid var(--blue, #536a89); border-radius: 10px; padding: 16px; margin: 28px 0; }
+  .fplw-focus .f-box h4 { margin: 0 0 10px; }
+  .fplw-focus .f-pick { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .fplw-focus .f-pick button { font: inherit; font-size: .88rem; padding: 6px 10px; border: 1px solid var(--line, #d9dfe7); border-radius: 999px; background: var(--soft, #e8edf3); color: var(--ink, #1d2733); cursor: pointer; }
+  .fplw-focus .f-pick button[aria-pressed="true"] { background: var(--blue, #536a89); color: #fff; border-color: var(--blue, #536a89); }
+  .fplw-focus .f-opt { display: flex; gap: 8px; align-items: center; font-size: .9rem; margin: 6px 0; }
+  .fplw-focus .f-rows { display: grid; gap: 6px; margin-top: 12px; }
+  .fplw-focus .f-r { display: grid; grid-template-columns: 1.6rem 7.5rem 1fr; gap: 8px; align-items: start; padding: 8px 10px; border-radius: 6px; background: var(--soft, #e8edf3); font-size: .9rem; }
+  .fplw-focus .f-r b { font-weight: 700; }
+  .fplw-focus .f-ic { display: inline-block; width: 1.3rem; height: 1.3rem; border-radius: 50%; text-align: center; line-height: 1.3rem; color: #fff; font-size: .8rem; font-weight: 700; }
+  .fplw-focus .ok { background: #1f8f86; } .fplw-focus .part { background: #d68d00; } .fplw-focus .lost { background: #c4372f; }
+  .fplw-focus .f-small { font-size: .8rem; opacity: .75; }
+  .fplw-focus table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  .fplw-focus th, .fplw-focus td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line, #d9dfe7); vertical-align: top; }
+  @media (max-width: 480px) { .fplw-focus .f-r { grid-template-columns: 1.6rem 1fr; } .fplw-focus .f-r span:last-child { grid-column: 2; } }
+</style>
+
+<p class="f-lead">This week Trimble, Bentley and Google all showed AI that works with building models, and last week Qonic let AI assistants export IFC. Under all of this sits an old, unglamorous question: when a model leaves one program and arrives in another, what actually arrives? The answer, in most projects, is IFC.</p>
+
+<h3>What IFC is</h3>
+<p>IFC, the Industry Foundation Classes, is the open data format for building information models. It is maintained by buildingSMART International, a non-profit organisation, and standardised as ISO 16739. Every major BIM program can write and read it, so an architect working in Archicad, an engineer in Revit or Tekla and a checker in Solibri can exchange models without owning the same software. Version IFC 4.3 extended the format from buildings to infrastructure such as roads, railways and bridges.</p>
+<p>An IFC file describes elements as typed objects: a wall is an <code>IfcWall</code>, a slab an <code>IfcSlab</code>. Each element has a geometry, properties grouped in property sets (for example fire rating or load-bearing yes/no), and relationships: which storey it belongs to, which opening it contains, which material layers it is made of.</p>
+
+<figure>
+  <svg viewBox="0 0 640 250" role="img" aria-label="Native model exported to IFC and imported into another program, with losses at each step">
+    <defs>
+      <marker id="fw47-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#536a89"/></marker>
+    </defs>
+    <g font-size="15" text-anchor="middle" fill="#1d2733">
+      <rect x="10" y="40" width="170" height="150" rx="10" fill="#e8edf3" stroke="#536a89"/>
+      <text x="95" y="68" font-weight="700">Native model</text>
+      <text x="95" y="96">parametric rules</text>
+      <text x="95" y="120">families, styles</text>
+      <text x="95" y="144">all properties</text>
+      <text x="95" y="168">links, constraints</text>
+
+      <rect x="235" y="60" width="170" height="110" rx="10" fill="#536a89"/>
+      <text x="320" y="92" fill="#fff" font-weight="700">IFC file</text>
+      <text x="320" y="118" fill="#fff">classes, geometry,</text>
+      <text x="320" y="140" fill="#fff">mapped properties</text>
+
+      <rect x="460" y="40" width="170" height="150" rx="10" fill="#e8edf3" stroke="#536a89"/>
+      <text x="545" y="68" font-weight="700">Receiving program</text>
+      <text x="545" y="96">reads what it</text>
+      <text x="545" y="120">understands,</text>
+      <text x="545" y="144">mostly as fixed</text>
+      <text x="545" y="168">(dumb) geometry</text>
+    </g>
+    <g stroke="#536a89" stroke-width="2.5" marker-end="url(#fw47-a)"><path d="M182 115 H229"/><path d="M407 115 H454"/></g>
+    <g font-size="14" fill="#c4372f" text-anchor="middle">
+      <text x="207" y="222">export: mapping decides</text>
+      <text x="432" y="222">import: support decides</text>
+    </g>
+  </svg>
+  <figcaption>Two places where information can get lost: the export mapping in the sending program, and what the receiving program can read. The smart behaviour of the native model (parametric rules) usually does not travel.</figcaption>
+</figure>
+
+<h3>The key point: IFC transports results, not the design logic</h3>
+<p>A wall in Revit or Archicad "knows" that it should follow the storey height and wrap around a corner. In IFC it arrives as a wall with a shape and properties, but the rules that produced the shape stay behind. That is why IFC is excellent for coordination, checking and handing over, and much weaker for continuing to design in another program. Most practical problems come from three places:</p>
+<ul>
+  <li><strong>Mapping:</strong> the sending program must know which IFC class each of its objects becomes. A custom family that is not mapped often arrives as <code>IfcBuildingElementProxy</code>, a generic "something" that no checking rule recognises.</li>
+  <li><strong>Properties:</strong> only the properties selected for export travel, and they must have the names the receiver expects. "FireRating", "Brandschutz" and "EI60" in a comment field are three different things to a machine.</li>
+  <li><strong>Geometry:</strong> a shape can be written as a clean extrusion or as thousands of triangles. Both look the same on screen, but the second is heavy and can no longer be measured or edited sensibly.</li>
+</ul>
+
+<div class="f-box" data-widget="ifccheck">
+  <h4>Export check: what arrives?</h4>
+  <p class="f-small" style="margin-top:0">Pick an element and decide how carefully the export was set up.</p>
+  <div class="f-pick" role="group" aria-label="Element"></div>
+  <label class="f-opt"><input type="checkbox" data-opt="map" checked> Class mapping configured</label>
+  <label class="f-opt"><input type="checkbox" data-opt="pset" checked> Agreed property sets exported</label>
+  <div class="f-rows" aria-live="polite"></div>
+  <p class="f-small">Typical behaviour, simplified. Real results depend on the programs, versions and export settings, which is why projects test the exchange early.</p>
+</div>
+
+<script>
+(function () {
+  var root = document.currentScript ? document.currentScript.previousElementSibling : null;
+  if (!root || root.getAttribute('data-widget') !== 'ifccheck') root = document.querySelector('.fplw-focus [data-widget="ifccheck"]');
+  if (!root) return;
+  var els = [
+    { n: 'Concrete wall', cls: 'IfcWall', geo: ['ok', 'Usually a clean extrusion, measurable.'], para: ['lost', 'Height constraints and joins to other walls stay behind.'], rel: ['ok', 'Storey, material layers and openings usually survive.'] },
+    { n: 'Slab with opening', cls: 'IfcSlab', geo: ['ok', 'Extrusion with the opening cut out.'], para: ['lost', 'Edit rules (slope, edge offsets) are not transferred.'], rel: ['part', 'The opening arrives as its own element; whether it stays linked to the slab depends on the exporter.'] },
+    { n: 'Column with rebar', cls: 'IfcColumn + IfcReinforcingBar', geo: ['part', 'Column is fine; thousands of bars can make the file very heavy.'], para: ['lost', 'Bar shapes are fixed geometry, not rebar rules.'], rel: ['part', 'Bars are linked to the column only if the exporter supports it.'] },
+    { n: 'Custom door family', cls: 'IfcDoor', geo: ['part', 'Often written as many triangles: looks right, hard to edit.'], para: ['lost', 'Opening width parameters and swing logic stay behind.'], rel: ['ok', 'Usually placed in its wall opening.'] },
+    { n: 'Generic "furniture block"', cls: 'IfcFurniture', geo: ['part', 'Triangulated mesh.'], para: ['lost', 'No parameters.'], rel: ['part', 'Storey yes, other relations rarely.'] }
+  ];
+  var pick = root.querySelector('.f-pick'), rows = root.querySelector('.f-rows');
+  var mapBox = root.querySelector('[data-opt="map"]'), psetBox = root.querySelector('[data-opt="pset"]');
+  var cur = 0;
+  var btns = els.map(function (e, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = e.n;
+    b.addEventListener('click', function () { cur = i; render(); });
+    pick.appendChild(b);
+    return b;
+  });
+  function row(state, label, text) {
+    var d = document.createElement('div'); d.className = 'f-r';
+    var ic = document.createElement('span'); ic.className = 'f-ic ' + state;
+    ic.textContent = state === 'ok' ? '✓' : state === 'part' ? '~' : '✕';
+    ic.setAttribute('aria-label', state === 'ok' ? 'arrives' : state === 'part' ? 'partly' : 'lost');
+    var l = document.createElement('b'); l.textContent = label;
+    var t = document.createElement('span'); t.textContent = text;
+    d.appendChild(ic); d.appendChild(l); d.appendChild(t);
+    return d;
+  }
+  function render() {
+    var e = els[cur];
+    btns.forEach(function (b, j) { b.setAttribute('aria-pressed', j === cur ? 'true' : 'false'); });
+    rows.textContent = '';
+    rows.appendChild(mapBox.checked ? row('ok', 'Class', 'Arrives as ' + e.cls + ', so checking rules and quantity lists recognise it.')
+      : row('lost', 'Class', 'Arrives as IfcBuildingElementProxy: a generic object that rules for "walls" or "doors" do not find.'));
+    rows.appendChild(psetBox.checked ? row('ok', 'Properties', 'Fire rating, load-bearing, material and the agreed project properties arrive with the expected names.')
+      : row('part', 'Properties', 'Some properties arrive, but under program-specific names; a checker or AI has to guess what they mean.'));
+    rows.appendChild(row(e.geo[0], 'Geometry', e.geo[1]));
+    rows.appendChild(row(e.rel[0], 'Relations', e.rel[1]));
+    rows.appendChild(row(e.para[0], 'Design logic', e.para[1]));
+  }
+  mapBox.addEventListener('change', render);
+  psetBox.addEventListener('change', render);
+  render();
+})();
+</script>
+
+<h3>How good projects handle it</h3>
+<table>
+  <tr><th>Step</th><th>What it means</th></tr>
+  <tr><td>Agree the exchange</td><td>At the start, the team agrees which IFC version and which Model View Definition to use, which classes and properties are required, and at which project phases models are exchanged. In Switzerland this is typically written down in the project's BIM execution plan.</td></tr>
+  <tr><td>Write requirements as rules</td><td>With IDS, the Information Delivery Specification, such requirements become machine-readable: "every IfcWall that is load-bearing must have a fire rating". A checking tool can then test every delivery automatically.</td></tr>
+  <tr><td>Test early</td><td>Export a small test model in week one, open it in the receiving programs and in a viewer, and fix the mapping before hundreds of elements depend on it.</td></tr>
+  <tr><td>Check every delivery</td><td>Each incoming model is checked against the agreed rules before it is used for coordination, quantities or calculations.</td></tr>
+</table>
+
+<h3>Why this matters even more with AI</h3>
+<p>AI assistants that read and edit models, from the MCP servers in Revit and Allplan to agents in Qonic or Trimble Connect, depend on exactly the information IFC carries: clear classes, consistent properties and relationships. The new benchmarks show the gap clearly. In the BIM-Edit benchmark, which asks models to change IFC models from plain-language instructions, the best model reached an average of about 49%, and almost no task was solved completely. An element that arrives as a proxy with its fire rating hidden in a comment is invisible to a person running a rule, and just as invisible to an AI.</p>
+
+<h3>What it means for us as future planners</h3>
+<p>Treat the export as part of your deliverable, not as a button at the end. Know which class and properties your elements need, open your own IFC in a free viewer before you send it, and ask the receiving engineer what they need to calculate or check. Planners who can set up a clean exchange are the ones whose models other people, and soon AI tools, can actually use.</p>
+<p><strong>Next in Module 1:</strong> The Common Data Environment: where models, drawings and documents live, and who may change what.</p>

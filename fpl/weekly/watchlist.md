@@ -15,7 +15,7 @@ Koordination und Prüfung (Bluebeam, Solibri, Navisworks), Datenstandards (IFC, 
 **Wesentlich ist:** ein neuer offizieller Server für ein Statik- oder Bemessungsprogramm, der Schritt von «nur lesen» zu «schreiben»,
 Beta zu allgemein verfügbar, eine Verbindung über mehrere Hersteller hinweg, neue Bedingungen (Lizenz, Preis, nur eigener Assistent).
 
-**Stand (zuletzt geprüft 2026-11-09):**
+**Stand (zuletzt geprüft 2026-11-16):**
 
 | Programm | Stand | Quelle |
 |---|---|---|
@@ -28,7 +28,10 @@ Beta zu allgemein verfügbar, eine Verbindung über mehrere Hersteller hinweg, n
 | MicroStation (Bentley) | Early Access für ausgewählte Kunden | Internet für Architekten |
 | Rhino / Grasshopper | McNeel Rhino MCP Platform | dto. |
 | Tekla Structures, Vectorworks, BricsCAD | kein offizieller Server, nur Community | dto. |
-| Dlubal, Sofistik, Cubus, Axis VM, ETABS | noch nicht geprüft | |
+| Dlubal RFEM 6, RSTAB 9, RSECTION | Paket «dlubal-mcp» auf PyPI (1.0.27 vom 11.11.2026), Konto «dlubal_team9», braucht API-Service-Abo; Dlubal-Website nennt «MCP-Konnektor» nur in Metadaten zu Dlubal CALC; offizieller Status nicht bestätigt | pypi.org/project/dlubal-mcp, dlubal.com |
+| ETABS, Tekla Structural Designer | nur Community-Projekte (GitHub) | GitHub, mcp.pub |
+| Sofistik, Cubus, Axis VM | noch nicht geprüft | |
+| Trimble Connect | KI-Assistent «Trimble Assist» und «Agent Studio» (9.11.2026), kein MCP und keine Konnektoren für externe Assistenten erwähnt | Construction Briefing, ENR |
 | Qonic | eigener MCP-Server, KI-Agenten im Modell (5.11.2026) | AEC Magazine |
 | ODA (DWG, IFC, STEP) | angekündigt, selbst gehostete MCP-Server | AEC Magazine, Juli 2026 |
 | Herstellerübergreifend | Autom8Labs: Konnektoren für 9 Programme (Autodesk, Bentley, McNeel) plus 22 Skills | AEC Magazine, 3.11.2026 |
@@ -43,7 +46,7 @@ ein neuer Benchmark, der sich durchsetzt, eine Änderung der Methode, die alte W
 das eine bisher ungelöste Bauaufgabe zuverlässig kann (z. B. Ausmass aus Plänen, Modelländerungen in IFC, Statik-Nachweise).
 Immer nennen, wer gemessen hat (Autoren, Hersteller, unabhängig) und ob die Werte vergleichbar sind.
 
-**Stand (zuletzt geprüft 2026-11-09):**
+**Stand (zuletzt geprüft 2026-11-16):**
 
 | Benchmark | Misst | Bestwert bisher | Quelle |
 |---|---|---|---|
@@ -51,6 +54,9 @@ Immer nennen, wer gemessen hat (Autoren, Hersteller, unabhängig) und ob die Wer
 | AECV-Bench (AECFoundry, Jan 2026) | Pläne lesen: Objekte zählen, Fragen zu Zeichnungen | Zählen: Gemini 3 Pro 0,51 | arXiv 2601.04819 |
 | BIM-Edit (Uni Rostock u. a., 2026) | IFC-Modelle per Sprache ändern; 324 Aufgaben | 49,5 % Durchschnitt, höchstens 3,4 % vollständig gelöst | arXiv 2606.20146 |
 | Construction's Last Exam (Togal.AI, Okt 2026) | Ausmass (Takeoff) aus PDF-Plänen; 33 Aufgaben | 2 bis 34 % | Construction Briefing, 13.10.2026 |
-| Physical-Engineering's Last Exam (Google, 3.11.2026) | lange Ingenieuraufgaben inkl. Bau und Statik; 85 Aufgaben | 48,3 %, alle Modelle unter 50 % | Google Cloud Blog |
-| Construction AI Leaderboard (ONESTRUCTION, 7.11.2026) | Mittel aus AEC-Bench, BIM-Edit, IFC-Bench-V2, CEQuest, IDS | Spitze um 73,7 Punkte, eigene Läufe, nicht mit offiziellen Werten vergleichbar | Hugging Face Blog |
+| Physical-Engineering's Last Exam (Google, 3.11.2026) | lange Ingenieuraufgaben inkl. Bau und Statik; 85 Aufgaben | 48,3 % (Modell nicht genannt), alle 14 Modelle unter 50 %; nur 41,3 % der Ergebnisse bestehen alle Sicherheitsprüfungen | Google Cloud Blog; in FPL Weekly #5 |
+| Construction AI Leaderboard (ONESTRUCTION, 7.11.2026) | Mittel aus AEC-Bench, BIM-Edit, IFC-Bench-V2, CEQuest, IDS | Claude Opus 5.5 73,7, Gemini 4 Argon 73,6, Claude Opus 5 72,7 (eigene Läufe, nicht mit offiziellen Werten vergleichbar) | Hugging Face Blog |
 | Structural engineering benchmark (Uni Neapel, Mai 2026) | Statikaufgaben in drei Stufen, 800 Instanzen | noch keine Werte veröffentlicht | Zenodo 20189957 |
+| Mebbian auf AEC-Bench (Okt 2026) | eine Aufgabenfamilie (Planliste vs. Pläne) | 81,9 % Modell allein, 88,9 % mit Mebbian (Herstellerlauf, 12 Plansätze) | mebbian.ai |
+
+Hinweis: AECFoundry zählt in einer Übersicht (20.10.2026) 99 AEC-Benchmarks, fast neun von zehn aus 2025 oder 2026. Wir verfolgen nur die gängigsten.
