@@ -9,7 +9,8 @@ const pick = a => a[Math.floor(Math.random() * a.length)];
 // W/H = Weltgrösse, VW/VH = sichtbarer Ausschnitt. Solo: beides gleich. Multiplayer: feste grosse Welt, Kamera folgt.
 let W = 320, H = 180, VW = 320, VH = 180, camX = 0, camY = 0, PS = 3, FLOOR = 150, bg = null, kelp = [], dust = [];
 const MPW = 640, MPH = 300;
-let zoneIdx = 0, mp = null, frzT = 0;
+let zoneIdx = 0, mp = null, frzT = 0, SURF = 36; // SURF = Höhe der Wasseroberfläche
+const GRAV = 300;
 // Eigene Ebene in Bildschirmauflösung, damit Nurijas Gesicht scharf bleibt
 const hiCv = document.getElementById('hi'), hctx = hiCv.getContext('2d');
 let hiK = 1, shX = 0, shY = 0;
@@ -43,10 +44,10 @@ const PALS = {
 const PLAYER_PALS = ['puffer', 'pcoral', 'pmint', 'plila', 'pblau', 'prosa'];
 const FISH_PALS = ['blue','orange','green','pink','purple','red','teal'];
 const ZONES = [
-  {name:'RIFF',             top:[6,24,52], bot:[22,70,110], sand:[32,78,114]},
-  {name:'LAGUNE',           top:[3,30,42], bot:[16,92,100], sand:[34,98,100]},
-  {name:'VIOLETTER GRABEN', top:[14,12,46],bot:[48,40,112], sand:[58,52,116]},
-  {name:'TIEFSEE',          top:[2,8,20],  bot:[10,32,62],  sand:[20,42,70]},
+  {name:'RIFF',             top:[14,58,98], bot:[22,70,110], sand:[32,78,114], sky:[[88,160,222],[196,228,246]]},
+  {name:'LAGUNE',           top:[10,70,82], bot:[16,92,100], sand:[34,98,100], sky:[[120,196,226],[236,240,214]]},
+  {name:'VIOLETTER GRABEN', top:[34,26,82], bot:[48,40,112], sand:[58,52,116], sky:[[58,40,112],[242,140,118]], stars:1},
+  {name:'TIEFSEE',          top:[6,20,44],  bot:[10,32,62],  sand:[20,42,70],  sky:[[4,6,22],[24,34,72]], stars:1},
 ];
 
 /* ---------- Nurija (Easter Egg) ---------- */
@@ -242,15 +243,19 @@ function makeBG() {
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const i = (y*W + x) * 4, th = BAYER[(y & 3) * 4 + (x & 3)] / 16, fy = floorAt(x);
     let col;
-    if (y >= fy) {
+    if (y < SURF) {
+      const t = y / SURF, lv = clamp(Math.floor(t*6 + th), 0, 6) / 6, a = z.sky[0], b = z.sky[1];
+      col = [a[0] + (b[0] - a[0])*lv, a[1] + (b[1] - a[1])*lv, a[2] + (b[2] - a[2])*lv];
+      if (z.stars && R() < 0.012 && t < 0.8) col = [235, 240, 255];
+    } else if (y >= fy) {
       const n = R(), depth = (y - fy) / (H - fy + 1);
       col = y < fy + 1.5 ? sandHi : n < 0.08 ? sandHi : n < 0.18 ? sandLo : z.sand;
       if (((x + y*2) % 11 === 0) && R() < 0.6) col = sandLo;
       col = [col[0] - depth*8, col[1] - depth*10, col[2] - depth*12];
     } else {
-      const t = y / FLOOR, lv = clamp(Math.floor(t*bands + th), 0, bands), k = lv / bands;
+      const t = (y - SURF) / (FLOOR - SURF), lv = clamp(Math.floor(t*bands + th), 0, bands), k = lv / bands;
       col = [z.top[0] + (z.bot[0] - z.top[0])*k, z.top[1] + (z.bot[1] - z.top[1])*k, z.top[2] + (z.bot[2] - z.top[2])*k];
-      let ray = 0; const xr = x - y*0.45;
+      let ray = 0; const xr = x - (y - SURF)*0.45;
       for (const r of rays) { const dd = Math.abs(xr - r.x) / r.w; if (dd < 1) ray += (1 - dd) * r.s; }
       if (ray * (1 - t) * 0.75 > th) col = [col[0] + 9, col[1] + 18, col[2] + 22];
     }
@@ -286,7 +291,7 @@ function makeBG() {
 
 function makeKelp() {
   const out = [];
-  [0.04, 0.11, 0.89, 0.96].forEach(f => { const x = Math.round(W*f); out.push({x, y: floorAt(x) + 2, h: H*rnd(0.26, 0.48), ph: rnd(0, 6)}); });
+  [0.04, 0.11, 0.89, 0.96].forEach(f => { const x = Math.round(W*f); out.push({x, y: floorAt(x) + 2, h: Math.min(H*rnd(0.26, 0.48), FLOOR - SURF - 14), ph: rnd(0, 6)}); });
   return out;
 }
 
@@ -295,7 +300,7 @@ let state = 'title', prevState = 'play', time = 0, score = 0, hi = 0, level = 1,
 let shake = 0, flash = 0, flashCol = '255,60,90', spawnT = 0, bubT = 0, luT = 0, dyingT = 0, overReady = 0, zT = 0, trailT = 0;
 let runT = 0, evT = 0, ev = null, lastEv = '', nurija = null, nurijaAt = 0, nurijaDone = false, summon = false, killer = '';
 const ents = [], parts = [], pops = [], bubbles = [], streaks = [];
-const player = {x: 0, y: 0, vx: 0, vy: 0, r: 11, dir: 1, puff: 0, inv: 0, shield: 0, sleep: true, dead: false};
+const player = {x: 0, y: 0, vx: 0, vy: 0, r: 11, dir: 1, puff: 0, inv: 0, shield: 0, sleep: true, dead: false, air: false, ship: null};
 const tgt = {x: 0, y: 0}, keys = new Set();
 let touchLast = null, muted = false, inputMode = 'point';
 const EAT_RATIO = 0.9; // nur deutlich kleinere Fische sind fressbar
@@ -312,10 +317,10 @@ function resize() {
     // Ausschnitt nie grösser als die Welt: Pixel notfalls gröber machen
     PS = Math.max(PS, Math.ceil(vw / MPW), Math.ceil(vh / MPH));
     VW = Math.ceil(vw / PS); VH = Math.ceil(vh / PS); W = MPW; H = MPH;
-    FLOOR = Math.round(H * 0.9);
+    FLOOR = Math.round(H * 0.9); SURF = Math.round(H * 0.15);
   } else {
     VW = W = Math.ceil(vw / PS); VH = H = Math.ceil(vh / PS);
-    FLOOR = Math.round(H * 0.86);
+    FLOOR = Math.round(H * 0.86); SURF = Math.round(H * 0.2);
   }
   cv.width = VW; cv.height = VH; cv.style.width = VW*PS + 'px'; cv.style.height = VH*PS + 'px';
   const dpr = Math.min(2, window.devicePixelRatio || 1); hiK = PS*dpr;
@@ -324,9 +329,9 @@ function resize() {
   ctx.imageSmoothingEnabled = false;
   if (!bg || W !== oldW || H !== oldH) {
     bg = makeBG(); kelp = makeKelp();
-    dust = Array.from({length: Math.round(W*H/1400)}, () => ({x: rnd(0, W), y: rnd(0, FLOOR), vx: rnd(-2, 2), vy: rnd(-1.5, 1.5)}));
+    dust = Array.from({length: Math.round(W*H/1400)}, () => ({x: rnd(0, W), y: rnd(SURF, FLOOR), vx: rnd(-2, 2), vy: rnd(-1.5, 1.5)}));
   }
-  player.x = clamp(player.x, player.r, W - player.r); player.y = clamp(player.y, player.r, FLOOR - player.r*0.6);
+  player.x = clamp(player.x, player.r, W - player.r); player.y = clamp(player.y, SURF - 40, FLOOR - player.r*0.6);
 }
 function updateCam() {
   camX = W > VW ? clamp(Math.round(player.x - VW/2), 0, W - VW) : 0;
@@ -360,41 +365,44 @@ const sfx = {
 };
 
 /* ---------- Spawning ---------- */
+// Feste Grössenverteilung: Fische wachsen nicht mit dir mit. Viel Kleines, einiges Mittleres, wenige Riesen.
+function npcR() {
+  const q = Math.random();
+  return q < 0.48 ? rnd(2.5, 6) : q < 0.76 ? rnd(6, 11) : q < 0.92 ? rnd(11, 20) : rnd(20, 34);
+}
+const WTOP = () => SURF + 6;
 function spawnFish(opt = {}) {
   const p = player, calm = state !== 'play';
   let r, kind = 'fish', pal = opt.pal || pick(FISH_PALS);
   if (opt.r) r = opt.r;
   else if (calm) r = rnd(3, 13);
-  else {
-    const edibleP = clamp(0.6 - level*0.03, 0.42, 0.6);
-    r = Math.random() < edibleP ? p.r*rnd(0.35, 0.82) : p.r*rnd(1.0, 2.3);
-  }
-  r = clamp(r, 2.5, Math.min(W, H) * 0.28);
-  if (!calm && !opt.r && r > p.r*1.4 && r > 12 && Math.random() < 0.6) { kind = 'shark'; pal = 'shark'; }
+  else r = npcR();
+  r = clamp(r, 2.5, 34);
+  if (!calm && !opt.r && r > 14 && Math.random() < 0.55) { kind = 'shark'; pal = 'shark'; }
   else if (opt.kind) kind = opt.kind;
   else if (Math.random() < 0.22) kind = 'stripe';
   const spr = buildFish(r, pal, kind, false);
   const fromLeft = opt.fromLeft ?? Math.random() < 0.5;
   let sp = opt.sp || rnd(22, 44) * (1 + (level - 1)*0.14);
   if (!opt.sp) { if (kind === 'shark') sp *= 1.35; if (r < 5) sp *= 1.2; if (calm) sp *= 0.7; }
-  const y = opt.y ?? rnd(12 + spr.h/2, FLOOR - spr.h*0.4);
+  const y = opt.y ?? rnd(WTOP() + spr.h/2, FLOOR - spr.h*0.4);
   const e = {type: 'fish', kind, pal, r, spr, x: fromLeft ? -spr.w - (opt.off || 0) : W + spr.w + (opt.off || 0), y,
     vx: fromLeft ? sp : -sp, dir: fromLeft ? 1 : -1, margin: spr.w + 4 + (opt.off || 0), bobA: rnd(0, 10), bobF: rnd(1, 3), ph: rnd(0, 6)};
   ents.push(e); return e;
 }
 function spawnSchool() {
   const p = player, calm = state !== 'play';
-  const r = calm ? 3.5 : Math.max(2.5, p.r*rnd(0.3, 0.5)), pal = pick(FISH_PALS), fromLeft = Math.random() < 0.5;
-  const y = rnd(20, FLOOR - 20), sp = rnd(26, 40), n = 3 + Math.floor(Math.random()*3);
-  for (let i = 0; i < n; i++) spawnFish({r, pal, kind: 'fish', fromLeft, sp, y: clamp(y + rnd(-9, 9), 10, FLOOR - 8), off: i*r*3.2});
+  const r = calm ? 3.5 : rnd(2.5, 4.5), pal = pick(FISH_PALS), fromLeft = Math.random() < 0.5;
+  const y = rnd(WTOP() + 14, FLOOR - 20), sp = rnd(26, 40), n = 3 + Math.floor(Math.random()*3);
+  for (let i = 0; i < n; i++) spawnFish({r, pal, kind: 'fish', fromLeft, sp, y: clamp(y + rnd(-9, 9), WTOP() + 4, FLOOR - 8), off: i*r*3.2});
 }
 function spawnJelly() {
-  const r = clamp(rnd(5, 10) * (1 + (level - 1)*0.08), 4, 18), spr = buildJelly(r);
+  const r = rnd(5, 12), spr = buildJelly(r);
   ents.push({type: 'jelly', r, spr, x: rnd(W*0.15, W*0.85), y: H + r*3, vy: -rnd(12, 20), ph: rnd(0, 6), squash: 0});
 }
 function spawnItem(type) {
   const fromLeft = Math.random() < 0.5;
-  ents.push({type, r: type === 'pearl' ? 3 : 6, x: fromLeft ? -10 : W + 10, y: rnd(24, FLOOR - 24), vx: (fromLeft ? 1 : -1) * rnd(14, 22), bobA: 4, bobF: 2, ph: rnd(0, 6), margin: 14});
+  ents.push({type, r: type === 'pearl' ? 3 : 6, x: fromLeft ? -10 : W + 10, y: rnd(WTOP() + 16, FLOOR - 24), vx: (fromLeft ? 1 : -1) * rnd(14, 22), bobA: 4, bobF: 2, ph: rnd(0, 6), margin: 14});
 }
 function doSpawn() {
   const calm = state !== 'play';
@@ -419,7 +427,7 @@ function startEvent(type) {
     banner('STRÖMUNG!', dir > 0 ? 'ES ZIEHT NACH RECHTS' : 'ES ZIEHT NACH LINKS');
     tone(120, 70, 0.8, 'triangle', 0.09);
   } else if (type === 'gold') {
-    const e = spawnFish({r: Math.max(3, player.r*0.55), pal: 'gold', kind: 'fish', sp: 72});
+    const e = spawnFish({r: 5, pal: 'gold', kind: 'fish', sp: 72});
     e.gold = true; e.bobA = 45; e.bobF = 4;
     ev = {type, t: 12, max: 12, fish: e};
     banner('GOLDFISCH!', 'FANG IHN');
@@ -567,7 +575,7 @@ function moveEnt(e, dt) {
   if (e.type === 'jelly') {
     const pulse = Math.max(0, Math.sin(e.ph*2.6)); e.squash = pulse;
     e.y += e.vy * (0.3 + pulse*1.4) * dt; e.x += Math.sin(e.ph*0.8)*8*dt;
-    if (e.y < -e.r*4) e.dead = true;
+    if (e.y < SURF + 2) e.dead = true;
     return;
   }
   e.x += e.vx*dt; e.y += Math.cos(e.ph*e.bobF)*e.bobA*dt;
@@ -576,42 +584,53 @@ function moveEnt(e, dt) {
     e.y += clamp(player.y - e.y, -1, 1) * (14 + level*3) * dt;
   // Im Fressrausch fliehen die grossen Fische vor dir
   if (frenzy() && e.type === 'fish' && e.r >= player.r*EAT_RATIO) e.y += (Math.sign(e.y - player.y) || 1) * 26 * dt;
-  e.y = clamp(e.y, 6, FLOOR - 4);
+  e.y = clamp(e.y, WTOP() - 2, FLOOR - 4);
   if ((e.vx > 0 && e.x > W + e.margin) || (e.vx < 0 && e.x < -e.margin)) e.dead = true;
 }
 
-function movePlayer(dt) {
-  const p = player;
+// Eingabe als Richtung + Stärke: Tastatur oder Joystick (Finger/Maus gedrückt halten und ziehen)
+const joy = {on: false, id: null, bx: 0, by: 0, dx: 0, dy: 0, m: 0};
+const JOY_R = 48;
+function inputVec() {
   let kx = 0, ky = 0;
   if (keys.has('arrowleft') || keys.has('a')) kx--;
   if (keys.has('arrowright') || keys.has('d')) kx++;
   if (keys.has('arrowup') || keys.has('w')) ky--;
   if (keys.has('arrowdown') || keys.has('s')) ky++;
-  if (kx || ky) inputMode = 'key';
-  const minY = p.r*0.9 + 3, maxY = floorAt(p.x) - p.r*0.6;
-  // Trägheit: Der Fisch wird nur beschleunigt, nie direkt gesetzt. Grössere Fische sind schwerer.
-  const mass = 1 + p.r / 14;
-  const acc = 240 / mass, maxS = 108 - Math.min(40, p.r);
-  let ax = 0, ay = 0;
-  if (kx || ky) {
-    const m = Math.hypot(kx, ky); ax = kx/m*acc; ay = ky/m*acc;
-  } else if (inputMode === 'point') {
-    tgt.x = clamp(tgt.x, p.r, W - p.r); tgt.y = clamp(tgt.y, minY, maxY);
-    let dx = tgt.x - p.x, dy = tgt.y - p.y;
-    let wx = dx*2.4, wy = dy*2.4; const wm = Math.hypot(wx, wy);
-    if (wm > maxS) { wx *= maxS/wm; wy *= maxS/wm; }
-    const dvx = wx - p.vx, dvy = wy - p.vy, m = Math.hypot(dvx, dvy) || 1;
-    const s = Math.min(acc, m*3) / m; ax = dvx*s; ay = dvy*s;
+  if (kx || ky) { const m = Math.hypot(kx, ky); return {x: kx/m, y: ky/m, m: 1}; }
+  if (joy.on && joy.m > 0) return {x: joy.dx, y: joy.dy, m: joy.m};
+  return {x: 0, y: 0, m: 0};
+}
+// Höchstgeschwindigkeit: grosse Fische sind etwas langsamer
+const speedFor = r => 100 - Math.min(34, (r - START_R)*1.4);
+
+function movePlayer(dt) {
+  const p = player, inp = inputVec();
+  if (p.ship) { shipStep(dt, inp); return; }
+  if (p.air) { // in der Luft: Schwerkraft, kaum Steuerung
+    p.vy += GRAV*dt; p.vx += inp.x*inp.m*50*dt;
+    p.x += p.vx*dt; p.y += p.vy*dt;
+    p.x = clamp(p.x, p.r, W - p.r);
+    if (p.vy > 0) landOnShip();
+    if (!p.ship && p.y >= SURF) { p.air = false; p.vy *= 0.45; splash(p.x, p.r); }
+    if (Math.abs(p.vx) > 5) p.dir = p.vx > 0 ? 1 : -1;
+    return;
   }
-  if (ev && ev.type === 'current') ax += ev.dir * 95 * evFade();
-  p.vx += ax*dt; p.vy += ay*dt;
-  const drag = Math.pow(0.42, dt); p.vx *= drag; p.vy *= drag;   // Wasserwiderstand, man gleitet aus
-  const sp = Math.hypot(p.vx, p.vy); if (sp > maxS*1.6) { p.vx *= maxS*1.6/sp; p.vy *= maxS*1.6/sp; }
+  const maxS = speedFor(p.r);
+  if (inp.m > 0) { // Richtung halten = beschleunigen bis zur Höchstgeschwindigkeit, kein Abbremsen
+    const k = Math.min(1, dt*5 / (1 + p.r/40));
+    p.vx += (inp.x*maxS*inp.m - p.vx)*k; p.vy += (inp.y*maxS*inp.m - p.vy)*k;
+  } else { const drag = Math.pow(0.3, dt); p.vx *= drag; p.vy *= drag; } // loslassen: ausgleiten
+  if (ev && ev.type === 'current') p.x += ev.dir * 34 * evFade() * dt;
   p.x += p.vx*dt; p.y += p.vy*dt;
+  const maxY = floorAt(p.x) - p.r*0.6;
   if (p.x < p.r) { p.x = p.r; p.vx = Math.abs(p.vx)*0.35; }
   if (p.x > W - p.r) { p.x = W - p.r; p.vx = -Math.abs(p.vx)*0.35; }
-  if (p.y < minY) { p.y = minY; p.vy = Math.abs(p.vy)*0.35; }
   if (p.y > maxY) { p.y = maxY; p.vy = -Math.abs(p.vy)*0.35; }
+  if (p.y < SURF) { // an der Oberfläche: schnell genug nach oben = Sprung
+    if (p.vy < -55) { p.air = true; p.vy = p.vy*1.1 - 35; p.vx *= 1.05; splash(p.x, p.r); onJump(); }
+    else { p.y = SURF; p.vy = Math.max(0, p.vy); }
+  }
   if (Math.abs(p.vx) > 5) p.dir = p.vx > 0 ? 1 : -1;
   trailT -= dt;
   if (Math.hypot(p.vx, p.vy) > 40 && trailT <= 0) { trailT = 0.18; bubbles.push({x: p.x - p.dir*p.r, y: p.y, s: p.r > 14 ? 1 : 0, vy: rnd(8, 16), ph: rnd(0, 6)}); }
@@ -622,7 +641,7 @@ function update(dt) {
   bubT -= dt;
   if (bubT <= 0) { bubT = rnd(0.15, 0.5) * clamp(260 / W, 0.4, 1.5); const x = rnd(0, W); bubbles.push({x, y: floorAt(x) - 1, s: Math.random() < 0.25 ? 2 : Math.random() < 0.5 ? 1 : 0, vy: rnd(10, 24), ph: rnd(0, 6)}); }
   const cur = ev && ev.type === 'current' ? ev.dir * 30 * evFade() : 0;
-  for (let i = bubbles.length - 1; i >= 0; i--) { const b = bubbles[i]; b.y -= b.vy*dt; b.x += (Math.sin(b.ph + time*2.2)*5 + cur)*dt; if (b.y < -4) bubbles.splice(i, 1); }
+  for (let i = bubbles.length - 1; i >= 0; i--) { const b = bubbles[i]; b.y -= b.vy*dt; b.x += (Math.sin(b.ph + time*2.2)*5 + cur)*dt; if (b.y < SURF + 1) bubbles.splice(i, 1); }
   for (const d of dust) { d.x += (d.vx + cur*1.5)*dt; d.y += d.vy*dt; if (d.x < 0) d.x += W; if (d.x > W) d.x -= W; if (d.y < 0) d.y += FLOOR; if (d.y > FLOOR) d.y -= FLOOR; }
   if (cur) for (let k = 0; k < 2; k++) streaks.push({x: camX + rnd(0, VW), y: clamp(camY + rnd(4, VH), 4, FLOOR), len: rnd(5, 14), vx: Math.sign(cur)*rnd(90, 160), life: rnd(0.3, 0.7)});
   for (let i = streaks.length - 1; i >= 0; i--) { const s = streaks[i]; s.x += s.vx*dt; s.life -= dt; if (s.life <= 0) streaks.splice(i, 1); }
@@ -639,7 +658,10 @@ function update(dt) {
     p.sleep = true; p.r = 11; p.x = W/2; p.y = floorAt(W/2) - p.r*0.9 - 1; p.dir = 1;
     zT -= dt; if (zT <= 0) { zT = 0.9; pops.push({x: p.x + p.r*0.7, y: p.y - p.r*0.9, t: 'z', c: '#8fe6ff', life: 1.6, max: 1.6, vx: 7, size: 8}); }
   } else if (state === 'play' || state === 'levelup') movePlayer(dt);
+  else if (state === 'caught') updateCaught(dt);
   else if (state === 'dying') { p.y -= 18*dt; dyingT -= dt; if (dyingT <= 0) showOver(); }
+  if (state === 'play' || state === 'levelup' || state === 'caught') directorTick(dt, [p]);
+  updateFeats(dt);
 
   if (state === 'play' || state === 'levelup') {
     runT += dt;
@@ -666,6 +688,325 @@ function update(dt) {
   p.inv = Math.max(0, p.inv - dt); p.puff = Math.max(0, p.puff - dt); frzT = Math.max(0, frzT - dt);
   for (let i = ents.length - 1; i >= 0; i--) if (ents[i].dead) ents.splice(i, 1);
   updateCam(); updateHUD();
+}
+
+/* ---------- Oberfläche, Schiffe, Möwen, Krake ----------
+   Alle drei bewegen sich nach einer festen Formel ab ihrer Startzeit t0. Solo zählt die Spielzeit,
+   im Multiplayer die gemeinsame Uhr. So sehen im Multiplayer alle dasselbe. */
+const feats = [];
+let caught = null, dirT = {ship: 10, bird: 35, kraken: 70}, featSeq = 0;
+const ft = () => mp ? nowS() : time;
+const fid = () => (mp ? myId.slice(0, 4) : 'l') + 'f' + (++featSeq).toString(36);
+const SKY = () => Math.max(6, Math.round(SURF*0.32));
+const KS = () => clamp(H / 180, 1, 1.5);
+const CATCH_LABEL = {ship: 'Fischer', bird: 'Möwe', kraken: 'Krake'};
+
+function addFeat(d) {
+  if (!d || !d.id || feats.some(f => f.id === d.id)) return;
+  feats.push(Object.assign({}, d));
+  if (d.type === 'kraken') { banner('DER KRAKE ERWACHT!', 'AUS DER TIEFE · ' + (d.x < player.x - 40 ? 'LINKS' : d.x > player.x + 40 ? 'RECHTS' : 'UNTER DIR')); tone(70, 40, 1.6, 'sawtooth', 0.09); tone(55, 35, 1.8, 'square', 0.05, 0.3); }
+  if (d.type === 'bird') { tone(1500, 900, 0.18, 'sawtooth', 0.05); tone(1400, 1000, 0.16, 'sawtooth', 0.04, 0.22); }
+}
+function emitFeat(d) { if (mp) { addFeat(d); mpSend('ft', {d}); } else addFeat(d); }
+
+/* --- Formeln --- */
+const shipX = (s, t) => s.x0 + s.vx*(t - s.t0);
+const deckY = (s, t) => SURF - 6 + Math.round(Math.sin((t - s.t0)*1.6));
+function birdPos(b, t) {
+  const tau = t - b.t0, sky = SKY();
+  if (tau < b.d) { const u = Math.max(0, tau / b.d); return {x: b.sx + (b.tx - b.sx)*u, y: sky + (b.ty - sky)*u*u, dive: true, u}; }
+  const u = (tau - b.d) / b.d;
+  return {x: b.tx + (b.ex - b.tx)*u, y: b.ty + (sky - b.ty)*(1 - (1 - u)*(1 - u)), dive: false, u, done: u >= 1};
+}
+function krakenAt(k, t) {
+  const tau = t - k.t0, ks = KS(), ease = u => u*u*(3 - 2*u);
+  let rise = 0;
+  if (tau >= 2 && tau < 4) rise = ease((tau - 2) / 2); else if (tau >= 4 && tau < 10.5) rise = 1; else if (tau >= 10.5) rise = 1 - ease(clamp((tau - 10.5) / 2.5, 0, 1));
+  const y0 = FLOOR + 34*ks, top = FLOOR - 62*ks;
+  const hx = k.x + Math.sin(tau*0.7)*10*ks, hy = y0 + (top - y0)*rise + Math.sin(tau*1.3)*3;
+  const ext = tau < 10.5 ? clamp((tau - 3) / 1.5, 0, 1) : rise;
+  const arms = [], L = 92*ks*ext, n = 16;
+  if (L > 2) for (let i = 0; i < 8; i++) {
+    let x = hx + (i - 3.5)*4*ks, y = hy + 8*ks, th = -Math.PI/2 + (i - 3.5)*0.34 + Math.sin(tau*1.3 + i*0.9)*0.75;
+    const pts = [];
+    for (let j = 0; j < n; j++) {
+      th += Math.sin(tau*2.2 + i + j*0.35)*0.1;
+      x += Math.cos(th)*L/n; y += Math.sin(th)*L/n;
+      pts.push({x, y, r: (5.5 - 4*j/n)*ks});
+    }
+    arms.push(pts);
+  }
+  return {hx, hy, rise, ext, arms, ks, tau, done: tau > 13};
+}
+
+/* --- Regisseur: Solo lokal, im Multiplayer nur der Host --- */
+function resetDirector() { dirT = {ship: rnd(6, 12), bird: rnd(30, 50), kraken: rnd(55, 90)}; feats.length = 0; caught = null; }
+function directorTick(dt, alive) {
+  const t = ft();
+  dirT.ship -= dt; dirT.bird -= dt; dirT.kraken -= dt;
+  if (dirT.ship <= 0) {
+    dirT.ship = rnd(14, 26);
+    if (feats.filter(f => f.type === 'ship').length < (mp ? 3 : 2)) {
+      const fl = Math.random() < 0.5, L = Math.round(rnd(40, 56));
+      emitFeat({id: fid(), type: 'ship', t0: t, L, x0: fl ? -L : W + L, vx: Math.round((fl ? 1 : -1)*rnd(8, 14)*10)/10});
+    }
+  }
+  if (dirT.bird <= 0) { // ab und zu stürzt eine Möwe einfach so ins Wasser
+    dirT.bird = rnd(28, 50);
+    if (!feats.some(f => f.type === 'bird')) {
+      const who = pick(alive), tx = clamp(who.x + rnd(-60, 60), 20, W - 20);
+      emitFeat(mkBird(tx, SURF + rnd(16, 36), rnd(1.3, 1.7)));
+    }
+  }
+  if (dirT.kraken <= 0 && !nurija) {
+    dirT.kraken = rnd(85, 140);
+    if (!feats.some(f => f.type === 'kraken')) emitFeat({id: fid(), type: 'kraken', t0: t, x: Math.round(clamp(pick(alive).x + rnd(-50, 50), 50, W - 50))});
+  }
+}
+function mkBird(tx, ty, d) {
+  const fl = Math.random() < 0.5;
+  return {id: fid(), type: 'bird', t0: ft(), d: +d.toFixed(2), sx: Math.round(tx + (fl ? -1 : 1)*rnd(150, 200)), tx: Math.round(tx), ty: Math.round(ty), ex: Math.round(tx + (fl ? 1 : -1)*170)};
+}
+// Wer rausspringt, riskiert eine Möwe – aber eher selten
+function onJump() {
+  if ((state !== 'play') || feats.some(f => f.type === 'bird') || Math.random() > 0.2) return;
+  const p = player, tAir = 2*Math.abs(p.vy) / GRAV;
+  emitFeat(mkBird(clamp(p.x + p.vx*tAir, 20, W - 20), SURF + 6, tAir + 0.6));
+}
+function splash(x, r) {
+  for (let i = 0; i < 6 + r; i++) parts.push({x: x + rnd(-r, r), y: SURF, vx: rnd(-30, 30), vy: -rnd(30, 80), life: rnd(0.3, 0.6), c: i % 3 ? '#cfefff' : '#ffffff', s: Math.random() < 0.3 ? 2 : 1});
+  tone(320, 120, 0.12, 'triangle', 0.05);
+}
+
+/* --- Schiffe: draufspringen, Gold klauen, nicht zu lange bleiben --- */
+const SHIP_WARN = 2.2, SHIP_CATCH = 3.6;
+function landOnShip() {
+  const p = player, t = ft();
+  for (const s of feats) {
+    if (s.type !== 'ship') continue;
+    const sx = shipX(s, t), dy = deckY(s, t), foot = p.y + p.r*0.55;
+    if (Math.abs(p.x - sx) < s.L/2 - 2 && foot >= dy - 1 && foot <= dy + 7) {
+      Object.assign(p, {ship: s, air: false, vx: 0, vy: 0, shipOff: p.x - sx, shipT: 0, goldT: 0.35, warned: false});
+      tone(180, 120, 0.08, 'square', 0.05); popup(p.x, dy - p.r - 8, 'AN BORD!', '#ffd25a');
+      return;
+    }
+  }
+}
+function shipStep(dt, inp) {
+  const p = player, s = p.ship, t = ft();
+  if (!feats.includes(s)) { p.ship = null; p.air = true; p.vy = 0; return; }
+  const sx = shipX(s, t), dy = deckY(s, t);
+  p.shipOff += inp.x*inp.m*42*dt;
+  p.x = sx + p.shipOff; p.y = dy - p.r*0.55;
+  if (inp.m > 0.2 && Math.abs(inp.x) > 0.2) p.dir = inp.x > 0 ? 1 : -1;
+  const off = () => { p.ship = null; p.air = true; };
+  if (Math.abs(p.shipOff) > s.L/2 - 1) { off(); p.vy = -30; p.vx = Math.sign(p.shipOff)*40 + s.vx; return; }
+  if (inp.m > 0.35 && inp.y < -0.55) { off(); p.vy = -160; p.vx = inp.x*70 + s.vx; splash(p.x, 2); return; }
+  if (inp.m > 0.35 && inp.y > 0.6) { off(); p.vy = -70; p.vx = (p.shipOff >= 0 ? 1 : -1)*80; return; }
+  p.goldT -= dt;
+  if (p.goldT <= 0) { // Gold klauen
+    p.goldT = 0.45;
+    const pts = 100 * (mp ? 1 : level) * (frenzy() ? 2 : 1); score += pts;
+    popup(p.x + rnd(-4, 4), p.y - p.r - 6, '+' + pts, '#ffd25a');
+    burst(p.x, p.y - p.r*0.4, '#ffd25a', 4, 30); tone(1568, 2093, 0.06, 'square', 0.04);
+  }
+  p.shipT += dt;
+  if (p.shipT >= SHIP_WARN && !p.warned) { p.warned = true; popup(sx, dy - 22, 'HE DU!', '#ff3b5c', 10); tone(500, 300, 0.25, 'sawtooth', 0.06); }
+  if (p.shipT >= SHIP_CATCH) startCaught('ship', s);
+}
+
+/* --- Gefangen werden (Schiff, Möwe, Krake) mit Animation --- */
+function startCaught(by, f) {
+  const p = player;
+  if (state !== 'play' || caught) return;
+  if (by !== 'ship') {
+    if (p.inv > 0) return;
+    if (p.shield > 0) { p.shield = 0; p.inv = 1.2; sfx.pop(); burst(p.x, p.y, '#9ff3ff', 14, 55); p.vy = 60; return; }
+  }
+  caught = {by, f, t: 0, scale: 1, bites: 0};
+  state = 'caught'; p.ship = null; p.air = false; p.vx = p.vy = 0; combo = 0; comboT = 0;
+  joy.on = false; joy.m = 0; joyShow();
+  if (nurija) nurija.survive = false;
+  shake = 3; sfx.hurt();
+  banner(by === 'ship' ? 'GEFISCHT!' : by === 'bird' ? 'GESCHNAPPT!' : 'DER KRAKE!', by === 'ship' ? 'ZU LANGE AN BORD' : by === 'bird' ? 'DIE MÖWE HAT DICH' : 'GEPACKT');
+}
+function updateCaught(dt) {
+  const c = caught, p = player, t = ft(); if (!c) return;
+  c.t += dt;
+  if (c.by === 'ship') {
+    const s = c.f, sx = shipX(s, t), dy = deckY(s, t), sd = s.vx > 0 ? 1 : -1;
+    const fx = sx - sd*(s.L/2 - 8), fy = dy - 13;
+    c.fx = fx; c.fy = fy;
+    if (c.t < 0.45) { p.x = sx + (p.shipOff || 0); p.y = dy - p.r*0.55; }
+    else if (c.t < 1.0) { const u = (c.t - 0.45) / 0.55; p.x += (fx + sd*3 - p.x)*Math.min(1, u*0.5 + dt*6); p.y += (fy - 4 - p.y)*Math.min(1, u*0.5 + dt*6); }
+    else {
+      p.x = fx + sd*3; p.y = fy - 4;
+      c.scale = Math.max(0, 1 - (c.t - 1) / 0.95);
+      const bite = Math.floor((c.t - 1) / 0.3);
+      if (bite > c.bites && bite <= 3) { c.bites = bite; popup(fx, fy - 14, 'MAMPF', '#ffffff', 9); burst(p.x, p.y, '#f2f2f2', 6, 30); tone(140, 80, 0.1, 'square', 0.07); }
+    }
+    if (c.t > 2.05) finishCaught();
+  } else if (c.by === 'bird') {
+    const b = birdPos(c.f, t); c.f.carry = true;
+    p.x = b.x; p.y = b.y + 4 + p.r*0.4; p.dir = c.f.ex > c.f.tx ? 1 : -1;
+    if (c.t > 1.7 || b.done) finishCaught();
+  } else {
+    const k = krakenAt(c.f, t);
+    p.x += (k.hx - p.x)*Math.min(1, dt*3.5); p.y += (k.hy + 6*k.ks - p.y)*Math.min(1, dt*3.5);
+    if (c.t > 0.7) c.scale = Math.max(0, 1 - (c.t - 0.7) / 0.6);
+    if (c.t > 0.8 && !c.bites) { c.bites = 1; popup(k.hx, k.hy - 20, 'SCHLÜRF', '#ff9ad5', 9); }
+    if (c.t > 1.4) finishCaught();
+  }
+}
+function finishCaught() {
+  const by = caught.by, p = player; caught = null;
+  if (mp) { mpDie({isFeat: true, label: CATCH_LABEL[by]}); return; }
+  lives--; killer = by; p.r = Math.max(START_R, p.r*0.6); // wer erwischt wird, wird kleiner
+  shake = 4; flash = 1; flashCol = '255,60,90';
+  if (lives <= 0) { state = 'dying'; dyingT = 1.2; p.dead = true; sfx.over(); return; }
+  Object.assign(p, {x: clamp(p.x, 30, W - 30), y: SURF + 30, vx: 0, vy: 0, inv: 2.2, air: false, ship: null});
+  state = 'play';
+}
+
+/* --- Kollisionen & Bewegung --- */
+function updateFeats(dt) {
+  const t = ft(), p = player, play = state === 'play';
+  for (let i = feats.length - 1; i >= 0; i--) {
+    const f = feats[i];
+    if (f.type === 'ship') {
+      const x = shipX(f, t);
+      if (((f.vx > 0 && x > W + f.L + 10) || (f.vx < 0 && x < -f.L - 10)) && !(caught && caught.f === f)) { feats.splice(i, 1); continue; }
+    } else if (f.type === 'bird') {
+      const b = birdPos(f, t);
+      if (b.done && !(caught && caught.f === f)) { feats.splice(i, 1); continue; }
+      if (b.y > SURF - 2 && !f.splashed && b.dive) { f.splashed = true; splash(b.x, 3); }
+      if (b.y > SURF) for (const e of ents) if (!e.dead && e.type === 'fish' && e.r < 10 && Math.hypot(e.x - b.x, e.y - b.y) < e.r + 4) { e.dead = true; burst(e.x, e.y, PALS[e.pal].body, 5); }
+      if (play && !f.carry && Math.hypot(p.x - b.x, p.y - b.y) < 6 + p.r*0.7) startCaught('bird', f);
+    } else if (f.type === 'kraken') {
+      const k = krakenAt(f, t); f._k = k;
+      if (k.done) { feats.splice(i, 1); continue; }
+      if (k.tau < 2.2) { shake = Math.max(shake, 1.5); if (Math.random() < 0.5) bubbles.push({x: f.x + rnd(-20, 20), y: FLOOR - 2, s: 1 + (Math.random() < 0.4), vy: rnd(20, 40), ph: rnd(0, 6)}); }
+      const hit = (x, y, rr) => {
+        const ex = (x - k.hx) / (20*k.ks + rr), ey = (y - k.hy) / (16*k.ks + rr);
+        if (ex*ex + ey*ey < 1 && k.rise > 0.3) return true;
+        for (const arm of k.arms) for (const q of arm) if (Math.hypot(x - q.x, y - q.y) < q.r + rr) return true;
+        return false;
+      };
+      if (k.ext > 0.2) for (const e of ents) if (!e.dead && e.type === 'fish' && hit(e.x, e.y, e.r*0.5)) { e.dead = true; burst(e.x, e.y, PALS[e.pal].body, 6); }
+      if (play && k.rise > 0.3 && hit(p.x, p.y, p.r*0.6)) startCaught('kraken', f);
+    }
+  }
+}
+
+/* --- Zeichnen --- */
+function drawSurface() {
+  const x0 = Math.max(0, camX - 2), x1 = Math.min(W, camX + VW + 2);
+  for (let x = x0; x < x1; x++) {
+    const w = Math.sin(x*0.09 + time*2.1) + Math.sin(x*0.033 - time*1.3)*0.6, y = SURF + Math.round(w*0.8);
+    ctx.fillStyle = 'rgba(190,235,255,0.55)'; ctx.fillRect(x, y - 1, 1, 1);
+    ctx.fillStyle = 'rgba(120,200,240,0.25)'; ctx.fillRect(x, y, 1, 2);
+    if (((x*7 + Math.floor(time*3)) % 23) === 0) { ctx.fillStyle = '#ffffff'; ctx.fillRect(x, y - 1, 2, 1); }
+  }
+}
+function drawShip(s) {
+  const t = ft(), sx = Math.round(shipX(s, t)), dy = deckY(s, t), L = s.L, sd = s.vx > 0 ? 1 : -1, x0 = sx - L/2;
+  // Rumpf
+  for (let y = 0; y < 9; y++) {
+    const inset = Math.round(y*0.9) + (y > 6 ? 2 : 0);
+    ctx.fillStyle = y === 0 ? '#c98a4b' : y === 1 ? '#3a1d0c' : y < 4 ? '#8a4a22' : y === 4 ? '#e9e2cf' : '#6b3518';
+    ctx.fillRect(Math.round(x0 + inset - (sd > 0 ? 0 : 2)), dy + y, Math.round(L - inset*2 + 2), 1);
+  }
+  ctx.fillStyle = '#2a1408'; for (let i = 6; i < L - 6; i += 7) ctx.fillRect(Math.round(x0 + i), dy + 2, 2, 1);
+  // Mast & Segel
+  const mx = sx + sd*2;
+  ctx.fillStyle = '#5a3418'; ctx.fillRect(mx, dy - 26, 1, 26);
+  for (let y = 0; y < 18; y++) { const w = Math.round((y + 2)*0.75); ctx.fillStyle = y % 6 === 5 ? '#d8d2c0' : '#f4efe0'; ctx.fillRect(sd > 0 ? mx + 1 : mx - w, dy - 24 + y, w, 1); }
+  ctx.fillStyle = '#ff4f8b'; ctx.fillRect(mx, dy - 29, sd*4 || 4, 2);
+  // Kajüte hinten
+  const cx = sx - sd*(L/2 - 10);
+  ctx.fillStyle = '#7a3f1d'; ctx.fillRect(cx - 5, dy - 7, 10, 7);
+  ctx.fillStyle = '#ffd25a'; ctx.fillRect(cx - 2, dy - 5, 3, 2);
+  ctx.fillStyle = '#3a1d0c'; ctx.fillRect(cx - 6, dy - 8, 12, 1);
+  // Goldkiste vorne
+  const gx = sx + sd*(L/2 - 9);
+  ctx.fillStyle = '#5a3a00'; ctx.fillRect(gx - 4, dy - 5, 8, 5);
+  ctx.fillStyle = '#ffcf3a'; ctx.fillRect(gx - 3, dy - 6, 6, 2); ctx.fillRect(gx - 1, dy - 4, 2, 2);
+  if (Math.floor(time*4 + s.x0) % 3 === 0) { ctx.fillStyle = '#fff6c0'; ctx.fillRect(gx + 2, dy - 9, 1, 2); ctx.fillRect(gx + 1, dy - 8, 3, 1); }
+  // Fischer
+  const mine = player.ship === s || (caught && caught.f === s);
+  const alert = mine && (caught || player.shipT >= SHIP_WARN);
+  drawFisher(sx - sd*(L/2 - 4), dy, sd, alert, caught && caught.f === s ? caught.t : 0);
+  if (mine && !caught && player.ship) { // Gefahrenanzeige über dem Fisch
+    const k = clamp(player.shipT / SHIP_CATCH, 0, 1), bx = Math.round(player.x - 8), by = Math.round(player.y - player.r - 14);
+    ctx.fillStyle = '#04101f'; ctx.fillRect(bx - 1, by - 1, 18, 4);
+    ctx.fillStyle = k > SHIP_WARN / SHIP_CATCH ? (Math.floor(time*8) % 2 ? '#ff3b5c' : '#ffd25a') : '#ffd25a'; ctx.fillRect(bx, by, Math.round(16*k), 2);
+  }
+}
+function drawFisher(x, dy, sd, alert, ct) {
+  x = Math.round(x);
+  const stand = alert ? 0 : 3, top = dy - 12 + stand;
+  ctx.fillStyle = '#2b4c7e'; ctx.fillRect(x - 2, top + 5, 4, 7 - stand);       // Körper
+  ctx.fillStyle = '#f0c49a'; ctx.fillRect(x - 2, top + 1, 4, 4);              // Kopf
+  ctx.fillStyle = '#8a5a2b'; ctx.fillRect(x - 2, top + 4, 4, 1);              // Bart
+  ctx.fillStyle = '#e8d24a'; ctx.fillRect(x - 3, top, 6, 1); ctx.fillRect(x - 2, top - 1, 4, 1); // Hut
+  ctx.fillStyle = '#04101f'; ctx.fillRect(x + (sd > 0 ? 0 : -1), top + 2, 1, 1);
+  if (alert) {
+    ctx.fillStyle = '#f0c49a';
+    const raise = ct > 0.45 ? -4 : 0;
+    ctx.fillRect(x + sd*2, top + 5 + raise, sd*3 || 3, 1); // Arm
+    if (ct > 1.0) { ctx.fillStyle = '#04101f'; ctx.fillRect(x + (sd > 0 ? 1 : -2), top + 3, 2, Math.floor(time*10) % 2 ? 2 : 1); } // kauender Mund
+    if (ct === 0 && Math.floor(time*6) % 2 === 0) drawWarn(x, top - 9);
+  }
+}
+function drawBird(f) {
+  const b = birdPos(f, ft()), x = Math.round(b.x), y = Math.round(b.y), dir = f.ex > f.sx ? 1 : -1;
+  const folded = b.dive && b.u > 0.55, flap = Math.floor(time*10) % 2;
+  ctx.save(); ctx.translate(x, y); ctx.scale(dir, 1);
+  ctx.fillStyle = '#f4f6fa'; ctx.fillRect(-4, -1, 8, 3);                  // Körper
+  ctx.fillStyle = '#c9d2de'; ctx.fillRect(-4, 1, 6, 1);
+  ctx.fillStyle = '#f4f6fa'; ctx.fillRect(3, -3, 3, 3);                   // Kopf
+  ctx.fillStyle = '#04101f'; ctx.fillRect(5, -2, 1, 1);
+  ctx.fillStyle = '#ffa53a'; ctx.fillRect(6, -1, 2, 1);                   // Schnabel
+  ctx.fillStyle = '#3a3f4a'; ctx.fillRect(-6, 0, 2, 1);                   // Schwanz
+  ctx.fillStyle = '#9aa6b6';
+  if (folded) ctx.fillRect(-3, -2, 6, 1);
+  else if (flap) { ctx.fillRect(-3, -4, 2, 3); ctx.fillRect(-5, -6, 3, 2); ctx.fillStyle = '#3a3f4a'; ctx.fillRect(-7, -7, 2, 1); }
+  else { ctx.fillRect(-3, 2, 2, 2); ctx.fillRect(-6, 3, 3, 1); ctx.fillStyle = '#3a3f4a'; ctx.fillRect(-8, 3, 2, 1); }
+  ctx.restore();
+  // Warnung: Möwe ausserhalb des Bildes oder im Anflug
+  if (b.dive && b.u < 0.8 && Math.floor(time*6) % 2 === 0) drawWarn(clamp(x, camX + 4, camX + VW - 6), clamp(y - 10, camY + 22, camY + VH - 10));
+}
+function drawKraken(f) {
+  const k = f._k || krakenAt(f, ft()), ks = k.ks;
+  if (k.tau < 2.2) { // Warnung am Boden
+    if (Math.floor(time*5) % 2 === 0) { ctx.save(); ctx.translate(Math.round(clamp(f.x, camX + 6, camX + VW - 9)), Math.round(Math.min(FLOOR - 14, camY + VH - 22))); ctx.scale(2, 2); drawWarn(1, 0); ctx.restore(); }
+    return;
+  }
+  const dark = '#3b0f2e', body = '#9b2c5c', light = '#d65a86', spot = '#f2b6c8';
+  for (const arm of k.arms) {
+    for (let j = 0; j < arm.length; j++) {
+      const q = arm[j];
+      ctx.fillStyle = dark; disc(Math.round(q.x), Math.round(q.y), q.r + 0.8);
+    }
+    for (let j = 0; j < arm.length; j++) {
+      const q = arm[j];
+      ctx.fillStyle = j % 3 === 0 ? light : body; disc(Math.round(q.x), Math.round(q.y), q.r);
+      if (j % 2 === 0 && q.r > 2) { ctx.fillStyle = spot; ctx.fillRect(Math.round(q.x), Math.round(q.y + q.r*0.4), 1, 1); }
+    }
+  }
+  const hx = Math.round(k.hx), hy = Math.round(k.hy), rx = 20*ks, ry = 16*ks;
+  for (let y = -Math.ceil(ry*1.4); y <= Math.ceil(ry); y++) {
+    const yy = y < 0 ? y / 1.4 : y, w = Math.floor(rx*Math.sqrt(Math.max(0, 1 - (yy*yy)/(ry*ry))));
+    ctx.fillStyle = dark; ctx.fillRect(hx - w - 1, hy + y, w*2 + 3, 1);
+    ctx.fillStyle = y < -ry*0.6 ? light : body; ctx.fillRect(hx - w, hy + y, w*2 + 1, 1);
+  }
+  ctx.fillStyle = spot; for (let i = 0; i < 6; i++) ctx.fillRect(hx - Math.round(rx*0.6) + i*Math.round(rx*0.24), hy - Math.round(ry*(0.9 + (i % 2)*0.25)), 2, 1);
+  const eye = ex => {
+    ctx.fillStyle = '#04101f'; disc(ex, hy, 4.5*ks);
+    ctx.fillStyle = '#ffd25a'; disc(ex, hy, 3.6*ks);
+    ctx.fillStyle = '#04101f'; ctx.fillRect(ex - 1, hy - Math.round(3*ks), 2, Math.round(6*ks));
+  };
+  eye(hx - Math.round(8*ks)); eye(hx + Math.round(8*ks));
 }
 
 /* ---------- Zeichnen ---------- */
@@ -727,7 +1068,8 @@ function drawEnt(e) {
 function drawPlayer() {
   const p = player;
   if (state === 'over' || (mp && p.dead)) return;
-  drawPuffer({x: p.x, y: p.y + (p.sleep ? Math.sin(time*2) : 0), r: p.r, dir: p.dir, pal: mp ? mp.pal : 'puffer', sleep: p.sleep, dead: p.dead,
+  if (caught && caught.scale < 0.15) return;
+  drawPuffer({x: p.x, y: p.y + (p.sleep ? Math.sin(time*2) : 0), r: Math.max(2, p.r*(caught ? caught.scale : 1)), dir: p.dir, pal: mp ? mp.pal : 'puffer', sleep: p.sleep, dead: p.dead,
     puff: p.puff, glasses: nStage >= 6, blink: p.inv > 0 && state === 'play' && Math.floor(time*12) % 2 === 0, shield: p.shield, frz: frenzy()});
 }
 function drawPuffer(o) {
@@ -815,13 +1157,17 @@ function draw() {
   ctx.fillStyle = 'rgba(180,230,255,0.22)';
   for (const d of dust) ctx.fillRect(d.x | 0, d.y | 0, 1, 1);
   drawKelp();
+  for (const f of feats) if (f.type === 'kraken') drawKraken(f);
   ctx.fillStyle = 'rgba(200,240,255,0.35)';
   for (const s of streaks) ctx.fillRect(Math.round(s.x), Math.round(s.y), Math.round(s.len), 1);
   ents.sort((a, b) => a.r - b.r);
   for (const e of ents) drawEnt(e);
+  drawSurface();
+  for (const f of feats) if (f.type === 'ship') drawShip(f);
   if (mp) drawPeers();
   drawNurija();
   drawPlayer();
+  for (const f of feats) if (f.type === 'bird') drawBird(f);
   for (const b of bubbles) {
     const x = Math.round(b.x), y = Math.round(b.y);
     ctx.fillStyle = 'rgba(160,225,255,0.6)';
@@ -875,7 +1221,8 @@ function banner(main, sub) {
 }
 function setTitle() {
   if (mp) mpLeave();
-  state = 'title'; level = 1; zoneIdx = 0; frzT = 0; ev = null; nurija = null; camX = camY = 0;
+  state = 'title'; level = 1; zoneIdx = 0; frzT = 0; ev = null; nurija = null; camX = camY = 0; resetDirector();
+  Object.assign(player, {air: false, ship: null});
   resize(); bg = makeBG(); ents.length = 0;
   $('join').hidden = true; $('over').hidden = true; $('pause').hidden = true; $('blubbBtn').hidden = true; $('feed').innerHTML = '';
   for (let i = 0; i < 5; i++) { const e = spawnFish(); e.x = rnd(W*0.1, W*0.9); }
@@ -886,9 +1233,9 @@ function newGame() {
   ensureAudio();
   state = 'play'; score = 0; level = 1; lives = 3; combo = 0; comboT = 0; nextLife = 15000; inputMode = 'point';
   ents.length = 0; parts.length = 0; pops.length = 0; streaks.length = 0;
-  runT = 0; ev = null; lastEv = ''; evT = rnd(16, 24); nurija = null; nurijaDone = false; killer = ''; frzT = 0; zoneIdx = 0;
+  runT = 0; ev = null; lastEv = ''; evT = rnd(16, 24); nurija = null; nurijaDone = false; killer = ''; frzT = 0; zoneIdx = 0; resetDirector();
   nurijaAt = summon ? 10 : rnd(45, 95); summon = false; // jede Runde gleiche Chance
-  const p = player; Object.assign(p, {x: W*0.5, y: H*0.5, vx: 0, vy: 0, r: START_R, dir: 1, puff: 0, inv: 1.2, shield: 0, sleep: false, dead: false});
+  const p = player; Object.assign(p, {x: W*0.5, y: (SURF + FLOOR)/2, vx: 0, vy: 0, r: START_R, dir: 1, puff: 0, inv: 1.2, shield: 0, sleep: false, dead: false, air: false, ship: null});
   tgt.x = p.x; tgt.y = p.y; touchLast = null;
   bg = makeBG(); spawnT = 0.5; hudCache = '';
   $('title').hidden = true; $('over').hidden = true; $('pause').hidden = true; $('hud').hidden = false; hudCache = '';
@@ -898,7 +1245,7 @@ function showOver() {
   state = 'over'; ev = null;
   const newHi = score > hi;
   if (newHi) { hi = score; try { localStorage.setItem('blubberbiss-hi', String(hi)); } catch (e) {} }
-  $('overTitle').textContent = killer === 'nurija' ? 'NURIJA HAT DICH!' : 'GEFRESSEN!';
+  $('overTitle').textContent = {nurija: 'NURIJA HAT DICH!', ship: 'GEFISCHT!', bird: 'GESCHNAPPT!', kraken: 'VERSCHLUNGEN!'}[killer] || 'GEFRESSEN!';
   $('finalScore').textContent = score; $('finalLvl').textContent = level; $('finalHi').textContent = hi;
   $('finalAlbum').textContent = nStage + '/6';
   $('newHi').hidden = !newHi; $('hud').hidden = true; $('over').hidden = false;
@@ -993,7 +1340,7 @@ async function mpJoinNow() {
   mp = {client, room: 1, ch: null, joined: false, host: false, offset: 0, clockSet: false, peers: new Map(), menu: false,
     pal: mpPal, name: mpName, seq: 0, sendT: 0, idleT: 0, lastSent: '', spawnT: 0.5, evT: rnd(20, 30), nurT: rnd(55, 90), clockT: 0,
     lastEv: '', joinedAt: Date.now(), boardKey: '', boardHtml: '', boardT: 0, count: 1, kingId: null, deadT: 0, feed: [], emote: 0, blubbCd: 0, hiddenAt: 0};
-  state = 'mpwait'; player.dead = true; ents.length = 0; parts.length = 0; pops.length = 0; ev = null; nurija = null; frzT = 0; zoneIdx = 0; bg = null;
+  state = 'mpwait'; player.dead = true; ents.length = 0; resetDirector(); parts.length = 0; pops.length = 0; ev = null; nurija = null; frzT = 0; zoneIdx = 0; bg = null;
   resize();
   mpConnect(1);
 }
@@ -1103,11 +1450,11 @@ function moveNetEnt(e) {
   if (e.type === 'jelly') {
     e.squash = Math.max(0, Math.sin(tau*2.6));
     e.y = e.y0 + e.vy*(0.9*tau - 0.2*Math.cos(tau*2.6)); e.x = e.x0 + Math.sin(tau*0.8)*10;
-    if (e.y < -e.r*4) e.dead = true;
+    if (e.y < SURF + 2) e.dead = true;
     return;
   }
   e.x = e.x0 + e.vx*tau;
-  e.y = clamp(e.y0 + (e.bobA / e.bobF) * Math.sin(e.bobF*tau + (e.ph0 || 0)), 6, FLOOR - 4);
+  e.y = clamp(e.y0 + (e.bobA / e.bobF) * Math.sin(e.bobF*tau + (e.ph0 || 0)), WTOP() - 2, FLOOR - 4);
   e.dir = e.vx > 0 ? 1 : -1;
   if ((e.vx > 0 && e.x > W + e.margin) || (e.vx < 0 && e.x < -e.margin)) e.dead = true;
 }
@@ -1120,22 +1467,21 @@ function mkNetFish(o) {
 function hostSpawn(alive) {
   const live = ents.reduce((n, e) => n + (e.dead ? 0 : 1), 0), maxE = Math.min(60, 22 + alive.length*6);
   if (live >= maxE) return;
-  const ref = pick(alive).r, q = Math.random(), t = nowS(), out = [];
-  const item = type => { const fl = Math.random() < 0.5; return {id: nid(), type, r: type === 'pearl' ? 3 : 6, x0: fl ? -10 : W + 10, y0: Math.round(rnd(24, FLOOR - 24)), vx: Math.round((fl ? 1 : -1) * rnd(14, 22)), t0: t, bobA: 4, bobF: 2, ph0: +rnd(0, 6).toFixed(2)}; };
+  const q = Math.random(), t = nowS(), out = [];
+  const item = type => { const fl = Math.random() < 0.5; return {id: nid(), type, r: type === 'pearl' ? 3 : 6, x0: fl ? -10 : W + 10, y0: Math.round(rnd(WTOP() + 16, FLOOR - 24)), vx: Math.round((fl ? 1 : -1) * rnd(14, 22)), t0: t, bobA: 4, bobF: 2, ph0: +rnd(0, 6).toFixed(2)}; };
   if (q < 0.09) out.push({id: nid(), type: 'jelly', r: Math.round(rnd(5, 12)), x0: Math.round(rnd(20, W - 20)), y0: H + 30, vy: -Math.round(rnd(12, 20)), t0: t, ph0: 0});
   else if (q < 0.14) out.push(item('pearl'));
   else if (q < 0.165) out.push(item('shield'));
   else if (q < 0.4) {
-    const r = Math.max(2.5, ref*rnd(0.3, 0.5)), pal = pick(FISH_PALS), fromLeft = Math.random() < 0.5, sp = rnd(26, 40), y = rnd(20, FLOOR - 20);
+    const r = rnd(2.5, 4.5), pal = pick(FISH_PALS), fromLeft = Math.random() < 0.5, sp = rnd(26, 40), y = rnd(WTOP() + 14, FLOOR - 20);
     const n = 3 + Math.floor(Math.random()*3);
-    for (let i = 0; i < n; i++) out.push(mkNetFish({r, pal, kind: 'fish', fromLeft, sp, y: clamp(y + rnd(-9, 9), 10, FLOOR - 8), off: i*r*3.2}));
+    for (let i = 0; i < n; i++) out.push(mkNetFish({r, pal, kind: 'fish', fromLeft, sp, y: clamp(y + rnd(-9, 9), WTOP() + 4, FLOOR - 8), off: i*r*3.2}));
   } else {
-    let r = Math.random() < 0.6 ? ref*rnd(0.35, 0.82) : ref*rnd(1.0, 2.3), kind = 'fish', pal = pick(FISH_PALS);
-    r = clamp(r, 2.5, 34);
-    if (r > ref*1.4 && r > 12 && Math.random() < 0.6) { kind = 'shark'; pal = 'shark'; }
+    let r = npcR(), kind = 'fish', pal = pick(FISH_PALS);
+    if (r > 14 && Math.random() < 0.55) { kind = 'shark'; pal = 'shark'; }
     else if (Math.random() < 0.22) kind = 'stripe';
     let sp = rnd(22, 44); if (kind === 'shark') sp *= 1.35; if (r < 5) sp *= 1.2;
-    out.push(mkNetFish({r, pal, kind, sp, y: rnd(12 + r, FLOOR - r*0.8)}));
+    out.push(mkNetFish({r, pal, kind, sp, y: rnd(WTOP() + r, FLOOR - r*0.8)}));
   }
   hostEmit({k: 'sp', e: out});
 }
@@ -1154,8 +1500,7 @@ function hostTick(dt) {
     mp.evT = rnd(24, 38);
     const type = pick(['current', 'gold', 'dark'].filter(x => x !== mp.lastEv)); mp.lastEv = type;
     if (type === 'gold') {
-      const ref = pick(alive).r;
-      hostEmit({k: 'sp', e: [mkNetFish({r: Math.max(3, ref*0.55), pal: 'gold', kind: 'fish', sp: 72, gold: 1, bobA: 45, bobF: 4, y: rnd(30, FLOOR - 30)})]});
+      hostEmit({k: 'sp', e: [mkNetFish({r: 5, pal: 'gold', kind: 'fish', sp: 72, gold: 1, bobA: 45, bobF: 4, y: rnd(WTOP() + 24, FLOOR - 30)})]});
     }
     hostEmit({k: 'ev', type, t0: t, max: type === 'current' ? 7 : type === 'gold' ? 14 : 9, dir: Math.random() < 0.5 ? -1 : 1});
   }
@@ -1170,16 +1515,18 @@ function mpRecv(m) {
     case 'c': if (!mp.host) setClock(+m.t); break;
     case 'hello':
       if (mp.host && m.f !== myId) mpSend('sync', {to: m.f, t: Date.now() + mp.offset, e: ents.filter(e => !e.dead && e.net).map(netData),
-        ev: ev ? {type: ev.type, t0: ev.t0, max: ev.max, dir: ev.dir} : null, nur: nurija ? {t0: nurija.t0, dir: nurija.dir, y0: nurija.y0} : null});
+        ft: feats.map(f => { const o = Object.assign({}, f); delete o._k; delete o.carry; delete o.splashed; return o; }), ev: ev ? {type: ev.type, t0: ev.t0, max: ev.max, dir: ev.dir} : null, nur: nurija ? {t0: nurija.t0, dir: nurija.dir, y0: nurija.y0} : null});
       break;
     case 'sync':
       if (m.to !== myId) break;
       setClock(+m.t, true);
       for (const d of m.e || []) addNetEnt(d);
+      for (const d of m.ft || []) if (d && typeof d.type === 'string' && !feats.some(f => f.id === d.id)) feats.push(d); // still, ohne Banner
       if (m.ev && !ev) applyEv(m.ev, false);
       if (m.nur && !nurija) applyNur(m.nur, false);
       break;
     case 'sp': for (const d of m.e || []) addNetEnt(d); break;
+    case 'ft': if (m.d && typeof m.d.type === 'string') addFeat(m.d); break;
     case 'eat': {
       const e = ents.find(x => x.id === m.id); if (e && !e.dead) { e.dead = true; burst(e.x, e.y, e.pal ? PALS[e.pal].body : '#fff4d0', 5); }
       if (m.g) { const who = m.f === myId ? 'DU HAST' : peerName(m.f).toUpperCase() + ' HAT'; if (m.f !== myId) banner(who + ' IHN!', 'GOLDFISCH WEG'); feedPush(`<b>${esc(peerName(m.f))}</b> schnappt den Goldfisch`); }
@@ -1273,12 +1620,13 @@ function peerCollide() {
 function mpSpawnPlayer() {
   const p = player; let best = {x: W/2, y: H/2}, bd = -1;
   for (let i = 0; i < 12; i++) {
-    const x = rnd(30, W - 30), y = rnd(30, FLOOR - 30); let d = 1e9;
+    const x = rnd(30, W - 30), y = rnd(SURF + 30, FLOOR - 30); let d = 1e9;
     for (const o of mp.peers.values()) if (!o.dead && o.r > START_R) d = Math.min(d, Math.hypot(o.x - x, o.y - y));
     for (const e of ents) if (e.type === 'fish' && e.r > START_R) d = Math.min(d, Math.hypot(e.x - x, e.y - y)*1.5);
     if (d > bd) { bd = d; best = {x, y}; }
   }
-  Object.assign(p, {x: best.x, y: best.y, vx: 0, vy: 0, r: START_R, dir: 1, puff: 0, inv: 2.5, shield: 0, sleep: false, dead: false});
+  Object.assign(p, {x: best.x, y: best.y, vx: 0, vy: 0, r: START_R, dir: 1, puff: 0, inv: 2.5, shield: 0, sleep: false, dead: false, air: false, ship: null});
+  caught = null;
   tgt.x = p.x; tgt.y = p.y; touchLast = null; combo = 0; comboT = 0; frzT = 0; state = 'play';
   updateCam();
 }
@@ -1290,17 +1638,20 @@ function mpHurt(src) {
 }
 function mpDie(src) {
   const p = player;
-  mpSend('eaten', {by: src.isPeer ? src.id : null, nur: src.isNurija ? 1 : 0, r: Math.round(p.r*10)/10, king: mp.kingId === myId ? 1 : 0, n: mp.name});
-  feedPush(src.isNurija ? `<b>Nurija</b> frisst <b>dich</b>` : `<b>${esc(src.name)}</b> frisst <b>dich</b>`);
+  const label = src.isNurija ? 'Nurija' : src.isFeat ? src.label : '';
+  mpSend('eaten', {by: src.isPeer ? src.id : null, nur: src.isNurija ? 1 : 0, w: label, r: Math.round(p.r*10)/10, king: mp.kingId === myId ? 1 : 0, n: mp.name});
+  feedPush(`<b>${esc(label || src.name)}</b> ${src.label === 'Fischer' ? 'isst' : 'frisst'} <b>dich</b>`);
+  caught = null;
   state = 'mpdead'; mp.deadT = 2.4; p.dead = true; if (nurija) nurija.survive = false;
   score = Math.floor(score*0.75/5)*5; combo = 0; comboT = 0; frzT = 0;
   shake = 5; flash = 1; flashCol = '255,60,90'; sfx.over(); burst(p.x, p.y, '#f2c14e', 16, 60);
-  banner(src.isNurija ? 'NURIJA HAT DICH!' : 'GEFRESSEN!', src.isPeer ? 'VON ' + src.name.toUpperCase() + ' · -25%' : 'GLEICH GEHT ES WEITER');
+  if (src.isFeat) banner('ERWISCHT!', ({Fischer: 'VOM FISCHER', 'Möwe': 'VON DER MÖWE', Krake: 'VOM KRAKEN'}[src.label] || '') + ' · -25%');
+  else banner(src.isNurija ? 'NURIJA HAT DICH!' : 'GEFRESSEN!', src.isPeer ? 'VON ' + src.name.toUpperCase() + ' · -25%' : 'GLEICH GEHT ES WEITER');
 }
 function onEaten(m) {
   const victim = cleanName(m.n) || '???', o = mp.peers.get(m.f);
   if (o) { o.dead = true; burst(o.x, o.y, PALS[o.pal].body, 14, 55); }
-  if (m.nur) { feedPush(`<b>Nurija</b> frisst <b>${esc(victim)}</b>`); return; }
+  if (m.nur || m.w) { const w = m.nur ? 'Nurija' : cleanName(m.w); feedPush(`<b>${esc(w)}</b> ${w === 'Fischer' ? 'isst' : 'frisst'} <b>${esc(victim)}</b>`); return; }
   if (m.by === myId && state === 'play') {
     const p = player, r = clamp(+m.r || START_R, 2, CAP_R);
     const pts = Math.round((300 + r*r*8) / 5) * 5 + (m.king ? 2000 : 0);
@@ -1338,18 +1689,19 @@ function mpUpdate(dt) {
   const p = player, t = nowS();
   const z = Math.floor(t / 180) % ZONES.length; // alle 3 Minuten wechselt der Ozean, für alle gleichzeitig
   if (mp.clockSet && z !== zoneIdx) { zoneIdx = z; bg = makeBG(); if (mp.joined) banner(ZONES[z].name, 'DER OZEAN WANDELT SICH'); }
-  if (mp.host && mp.joined) hostTick(dt);
+  if (mp.host && mp.joined) { hostTick(dt); directorTick(dt, [player].concat([...mp.peers.values()].filter(o => !o.dead))); }
   for (const e of ents) if (!e.dead) moveNetEnt(e);
   if (ev) { ev.t = ev.max - (t - ev.t0); if (ev.t <= 0 || (ev.type === 'gold' && !ents.some(e => e.gold && !e.dead) && t - ev.t0 > 1)) ev = null; }
   updatePeers(dt);
   if (state === 'play') {
-    if (mouseScr && inputMode === 'point' && !touchLast) { tgt.x = mouseScr.x + camX; tgt.y = mouseScr.y + camY; }
     movePlayer(dt);
     if (p.r > 18) p.r = Math.max(18, p.r - (p.r - 18)*0.012*dt); // Riesen schrumpfen langsam, wenn sie nicht fressen
     collide(); peerCollide();
     comboT -= dt; if (comboT <= 0) combo = 0;
     if (p.shield > 0) p.shield = Math.max(0, p.shield - dt);
-  } else if (state === 'mpdead') { p.y -= 14*dt; mp.deadT -= dt; if (mp.deadT <= 0) mpSpawnPlayer(); }
+  } else if (state === 'caught') updateCaught(dt);
+  else if (state === 'mpdead') { p.y -= 14*dt; mp.deadT -= dt; if (mp.deadT <= 0) mpSpawnPlayer(); }
+  updateFeats(dt);
   updateNurija(dt);
   p.inv = Math.max(0, p.inv - dt); p.puff = Math.max(0, p.puff - dt); frzT = Math.max(0, frzT - dt);
   mp.blubbCd = Math.max(0, mp.blubbCd - dt); mp.emote = Math.max(0, mp.emote - dt);
@@ -1410,7 +1762,7 @@ function drawEdgeMarkers() { // Pfeile am Rand für Spieler ausserhalb des Aussc
 }
 
 // Testzugang nur mit ?debug in der Adresse
-if (/[?&]debug\b/.test(location.search)) window.__bb = {player, ents, get mp() { return mp; }, get state() { return state; }, get score() { return score; }, hostEmit, nowS};
+if (/[?&]debug\b/.test(location.search)) window.__bb = {player, ents, feats, get mp() { return mp; }, get state() { return state; }, get score() { return score; }, get lives() { return lives; }, get SURF() { return SURF; }, get W() { return W; }, hostEmit, nowS, emitFeat, mkBird, ft, fid, keys};
 
 /* ---------- Easter Eggs ---------- */
 let pokes = 0, pokeT = 0, typed = '';
@@ -1432,25 +1784,29 @@ function secretKey(k) {
 
 /* ---------- Eingabe ---------- */
 const steering = () => state === 'play' || state === 'levelup';
+function joyShow() {
+  const el = $('joy');
+  el.hidden = !joy.on; if (!joy.on) return;
+  el.style.transform = `translate(${joy.bx}px,${joy.by}px)`;
+  $('joyKnob').style.transform = `translate(${joy.dx*joy.m*JOY_R}px,${joy.dy*joy.m*JOY_R}px)`;
+}
 cv.addEventListener('pointerdown', e => {
-  if (!steering()) return;
-  if (e.pointerType === 'mouse') setAbs(e);
-  else { touchLast = {x: e.clientX, y: e.clientY}; tgt.x = player.x; tgt.y = player.y; }
+  if (!steering() || joy.on) return;
+  ensureAudio();
+  Object.assign(joy, {on: true, id: e.pointerId, bx: e.clientX, by: e.clientY, dx: 0, dy: 0, m: 0});
+  try { cv.setPointerCapture(e.pointerId); } catch (er) {}
+  joyShow();
 });
-function setAbs(e) { mouseScr = {x: e.clientX / PS, y: e.clientY / PS}; tgt.x = mouseScr.x + camX; tgt.y = mouseScr.y + camY; inputMode = 'point'; }
-let mouseScr = null;
 window.addEventListener('pointermove', e => {
-  if (!steering()) return;
-  if (e.pointerType === 'mouse') setAbs(e);
-  else if (touchLast) {
-    inputMode = 'point';
-    const dx = (e.clientX - touchLast.x) / PS * 1.35, dy = (e.clientY - touchLast.y) / PS * 1.35;
-    touchLast = {x: e.clientX, y: e.clientY};
-    tgt.x = clamp(tgt.x + dx, 0, W); tgt.y = clamp(tgt.y + dy, 0, H); mouseScr = null;
-  }
+  if (!joy.on || e.pointerId !== joy.id) return;
+  let dx = e.clientX - joy.bx, dy = e.clientY - joy.by; const d = Math.hypot(dx, dy);
+  if (d > JOY_R*1.6) { joy.bx = e.clientX - dx/d*JOY_R*1.6; joy.by = e.clientY - dy/d*JOY_R*1.6; } // Basis wandert mit
+  joy.m = d < 6 ? 0 : Math.min(1, d / JOY_R); joy.dx = d ? dx/d : 0; joy.dy = d ? dy/d : 0;
+  joyShow();
 });
-window.addEventListener('pointerup', e => { if (e.pointerType !== 'mouse') touchLast = null; });
-window.addEventListener('pointercancel', () => { touchLast = null; });
+const joyEnd = e => { if (joy.on && e.pointerId === joy.id) { joy.on = false; joy.m = 0; joyShow(); } };
+window.addEventListener('pointerup', joyEnd);
+window.addEventListener('pointercancel', joyEnd);
 window.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if (e.target && e.target.tagName === 'INPUT') { if (k === 'enter') mpJoin(); else if (k === 'escape') setTitle(); return; }
@@ -1469,7 +1825,7 @@ window.addEventListener('keydown', e => {
   keys.add(k);
 });
 window.addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
-window.addEventListener('blur', () => keys.clear());
+window.addEventListener('blur', () => { keys.clear(); joy.on = false; joy.m = 0; joyShow(); });
 document.addEventListener('visibilitychange', () => { if (mp) mpVisibility(); else if (document.hidden) pause(); });
 $('soloBtn').addEventListener('click', e => { e.stopPropagation(); newGame(); });
 $('mpBtn').addEventListener('click', e => { e.stopPropagation(); showJoin(); });

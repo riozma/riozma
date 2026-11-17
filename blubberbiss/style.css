@@ -111,3 +111,7 @@ body{background:var(--deep);color:var(--ink);overflow:hidden;touch-action:none;u
 .tag .crown{color:var(--gold);font-size:16px;line-height:1}
 .tag .em{color:var(--cyan);animation:rise 1.8s steps(6) forwards}
 @keyframes rise{from{transform:translateY(4px)}to{transform:translateY(-10px)}}
+#joy{position:fixed;left:0;top:0;z-index:4;pointer-events:none;width:0;height:0}
+#joy::before{content:'';position:absolute;left:-48px;top:-48px;width:96px;height:96px;border-radius:50%;
+  background:rgba(79,216,240,.08);box-shadow:0 0 0 3px rgba(79,216,240,.45)}
+#joyKnob{position:absolute;left:-18px;top:-18px;width:36px;height:36px;border-radius:50%;background:rgba(238,248,255,.55);box-shadow:0 0 0 3px rgba(3,16,31,.6)}
