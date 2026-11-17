@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script src="/src/site-init.js"></script>
+  <title>Blubberbiss – riozma</title>
+  <link rel="icon" href="/src/img/favicon.svg">
+  <link rel="canonical" href="https://riozma.ch/blubberbiss/">
+  <meta name="description" content="Blubberbiss: Pixel-Arcade unter Wasser. Friss kleinere Fische, weiche grösseren aus. Allein oder im Multiplayer-Ozean mit allen, die gerade online sind.">
+  <meta name="theme-color" content="#06172e">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="game" aria-label="Spielfeld"></canvas>
+<div id="tags" aria-hidden="true"></div>
+<div class="crt" aria-hidden="true"></div>
+
+<div id="hud" hidden>
+  <button id="menuBtn" class="pxbtn iconbtn" aria-label="Pause"><i></i><i></i><i></i></button>
+  <div class="scorebox">
+    <div class="label">PUNKTE</div>
+    <div id="score">000000</div>
+    <div class="grow" aria-label="Wachstum"><div id="growFill"></div></div>
+    <div id="combo"></div>
+  </div>
+  <div class="right">
+    <div id="hearts"></div>
+    <div class="lvl" id="lvlBox">LV <span id="lvl">1</span></div>
+    <div id="board" hidden></div>
+    <div id="shieldChip" class="chip" hidden>SCHILD</div>
+    <div id="evChip" class="chip" hidden></div>
+  </div>
+</div>
+<div id="feed" aria-live="polite"></div>
+<button id="blubbBtn" class="pxbtn small" hidden>BLUBB!</button>
+
+<section id="title" class="screen">
+  <a href="/" class="home">← RIOZMA</a>
+  <div class="stack">
+    <h1 class="logo">BLUBBERBISS</h1>
+    <p class="sub">FRISS ODER WIRST GEFRESSEN</p>
+    <div class="album" id="albumCard" title="Nurija-Album">
+      <canvas id="album" width="52" height="81" aria-label="Nurija-Album"></canvas>
+      <div class="txt">
+        <div class="label">NURIJA-ALBUM <span id="albumCount">0/6</span></div>
+        <div class="lore" id="albumLore"></div>
+      </div>
+    </div>
+  </div>
+  <div class="stack">
+    <div class="modes">
+      <button id="soloBtn" class="pxbtn">SOLO</button>
+      <button id="mpBtn" class="pxbtn gold">MULTIPLAYER</button>
+    </div>
+    <p class="hint">Ziehen, Maus oder Pfeiltasten. Friss kleinere Fische, weiche grösseren aus. Und wenn die Sirene heult: weg da.</p>
+    <p class="hint">HI-SCORE <span id="hiTitle">0</span> · <span id="onlineHint">OZEAN WIRD GESUCHT …</span></p>
+  </div>
+</section>
+
+<section id="join" class="screen" hidden>
+  <div class="joinbox">
+    <h2 class="logo mid">OZEAN</h2>
+    <label class="field"><span class="label">DEIN NAME</span>
+      <input id="nameInput" maxlength="14" autocomplete="off" spellcheck="false" enterkeyhint="go">
+    </label>
+    <div class="field"><span class="label">DEINE FARBE</span><div class="swatches" id="swatches"></div></div>
+    <ul class="rules">
+      <li>Alle schwimmen im selben Ozean. Kein Login nötig.</li>
+      <li>Wer deutlich grösser ist, frisst die anderen. Gefressene starten klein neu.</li>
+      <li>Wer vorne liegt, trägt die Krone. Den König zu fressen bringt 2000 Kopfgeld.</li>
+      <li>Goldfisch geschnappt? Fressrausch: Dann frisst du sogar gleich grosse Spieler.</li>
+      <li>Nurija kommt für alle gleichzeitig. Wer überlebt, kriegt 1500.</li>
+    </ul>
+    <div id="joinStatus" role="status"></div>
+    <div class="btnrow">
+      <button id="joinGo" class="pxbtn gold">INS WASSER</button>
+      <button id="joinBack" class="pxbtn">ZURÜCK</button>
+    </div>
+  </div>
+</section>
+
+<section id="pause" class="screen" hidden>
+  <h2 class="logo mid">PAUSE</h2>
+  <div class="btnrow">
+    <button id="resumeBtn" class="pxbtn">WEITER</button>
+    <button id="soundBtn" class="pxbtn">TON: AN</button>
+    <button id="restartBtn" class="pxbtn">NEUSTART</button>
+  </div>
+</section>
+
+<section id="over" class="screen" hidden>
+  <h2 class="logo mid" id="overTitle">GEFRESSEN!</h2>
+  <div class="stack">
+    <div class="stat">PUNKTE <b id="finalScore">0</b></div>
+    <div class="stat">LEVEL <b id="finalLvl">1</b> · HI <b id="finalHi">0</b></div>
+    <div class="stat">NURIJA-ALBUM <b id="finalAlbum">0/6</b></div>
+    <div class="stat" id="newHi" hidden>NEUER REKORD!</div>
+  </div>
+  <div class="btnrow"><button id="againBtn" class="pxbtn">NOCHMAL</button><button id="overMenuBtn" class="pxbtn">MENÜ</button></div>
+</section>
+
+<div id="banner" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/src/supabase-config.js"></script>
+<script src="/src/supabase-client.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

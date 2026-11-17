@@ -34,6 +34,12 @@
       activeWhen: (path) => path === "/politik" || path.startsWith("/politik/"),
     },
     {
+      id: "blubberbiss",
+      href: "/blubberbiss/",
+      label: "Blubberbiss",
+      activeWhen: (path) => path === "/blubberbiss" || path.startsWith("/blubberbiss/"),
+    },
+    {
       id: "about",
       href: "/about/",
       label: "Über mich",
