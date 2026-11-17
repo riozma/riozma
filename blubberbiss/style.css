@@ -63,7 +63,8 @@ body{background:var(--deep);color:var(--ink);overflow:hidden;touch-action:none;u
 /* Nurija-Album */
 .album{display:flex;gap:12px;align-items:center;text-align:left;background:rgba(3,16,31,.78);padding:10px 14px;margin-top:6px;
   box-shadow:0 0 0 3px var(--edge),inset 0 0 0 2px #1d4a76;max-width:min(380px,100%);cursor:pointer}
-.album canvas{width:52px;height:81px;image-rendering:pixelated;flex:none}
+.album canvas{width:52px;height:81px;flex:none}
+#hi{position:fixed;left:0;top:0;z-index:1;pointer-events:none}
 .album .txt{min-width:0}
 .lore{font-size:11px;line-height:1.6;color:#cfe6ff;margin-top:4px}
 .album.shake{animation:shake .45s steps(6)}

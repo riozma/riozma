@@ -10,6 +10,13 @@ const pick = a => a[Math.floor(Math.random() * a.length)];
 let W = 320, H = 180, VW = 320, VH = 180, camX = 0, camY = 0, PS = 3, FLOOR = 150, bg = null, kelp = [], dust = [];
 const MPW = 640, MPH = 300;
 let zoneIdx = 0, mp = null, frzT = 0;
+// Eigene Ebene in Bildschirmauflösung, damit Nurijas Gesicht scharf bleibt
+const hiCv = document.getElementById('hi'), hctx = hiCv.getContext('2d');
+let hiK = 1, shX = 0, shY = 0;
+function drawFace(f, x, y, w, h) {
+  hctx.imageSmoothingEnabled = faceSmooth(nStage); hctx.imageSmoothingQuality = 'high';
+  hctx.drawImage(f, Math.round((x - camX + shX)*hiK), Math.round((y - camY + shY)*hiK), Math.round(w*hiK), Math.round(h*hiK));
+}
 let darkCv = document.createElement('canvas'), darkCtx = darkCv.getContext('2d');
 const START_R = 6, CAP_R = 30;
 
@@ -44,7 +51,9 @@ const ZONES = [
 
 /* ---------- Nurija (Easter Egg) ---------- */
 // Pro überlebter Begegnung wird sein Gesicht schärfer. Rein kosmetisch, kein Spielvorteil.
-const N_RES = [6, 9, 13, 18, 26, 40, 64];
+// Auflösung des Gesichts pro Album-Stufe (Quelle ist 96 px breit). Ab Stufe 4 weich statt pixelig.
+const N_RES = [14, 20, 28, 38, 52, 72, 96];
+const faceSmooth = stage => stage >= 4;
 const N_ASPECT = 150 / 96;
 const LORE = [
   'Etwas Grosses lebt in der Tiefe.',
@@ -69,17 +78,19 @@ function getFace(stage) {
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   const g = c.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
   g.drawImage(faceImg, 0, 0, w, h);
-  const id = g.getImageData(0, 0, w, h), d = id.data, q = stage >= 6 ? 12 : stage >= 4 ? 24 : 40;
-  for (let i = 0; i < d.length; i += 4) {
-    d[i] = Math.round(d[i] / q) * q; d[i+1] = Math.round(d[i+1] / q) * q; d[i+2] = Math.round(d[i+2] / q) * q;
-    d[i+3] = d[i+3] > 110 ? 255 : 0;
+  if (stage < 6) { // frühe Stufen: etwas weniger Farben, harte Kante
+    const id = g.getImageData(0, 0, w, h), d = id.data, q = stage >= 4 ? 6 : stage >= 2 ? 14 : 22;
+    for (let i = 0; i < d.length; i += 4) {
+      d[i] = Math.round(d[i] / q) * q; d[i+1] = Math.round(d[i+1] / q) * q; d[i+2] = Math.round(d[i+2] / q) * q;
+      if (!faceSmooth(stage)) d[i+3] = d[i+3] > 110 ? 255 : 0;
+    }
+    g.putImageData(id, 0, 0);
   }
-  g.putImageData(id, 0, 0);
   faceCache.set(stage, c); return c;
 }
 function drawAlbum() {
   const c = $('album'), g = c.getContext('2d');
-  g.imageSmoothingEnabled = false; g.clearRect(0, 0, c.width, c.height);
+  g.imageSmoothingEnabled = faceSmooth(nStage); g.imageSmoothingQuality = 'high'; g.clearRect(0, 0, c.width, c.height);
   $('albumCount').textContent = nStage + '/6';
   $('albumLore').textContent = LORE[nStage];
   const f = getFace(nStage); if (!f) return;
@@ -87,7 +98,7 @@ function drawAlbum() {
   if (nStage === 0) {
     g.globalCompositeOperation = 'source-in'; g.fillStyle = '#123a63'; g.fillRect(0, 0, c.width, c.height);
     g.globalCompositeOperation = 'source-over';
-    g.fillStyle = '#4fd8f0'; g.font = '700 26px Silkscreen, monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = '#4fd8f0'; g.font = '700 ' + Math.round(c.width/2) + 'px Silkscreen, monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillText('?', c.width/2, c.height/2);
   }
 }
@@ -307,6 +318,8 @@ function resize() {
     FLOOR = Math.round(H * 0.86);
   }
   cv.width = VW; cv.height = VH; cv.style.width = VW*PS + 'px'; cv.style.height = VH*PS + 'px';
+  const dpr = Math.min(2, window.devicePixelRatio || 1); hiK = PS*dpr;
+  hiCv.width = Math.round(VW*hiK); hiCv.height = Math.round(VH*hiK); hiCv.style.width = VW*PS + 'px'; hiCv.style.height = VH*PS + 'px';
   darkCv.width = VW; darkCv.height = VH;
   ctx.imageSmoothingEnabled = false;
   if (!bg || W !== oldW || H !== oldH) {
@@ -744,7 +757,7 @@ function drawNurija() {
   const f = getFace(nStage);
   if (n.phase === 'warn') {
     const peek = clamp((2.4 - n.t) / 2.4, 0, 1);
-    if (f) { const lx = n.dir > 0 ? -n.w + n.w*0.3*peek : W - n.w*0.3*peek; ctx.drawImage(f, Math.round(lx), Math.round(n.y - n.h/2), Math.round(n.w), Math.round(n.h)); }
+    if (f) { const lx = n.dir > 0 ? -n.w + n.w*0.3*peek : W - n.w*0.3*peek; drawFace(f, lx, n.y - n.h/2, n.w, n.h); }
     if (Math.floor(time*5) % 2 === 0) {
       const wx = n.dir > 0 ? Math.max(Math.round(n.w*0.3*peek) + 6, camX + 6) : Math.min(Math.round(W - n.w*0.3*peek) - 9, camX + VW - 9);
       ctx.save(); ctx.translate(wx, clamp(Math.round(n.y) - 10, camY + 30, camY + VH - 20)); ctx.scale(2, 2); drawWarn(1, 0); ctx.restore();
@@ -758,7 +771,7 @@ function drawNurija() {
     ctx.fillStyle = '#4a3010'; ctx.fillRect(xx, Math.round(ty - half) - 1, 1, half*2 + 2);
     ctx.fillStyle = i % 4 === 0 ? '#c4862a' : '#e0a83a'; ctx.fillRect(xx, Math.round(ty - half), 1, half*2);
   }
-  if (f) ctx.drawImage(f, Math.round(n.x - n.w*sc/2), Math.round(n.y - n.h*sc/2 + wob), Math.round(n.w*sc), Math.round(n.h*sc));
+  if (f) drawFace(f, n.x - n.w*sc/2, n.y - n.h*sc/2 + wob, n.w*sc, n.h*sc);
   else { ctx.fillStyle = '#d9a37a'; disc(Math.round(n.x), Math.round(n.y), n.w*0.45); }
 }
 
@@ -794,7 +807,9 @@ function drawDark() {
 function draw() {
   ctx.fillStyle = '#06172e'; ctx.fillRect(0, 0, VW, VH);
   ctx.save();
-  if (shake > 0) ctx.translate(Math.round(rnd(-shake, shake)), Math.round(rnd(-shake, shake)));
+  shX = shake > 0 ? Math.round(rnd(-shake, shake)) : 0; shY = shake > 0 ? Math.round(rnd(-shake, shake)) : 0;
+  ctx.translate(shX, shY);
+  hctx.clearRect(0, 0, hiCv.width, hiCv.height);
   ctx.translate(-camX, -camY);
   ctx.drawImage(bg, 0, 0);
   ctx.fillStyle = 'rgba(180,230,255,0.22)';
