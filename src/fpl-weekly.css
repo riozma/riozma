@@ -271,3 +271,14 @@ html { scroll-behavior: smooth; }
 .fplw-also li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; font-size: .92rem; }
 .fplw-also a { font-weight: 700; color: var(--ink); }
 .fplw-also-amt { font-variant-numeric: tabular-nums; color: #9a6a00; font-weight: 600; }
+
+/* Wichtige Player */
+.fplw-pl { margin-top: 8px; }
+.fplw-plgroup > .fplw-muted { margin: 0 0 8px; }
+.fplw-player { margin: 10px 0; padding: 14px 16px; background: var(--white); border: 1px solid var(--line); border-radius: 10px; }
+.fplw-player h3 { margin: 0 0 4px; font-size: 1.05rem; }
+.fplw-player h3 a { color: var(--blue); }
+.fplw-plmeta { font-weight: 400; font-size: .85rem; color: #6b7785; }
+.fplw-player > p { margin: 0; color: #3b4857; }
+.fplw-plhits { margin: 8px 0 0; padding-left: 1.1rem; font-size: .95rem; }
+.fplw-plhits li { margin: 3px 0; overflow-wrap: anywhere; }

@@ -1,5 +1,5 @@
 // FPL Weekly: gemeinsamer Renderer für Ausgabe, Übersicht, Lernpfad und Glossar.
-// Seitenart steht in <body data-fplw="issue|overview|concepts|glossary">, bei Ausgaben zusätzlich data-week="YYYY-WW".
+// Seitenart steht in <body data-fplw="issue|overview|concepts|glossary|players">, bei Ausgaben zusätzlich data-week="YYYY-WW".
 // Daten: /fpl/weekly/issues/<woche>/issue.json + focus.html (+ images.json), /fpl/weekly/issues/index.json, /fpl/weekly/curriculum.json.
 // Interaktion (Reaktionen, Kommentare, Umfrage, Moderation) läuft über die RPCs fplw_* in Supabase.
 (function () {
@@ -205,7 +205,7 @@
     const brand = el("a", "fplw-brand", "FPL");
     brand.href = "/fpl/";
     const nav = el("nav", "fplw-nav");
-    [["Newsletter", BASE + "/"], ["Concepts", BASE + "/concepts/"], ["Glossary", BASE + "/glossary/"], ["Wimmelblock", "/fpl/wimmelblock/"]].forEach(([t, h]) => {
+    [["Newsletter", BASE + "/"], ["Concepts", BASE + "/concepts/"], ["Glossary", BASE + "/glossary/"], ["Players", BASE + "/players/"], ["Wimmelblock", "/fpl/wimmelblock/"]].forEach(([t, h]) => {
       const a = el("a", "", t);
       a.href = h;
       if (location.pathname.replace(/index\.html$/, "") === h) a.setAttribute("aria-current", "page");
@@ -1091,6 +1091,83 @@
     draw();
   }
 
+  /* ---------- Wichtige Player ---------- */
+
+  // Nennungen werden hier berechnet: jede Meldung, in deren Titel, Text oder Hintergrund ein Name (aliases) als ganzes Wort steht.
+  function playerMatcher(p) {
+    const esc = (p.aliases || [p.name]).map((a) => a.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+    return new RegExp("(^|[^\\p{L}\\p{N}])(" + esc.join("|") + ")(?![\\p{L}\\p{N}])", "u");
+  }
+
+  async function pagePlayers() {
+    const app = document.getElementById("fplw-app");
+    initAuth();
+    let data, issues;
+    try {
+      [data, issues] = await Promise.all([getJson(BASE + "/players.json"), getJson(BASE + "/issues/index.json").then((d) => d.issues || [])]);
+    } catch (e) {
+      app.replaceChildren(el("p", "fplw-error", "The list of key players could not be loaded."));
+      return;
+    }
+    const items = [];
+    await Promise.all(issues.map(async (i) => {
+      try {
+        const d = await getJson(BASE + "/issues/" + i.week + "/issue.json");
+        (d.news || []).forEach((n) => items.push({ week: i.week, issue: i.issue, date: n.published_at || d.date, id: n.id, title: n.title, text: [n.title, n.body, n.background].join("\n") }));
+      } catch (e) { /* Ausgabe überspringen */ }
+    }));
+    items.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    const head = el("header", "fplw-head");
+    head.append(el("p", "fplw-eyebrow", "FPL Weekly"), el("h1", "", "Key players"),
+      el("p", "fplw-lead", "The companies and institutions we follow every week. Under each one: the FPL Weekly items that mention it, newest first, found automatically."));
+    const search = el("input", "fplw-search");
+    search.type = "search";
+    search.placeholder = "Search players …";
+    search.setAttribute("aria-label", "Search players");
+    const list = el("div", "fplw-pl");
+    app.replaceChildren(head, search, list);
+    const rows = [];
+    data.groups.forEach((g) => {
+      const sec = el("section", "fplw-plgroup");
+      sec.append(el("h2", "fplw-letter", g.title));
+      if (g.lead) sec.append(el("p", "fplw-muted", g.lead));
+      g.players.forEach((p) => {
+        const re = playerMatcher(p);
+        const hits = items.filter((it) => re.test(it.text));
+        const card = el("article", "fplw-player");
+        card.id = "player-" + p.id;
+        const h = el("h3");
+        const a = el("a", "", p.name);
+        a.href = p.url;
+        a.target = "_blank";
+        a.rel = "noopener";
+        h.append(a, el("span", "fplw-plmeta", " " + p.country + " · " + (hits.length ? hits.length + (hits.length === 1 ? " mention" : " mentions") : "no mentions yet")));
+        card.append(h, el("p", "", p.what));
+        if (hits.length) {
+          const ul = el("ul", "fplw-plhits");
+          hits.slice(0, 6).forEach((it) => {
+            const li = el("li");
+            const l = el("a", "", it.title);
+            l.href = BASE + "/" + it.week + "/#news-" + it.id;
+            li.append(el("span", "fplw-muted", "#" + it.issue + " · "), l);
+            ul.append(li);
+          });
+          card.append(ul);
+          if (hits.length > 6) card.append(el("p", "fplw-muted", "+ " + (hits.length - 6) + " older"));
+        }
+        sec.append(card);
+        rows.push({ card, sec, hay: (p.name + " " + (p.aliases || []).join(" ") + " " + p.what + " " + g.title).toLowerCase() });
+      });
+      list.append(sec);
+    });
+    if (data.updated) list.append(el("p", "fplw-muted", "List last reviewed " + data.updated + "."));
+    search.addEventListener("input", () => {
+      const q = search.value.trim().toLowerCase();
+      rows.forEach((r) => (r.card.hidden = !!q && !r.hay.includes(q)));
+      list.querySelectorAll(".fplw-plgroup").forEach((s) => (s.hidden = !s.querySelector(".fplw-player:not([hidden])")));
+    });
+  }
+
   /* ---------- Start ---------- */
 
   renderHeader();
@@ -1099,4 +1176,5 @@
   else if (page === "overview") pageOverview();
   else if (page === "concepts") pageConcepts();
   else if (page === "glossary") pageGlossary();
+  else if (page === "players") pagePlayers();
 })();
