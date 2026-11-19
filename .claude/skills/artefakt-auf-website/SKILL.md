@@ -47,6 +47,10 @@ also ohne Login**, ohne Tabelle und ohne Server-Code.
   im Stillstand 1×, und die Anzahl pro Raum begrenzen (z.B. 12). Gegenüber Manuel erwähnen.
 - Gäste brauchen einen Namen: Zufallsvorschlag + eingeloggte Nutzer bekommen den Vornamen aus
   `session.user.user_metadata.full_name` vorgeschlagen. Namen immer escapen.
+- **Daten dauerhaft speichern** (z.B. Bestenliste): Tabelle ohne direkte Rechte für `anon`, nur `security definer`-RPCs
+  mit Prüfungen und Mengenbegrenzung pro Browser-Token (Muster: `supabase/migrations/20261119000000_blubberbiss_scores.sql`).
+  Anwenden über `SUPABASE_ACCESS_TOKEN` + Management-API (siehe CLAUDE.md), nicht über den Supabase-Connector.
+  Das Spiel muss auch ohne Tabelle laufen (Fehler abfangen, Anzeige ausblenden).
 - Für Tests einen Zugang nur mit `?debug` einbauen (`window.__bb = {…}`), damit man Zustände setzen kann.
 
 ## 5. Pixel-Grafik: Fallstricke
