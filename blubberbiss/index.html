@@ -27,6 +27,7 @@
     <div id="score">000000</div>
     <div class="grow" aria-label="Wachstum"><div id="growFill"></div></div>
     <div id="combo"></div>
+    <div id="recHud" class="rec" hidden></div>
   </div>
   <div class="right">
     <div id="hearts"></div>
@@ -57,7 +58,9 @@
     <div class="modes">
       <button id="soloBtn" class="pxbtn">SOLO</button>
       <button id="mpBtn" class="pxbtn gold">MULTIPLAYER</button>
+      <button id="statsBtn" class="pxbtn">STATISTIK</button>
     </div>
+    <p class="rec big" id="recTitle" hidden></p>
     <p class="hint">Drücken und ziehen (Joystick) oder Pfeiltasten. Friss kleinere Fische, spring aus dem Wasser, klau Gold auf Schiffen. Aber nicht zu lange bleiben. Und wenn die Sirene heult: weg da.</p>
     <p class="hint">HI-SCORE <span id="hiTitle">0</span> · <span id="onlineHint">OZEAN WIRD GESUCHT …</span></p>
   </div>
@@ -102,8 +105,25 @@
     <div class="stat">LEVEL <b id="finalLvl">1</b> · HI <b id="finalHi">0</b></div>
     <div class="stat">NURIJA-ALBUM <b id="finalAlbum">0/6</b></div>
     <div class="stat" id="newHi" hidden>NEUER REKORD!</div>
+    <div class="stat" id="overRank" hidden></div>
+    <div class="entry" id="overEntry" hidden>
+      <label class="field"><span class="label">NAME FÜR DIE BESTENLISTE</span><input id="overName" maxlength="14" autocomplete="off" spellcheck="false"></label>
+      <button id="overSubmit" class="pxbtn gold small">EINTRAGEN</button>
+    </div>
   </div>
-  <div class="btnrow"><button id="againBtn" class="pxbtn">NOCHMAL</button><button id="overMenuBtn" class="pxbtn">MENÜ</button></div>
+  <div class="btnrow"><button id="againBtn" class="pxbtn">NOCHMAL</button><button id="overStatsBtn" class="pxbtn">STATISTIK</button><button id="overMenuBtn" class="pxbtn">MENÜ</button></div>
+</section>
+
+<section id="stats" class="screen" hidden>
+  <div class="statsbox">
+    <h2 class="logo mid">STATISTIK</h2>
+    <div class="label">DEINE FÄNGE</div>
+    <div class="catch" id="catchGrid"></div>
+    <div class="stotals" id="statTotals"></div>
+    <div class="label">ALLZEIT-BESTENLISTE</div>
+    <ol class="toplist" id="topList"></ol>
+    <div class="btnrow"><button id="statsBack" class="pxbtn">ZURÜCK</button></div>
+  </div>
 </section>
 
 <div id="banner" hidden></div>

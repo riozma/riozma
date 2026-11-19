@@ -385,9 +385,10 @@ function spawnFish(opt = {}) {
   const fromLeft = opt.fromLeft ?? Math.random() < 0.5;
   let sp = opt.sp || rnd(22, 44) * (1 + (level - 1)*0.14);
   if (!opt.sp) { if (kind === 'shark') sp *= 1.35; if (r < 5) sp *= 1.2; if (calm) sp *= 0.7; }
+  // (sp wird unten als Reisetempo gespeichert, z.B. für Haie)
   const y = opt.y ?? rnd(WTOP() + spr.h/2, FLOOR - spr.h*0.4);
   const e = {type: 'fish', kind, pal, r, spr, x: fromLeft ? -spr.w - (opt.off || 0) : W + spr.w + (opt.off || 0), y,
-    vx: fromLeft ? sp : -sp, dir: fromLeft ? 1 : -1, margin: spr.w + 4 + (opt.off || 0), bobA: rnd(0, 10), bobF: rnd(1, 3), ph: rnd(0, 6)};
+    vx: fromLeft ? sp : -sp, vy: 0, sp, dir: fromLeft ? 1 : -1, margin: spr.w + 4 + (opt.off || 0), bobA: kind === 'shark' ? rnd(0, 3) : rnd(0, 10), bobF: rnd(1, 3), ph: rnd(0, 6)};
   ents.push(e); return e;
 }
 function spawnSchool() {
@@ -497,6 +498,7 @@ function popup(x, y, t, c, size = 8) { pops.push({x, y, t, c, life: 1, max: 1, v
 /* ---------- Spielmechanik ---------- */
 function eat(e) {
   const p = player; e.dead = true;
+  countEat(statKey(e));
   combo = comboT > 0 ? Math.min(combo + 1, 8) : 1; comboT = 1.8;
   const pts = Math.round((10 + e.r*e.r*1.2) / 5) * 5 * combo * (1 + (level - 1)*0.5) * (frenzy() ? 2 : 1) | 0;
   score += pts;
@@ -517,6 +519,7 @@ function hurt(src) {
   const kx = Math.sign(p.x - src.x) || 1;
   p.vx = kx*95; p.vy = (p.y < src.y ? -1 : 1) * 45; tgt.x = p.x + kx*28; tgt.y = p.y;
   if (p.shield > 0) { p.shield = 0; p.inv = 1; sfx.pop(); burst(p.x, p.y, '#9ff3ff', 14, 55); return; }
+  countCaught(src.isNurija ? 'Nurija' : src.isPeer ? 'Mitspieler' : src.kind === 'shark' ? 'Hai' : src.type === 'jelly' ? 'Qualle' : 'Fisch');
   if (mp) { mpHurt(src); return; }
   killer = src.isNurija ? 'nurija' : '';
   lives--; p.inv = 1.6; shake = 4; flash = 1; flashCol = '255,60,90'; combo = 0; comboT = 0;
@@ -579,11 +582,9 @@ function moveEnt(e, dt) {
     return;
   }
   e.x += e.vx*dt; e.y += Math.cos(e.ph*e.bobF)*e.bobA*dt;
-  // Haie jagen dich, solange du vor ihnen bist
-  if (e.kind === 'shark' && state === 'play' && !frenzy() && Math.sign(player.x - e.x) === Math.sign(e.vx))
-    e.y += clamp(player.y - e.y, -1, 1) * (14 + level*3) * dt;
+  if (e.kind === 'shark' && state !== 'title') sharkLocal(e, dt);
   // Im Fressrausch fliehen die grossen Fische vor dir
-  if (frenzy() && e.type === 'fish' && e.r >= player.r*EAT_RATIO) e.y += (Math.sign(e.y - player.y) || 1) * 26 * dt;
+  if (frenzy() && e.type === 'fish' && e.kind !== 'shark' && e.r >= player.r*EAT_RATIO) e.y += (Math.sign(e.y - player.y) || 1) * 26 * dt;
   e.y = clamp(e.y, WTOP() - 2, FLOOR - 4);
   if ((e.vx > 0 && e.x > W + e.margin) || (e.vx < 0 && e.x < -e.margin)) e.dead = true;
 }
@@ -606,6 +607,7 @@ const speedFor = r => 100 - Math.min(34, (r - START_R)*1.4);
 
 function movePlayer(dt) {
   const p = player, inp = inputVec();
+  p.frz = frenzy();
   if (p.ship) { shipStep(dt, inp); return; }
   if (p.air) { // in der Luft: Schwerkraft, kaum Steuerung
     p.vy += GRAV*dt; p.vx += inp.x*inp.m*50*dt;
@@ -687,6 +689,7 @@ function update(dt) {
   }
   p.inv = Math.max(0, p.inv - dt); p.puff = Math.max(0, p.puff - dt); frzT = Math.max(0, frzT - dt);
   for (let i = ents.length - 1; i >= 0; i--) if (ents[i].dead) ents.splice(i, 1);
+  if (state === 'play' || state === 'levelup' || state === 'caught') checkRecord();
   updateCam(); updateHUD();
 }
 
@@ -806,7 +809,7 @@ function shipStep(dt, inp) {
   p.goldT -= dt;
   if (p.goldT <= 0) { // Gold klauen
     p.goldT = 0.45;
-    const pts = 100 * (mp ? 1 : level) * (frenzy() ? 2 : 1); score += pts;
+    const pts = 100 * (mp ? 1 : level) * (frenzy() ? 2 : 1); score += pts; stats.gold += pts; saveStats();
     popup(p.x + rnd(-4, 4), p.y - p.r - 6, '+' + pts, '#ffd25a');
     burst(p.x, p.y - p.r*0.4, '#ffd25a', 4, 30); tone(1568, 2093, 0.06, 'square', 0.04);
   }
@@ -860,6 +863,7 @@ function updateCaught(dt) {
 }
 function finishCaught() {
   const by = caught.by, p = player; caught = null;
+  countCaught(CATCH_LABEL[by]);
   if (mp) { mpDie({isFeat: true, label: CATCH_LABEL[by]}); return; }
   lives--; killer = by; p.r = Math.max(START_R, p.r*0.6); // wer erwischt wird, wird kleiner
   shake = 4; flash = 1; flashCol = '255,60,90';
@@ -1035,7 +1039,9 @@ function drawEnt(e) {
     ctx.drawImage(s.c, -Math.round(s.cx), -Math.round(s.cy)); ctx.restore();
     ctx.globalAlpha = 1;
     if (e.gold) { ctx.fillStyle = '#fff6c0'; ctx.fillRect(x + Math.round(Math.sin(time*9)*s.a), y - Math.round(s.b) - 2, 1, 1); ctx.fillRect(x + Math.round(Math.cos(time*7)*s.a), y + Math.round(s.b) + 1, 1, 1); }
-    if (state === 'play' && !e.flee && !frenzy() && !e.gold && e.r >= player.r*EAT_RATIO) {
+    if (e.alarm > 0 && Math.floor(time*10) % 2 === 0) drawWarn(x, y - Math.round(s.b) - 9); // Hai auf der Jagd
+    else if (e.scared && Math.floor(time*6) % 2 === 0) { ctx.fillStyle = '#8ff4ff'; ctx.fillRect(x - e.dir*3, y - Math.round(s.b) - 4, 1, 2); ctx.fillRect(x - e.dir*6, y - Math.round(s.b) - 2, 1, 2); }
+    else if (state === 'play' && !e.flee && !frenzy() && !e.gold && e.r >= player.r*EAT_RATIO) {
       const d = Math.hypot(player.x - e.x, player.y - e.y);
       if (d < 80 + e.r && Math.floor(time*6) % 2 === 0) drawWarn(x, y - Math.round(s.b) - 9);
     }
@@ -1233,6 +1239,7 @@ function newGame() {
   ensureAudio();
   state = 'play'; score = 0; level = 1; lives = 3; combo = 0; comboT = 0; nextLife = 15000; inputMode = 'point';
   ents.length = 0; parts.length = 0; pops.length = 0; streaks.length = 0;
+  stats.games++; saveStats(); recBeaten = false; submittedBest = 0; fetchTop();
   runT = 0; ev = null; lastEv = ''; evT = rnd(16, 24); nurija = null; nurijaDone = false; killer = ''; frzT = 0; zoneIdx = 0; resetDirector();
   nurijaAt = summon ? 10 : rnd(45, 95); summon = false; // jede Runde gleiche Chance
   const p = player; Object.assign(p, {x: W*0.5, y: (SURF + FLOOR)/2, vx: 0, vy: 0, r: START_R, dir: 1, puff: 0, inv: 1.2, shield: 0, sleep: false, dead: false, air: false, ship: null});
@@ -1249,6 +1256,7 @@ function showOver() {
   $('finalScore').textContent = score; $('finalLvl').textContent = level; $('finalHi').textContent = hi;
   $('finalAlbum').textContent = nStage + '/6';
   $('newHi').hidden = !newHi; $('hud').hidden = true; $('over').hidden = false;
+  countBest(); overLeaderboard();
   overReady = time + 0.7;
   try { $('againBtn').focus({preventScroll: true}); } catch (e) {}
 }
@@ -1369,7 +1377,7 @@ function mpStart() {
   $('join').hidden = true; $('title').hidden = true; $('hud').hidden = false; $('blubbBtn').hidden = false;
   $('restartBtn').textContent = 'VERLASSEN'; hudCache = '';
   score = 0; level = 1; lives = 3; combo = 0; comboT = 0; inputMode = 'point';
-  mpSpawnPlayer();
+  mpSpawnPlayer(); stats.mpGames++; saveStats(); recBeaten = false; submittedBest = 0; mp.peak = 0;
   mpSend('hello', {});
   banner('OZEAN' + (mp.room > 1 ? ' ' + mp.room : ''), mp.count > 1 ? mp.count + ' FISCHE IM WASSER' : 'NOCH ALLEIN · LADE LEUTE EIN');
   sfx.start();
@@ -1378,6 +1386,7 @@ function mpStart() {
 function mpLeave() {
   if (!mp) return;
   const m = mp;
+  if (m.peak > 0) submitScore(m.peak, 'multi', m.name);
   mpSend('bye', {});
   mp = null;
   ents.length = 0; ev = null; nurija = null; frzT = 0; player.dead = false;
@@ -1433,7 +1442,7 @@ window.addEventListener('pagehide', () => { if (mp) mpSend('bye', {}); });
 
 /* --- Netzwerk-Fische --- */
 function netData(e) {
-  const o = {}; for (const k of ['id', 'type', 'kind', 'pal', 'r', 'gold', 'x0', 'y0', 'vx', 'vy', 't0', 'bobA', 'bobF', 'ph0']) if (e[k] !== undefined) o[k] = e[k];
+  const o = {}; for (const k of ['id', 'type', 'kind', 'pal', 'r', 'gold', 'x0', 'y0', 'vx', 'vy', 't0', 'bobA', 'bobF', 'ph0', 'sp']) if (e[k] !== undefined) o[k] = e[k];
   return o;
 }
 function addNetEnt(d) {
@@ -1454,8 +1463,10 @@ function moveNetEnt(e) {
     return;
   }
   e.x = e.x0 + e.vx*tau;
-  e.y = clamp(e.y0 + (e.bobA / e.bobF) * Math.sin(e.bobF*tau + (e.ph0 || 0)), WTOP() - 2, FLOOR - 4);
+  e.y = clamp(e.y0 + (e.vy || 0)*tau + (e.bobA ? (e.bobA / e.bobF) * Math.sin(e.bobF*tau + (e.ph0 || 0)) : 0), WTOP() - 2, FLOOR - 4);
   e.dir = e.vx > 0 ? 1 : -1;
+  e.alarm = Math.max(0, (e.alarm || 0) - 1/60);
+  if (e.kind === 'shark' && tau > 80) e.dead = true; // kein ewiges Kreisen
   if ((e.vx > 0 && e.x > W + e.margin) || (e.vx < 0 && e.x < -e.margin)) e.dead = true;
 }
 function mkNetFish(o) {
@@ -1526,6 +1537,7 @@ function mpRecv(m) {
       if (m.nur && !nurija) applyNur(m.nur, false);
       break;
     case 'sp': for (const d of m.e || []) addNetEnt(d); break;
+    case 'tr': if (!mp.host) applyTr(m); break;
     case 'ft': if (m.d && typeof m.d.type === 'string') addFeat(m.d); break;
     case 'eat': {
       const e = ents.find(x => x.id === m.id); if (e && !e.dead) { e.dead = true; burst(e.x, e.y, e.pal ? PALS[e.pal].body : '#fff4d0', 5); }
@@ -1638,6 +1650,7 @@ function mpHurt(src) {
 }
 function mpDie(src) {
   const p = player;
+  if (mp.peak > 0) submitScore(mp.peak, 'multi', mp.name);
   const label = src.isNurija ? 'Nurija' : src.isFeat ? src.label : '';
   mpSend('eaten', {by: src.isPeer ? src.id : null, nur: src.isNurija ? 1 : 0, w: label, r: Math.round(p.r*10)/10, king: mp.kingId === myId ? 1 : 0, n: mp.name});
   feedPush(`<b>${esc(label || src.name)}</b> ${src.label === 'Fischer' ? 'isst' : 'frisst'} <b>dich</b>`);
@@ -1655,7 +1668,7 @@ function onEaten(m) {
   if (m.by === myId && state === 'play') {
     const p = player, r = clamp(+m.r || START_R, 2, CAP_R);
     const pts = Math.round((300 + r*r*8) / 5) * 5 + (m.king ? 2000 : 0);
-    score += pts; p.r = Math.min(CAP_R, Math.sqrt(p.r*p.r + r*r*0.35)); p.puff = 0.3;
+    score += pts; p.r = Math.min(CAP_R, Math.sqrt(p.r*p.r + r*r*0.35)); p.puff = 0.3; countEat('player');
     popup(p.x, p.y - p.r - 6, '+' + pts, '#ffd25a', 10);
     if (m.king) { banner('KÖNIGSMORD!', victim.toUpperCase() + ' · +2000 KOPFGELD'); sfx.level(); flash = 1; flashCol = '255,210,90'; }
     else { banner('MAHLZEIT!', victim.toUpperCase() + ' GEFRESSEN'); sfx.eat(6); }
@@ -1689,7 +1702,7 @@ function mpUpdate(dt) {
   const p = player, t = nowS();
   const z = Math.floor(t / 180) % ZONES.length; // alle 3 Minuten wechselt der Ozean, für alle gleichzeitig
   if (mp.clockSet && z !== zoneIdx) { zoneIdx = z; bg = makeBG(); if (mp.joined) banner(ZONES[z].name, 'DER OZEAN WANDELT SICH'); }
-  if (mp.host && mp.joined) { hostTick(dt); directorTick(dt, [player].concat([...mp.peers.values()].filter(o => !o.dead))); }
+  if (mp.host && mp.joined) { const alive = [player].concat([...mp.peers.values()].filter(o => !o.dead)); hostTick(dt); directorTick(dt, alive); sharkHost(dt, alive.filter(o => o !== player || state === 'play')); }
   for (const e of ents) if (!e.dead) moveNetEnt(e);
   if (ev) { ev.t = ev.max - (t - ev.t0); if (ev.t <= 0 || (ev.type === 'gold' && !ents.some(e => e.gold && !e.dead) && t - ev.t0 > 1)) ev = null; }
   updatePeers(dt);
@@ -1716,6 +1729,8 @@ function mpUpdate(dt) {
     if (key !== mp.lastSent || mp.idleT <= 0) { mp.lastSent = key; mp.idleT = 1; mpSend('s', msg); }
   }
   mp.boardT -= dt; if (mp.boardT <= 0) { mp.boardT = 0.4; mpBoard(); }
+  if (score > (mp.peak || 0)) mp.peak = score;
+  if (state !== 'mpwait') { countBest(); checkRecord(); }
   updateCam(); updateHUD();
 }
 
@@ -1761,8 +1776,221 @@ function drawEdgeMarkers() { // Pfeile am Rand für Spieler ausserhalb des Aussc
   }
 }
 
+/* ---------- Persönliche Statistik (nur in diesem Browser) ---------- */
+const SPECIES = [
+  {k: 'fish-blue', n: 'Blauflosser', pal: 'blue', kind: 'fish'},
+  {k: 'fish-orange', n: 'Clownling', pal: 'orange', kind: 'fish'},
+  {k: 'fish-green', n: 'Grünling', pal: 'green', kind: 'fish'},
+  {k: 'fish-pink', n: 'Rosabarbe', pal: 'pink', kind: 'fish'},
+  {k: 'fish-purple', n: 'Lilafisch', pal: 'purple', kind: 'fish'},
+  {k: 'fish-red', n: 'Rotbarsch', pal: 'red', kind: 'fish'},
+  {k: 'fish-teal', n: 'Türkisling', pal: 'teal', kind: 'fish'},
+  {k: 'stripe', n: 'Streifenfisch', pal: 'orange', kind: 'stripe'},
+  {k: 'shark', n: 'Hai', pal: 'shark', kind: 'shark'},
+  {k: 'jelly', n: 'Qualle', jelly: true},
+  {k: 'gold', n: 'Goldfisch', pal: 'gold', kind: 'fish'},
+  {k: 'player', n: 'Mitspieler', pal: 'pcoral', kind: 'puffer'},
+];
+let stats = {eaten: {}, games: 0, mpGames: 0, bestSolo: 0, bestMulti: 0, caughtBy: {}, gold: 0};
+try { const s = JSON.parse(localStorage.getItem('blubberbiss-stats') || 'null'); if (s && typeof s === 'object') stats = Object.assign(stats, s, {eaten: Object.assign({}, s.eaten), caughtBy: Object.assign({}, s.caughtBy)}); } catch (e) {}
+let statsSaveT = 0;
+function saveStats() { clearTimeout(statsSaveT); statsSaveT = setTimeout(() => { try { localStorage.setItem('blubberbiss-stats', JSON.stringify(stats)); } catch (e) {} }, 400); }
+const statKey = e => e.type === 'jelly' ? 'jelly' : e.gold ? 'gold' : e.kind === 'shark' ? 'shark' : e.kind === 'stripe' ? 'stripe' : 'fish-' + e.pal;
+function countEat(k) { stats.eaten[k] = (stats.eaten[k] || 0) + 1; saveStats(); }
+function countCaught(label) { stats.caughtBy[label] = (stats.caughtBy[label] || 0) + 1; saveStats(); }
+function countBest() {
+  const key = mp ? 'bestMulti' : 'bestSolo';
+  if (score > (stats[key] || 0)) { stats[key] = score; saveStats(); }
+}
+
+function speciesIcon(sp) {
+  const c = document.createElement('canvas'); c.width = 44; c.height = 30;
+  const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+  const spr = sp.jelly ? buildJelly(9) : buildFish(sp.kind === 'shark' ? 9 : 9, sp.pal, sp.kind, false);
+  const k = Math.min(40 / spr.w, 26 / spr.h);
+  g.drawImage(spr.c, Math.round((44 - spr.w*k)/2), Math.round((30 - spr.h*k)/2), Math.round(spr.w*k), Math.round(spr.h*k));
+  if (!(stats.eaten[sp.k] > 0)) { g.globalCompositeOperation = 'source-in'; g.fillStyle = '#234a73'; g.fillRect(0, 0, 44, 30); }
+  return c;
+}
+function renderStats() {
+  const grid = $('catchGrid'); grid.innerHTML = '';
+  let total = 0, kinds = 0;
+  for (const sp of SPECIES) {
+    const n = stats.eaten[sp.k] || 0; total += n; if (n) kinds++;
+    const card = document.createElement('div'); card.className = 'ccard' + (n ? '' : ' none');
+    card.appendChild(speciesIcon(sp));
+    const t = document.createElement('div');
+    t.innerHTML = `<div class="cn">${n ? esc(sp.n) : '???'}</div><div class="cc">${n}</div>`;
+    card.appendChild(t); grid.appendChild(card);
+  }
+  const cb = Object.entries(stats.caughtBy).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${esc(k)} <b>${v}</b>`).join(' · ');
+  $('statTotals').innerHTML = `GEFRESSEN TOTAL <b>${total}</b> · ARTEN <b>${kinds}/${SPECIES.length}</b><br>`
+    + `SOLO-SPIELE <b>${stats.games}</b> · BESTER SOLO <b>${stats.bestSolo}</b><br>`
+    + `OZEAN-BESUCHE <b>${stats.mpGames}</b> · BESTER MULTI <b>${stats.bestMulti}</b> · GEKLAUTES GOLD <b>${stats.gold}</b>`
+    + (cb ? `<br>ERWISCHT VON: ${cb}` : '');
+  renderTop();
+}
+let statsFrom = 'title';
+function showStats(from) {
+  statsFrom = from; renderStats(); fetchTop();
+  $('title').hidden = true; $('over').hidden = true; $('stats').hidden = false;
+}
+function hideStats() { $('stats').hidden = true; if (statsFrom === 'over') $('over').hidden = false; else $('title').hidden = false; }
+$('statsBtn').addEventListener('click', e => { e.stopPropagation(); showStats('title'); });
+$('overStatsBtn').addEventListener('click', () => showStats('over'));
+$('statsBack').addEventListener('click', hideStats);
+
+/* ---------- Allzeit-Bestenliste (Supabase, ohne Login) ---------- */
+let topList = null, topT = 0, recBeaten = false, submittedBest = 0;
+let scoreToken = '';
+try { scoreToken = localStorage.getItem('blubberbiss-token') || ''; } catch (e) {}
+if (scoreToken.length < 16) { scoreToken = myId + myId + String(Math.random()).slice(2, 10); try { localStorage.setItem('blubberbiss-token', scoreToken); } catch (e) {} }
+async function fetchTop() {
+  const c = sb(); if (!c) return;
+  try {
+    const {data, error} = await c.rpc('blubberbiss_top', {p_limit: 10});
+    if (error) throw error;
+    topList = Array.isArray(data) ? data : [];
+  } catch (e) { topList = topList || null; }
+  renderRec(); if (!$('stats').hidden) renderTop();
+}
+const record = () => topList && topList[0] ? topList[0] : null;
+function renderRec() {
+  const r = record();
+  const txt = r ? `ALLZEIT-REKORD ${r.score} · ${r.name}` : '';
+  $('recTitle').hidden = !r; $('recTitle').textContent = txt;
+  updateRecHud(true);
+}
+let recHudKey = '';
+function updateRecHud(force) {
+  const r = record(), el = $('recHud');
+  if (!r) { el.hidden = true; return; }
+  const mine = score > r.score;
+  const key = mine ? 'me' + score : r.score + r.name;
+  if (!force && key === recHudKey) return; recHudKey = key;
+  el.hidden = false;
+  el.textContent = mine ? 'ALLZEIT-REKORD: DU!' : `REKORD ${r.score} · ${r.name}`;
+}
+function renderTop() {
+  const el = $('topList');
+  if (!topList) { el.innerHTML = '<li><span></span><span>Bestenliste nicht erreichbar</span><span></span></li>'; return; }
+  if (!topList.length) { el.innerHTML = '<li><span></span><span>Noch leer. Sei die Nummer 1!</span><span></span></li>'; return; }
+  const me = cleanName(mpName);
+  el.innerHTML = topList.map(r => `<li class="${me && r.name === me ? 'me' : ''}"><span>${esc(r.name)}<span class="md">${r.mode === 'multi' ? 'OZEAN' : 'SOLO'}</span></span><span>${r.score}</span></li>`).join('');
+}
+// Prüft während des Spiels, ob du gerade den Allzeit-Rekord knackst
+function checkRecord() {
+  const r = record();
+  if (r && !recBeaten && score > r.score && score > 0) { recBeaten = true; banner('ALLZEIT-REKORD!', 'DU BIST DIE NUMMER 1'); sfx.level(); flash = 1; flashCol = '255,210,90'; }
+  updateRecHud(false);
+}
+const qualifies = s => s > 0 && (!topList || topList.length < 10 || s > topList[topList.length - 1].score);
+async function submitScore(s, mode, name) {
+  const c = sb(); if (!c || !(s > 0) || s <= submittedBest) return null;
+  submittedBest = s;
+  try {
+    const {data, error} = await c.rpc('blubberbiss_submit', {p_name: cleanName(name) || 'Anonym', p_score: Math.round(s), p_mode: mode, p_token: scoreToken});
+    if (error) throw error;
+    fetchTop();
+    return data;
+  } catch (e) { return null; }
+}
+// Solo: nach dem Spiel eintragen (mit gespeichertem Namen sofort, sonst Namensfeld)
+function overLeaderboard() {
+  $('overRank').hidden = true; $('overEntry').hidden = true;
+  if (!(score > 0) || !qualifies(score)) return;
+  if (mpName) soloSubmit(mpName);
+  else { $('overEntry').hidden = false; $('overName').value = randName(); }
+}
+async function soloSubmit(name) {
+  mpName = cleanName(name) || randName(); try { localStorage.setItem('blubberbiss-name', mpName); } catch (e) {}
+  $('overEntry').hidden = true;
+  const rank = await submitScore(score, 'solo', mpName);
+  if (rank) { $('overRank').hidden = false; $('overRank').innerHTML = `PLATZ <b>${rank}</b> DER BESTENLISTE`; }
+}
+$('overSubmit').addEventListener('click', () => soloSubmit($('overName').value));
+setInterval(() => { if (!document.hidden) fetchTop(); }, 60000);
+fetchTop();
+
+/* ---------- Haie: jagen ab und zu, fliehen vor Grösseren ---------- */
+function sharkDesire(e, hunters, dt) {
+  // 1. Grössere Spieler in der Nähe: abhauen
+  let flee = null, fd = 1e9;
+  for (const o of hunters) {
+    if (o.dead) continue;
+    const scared = o.r >= e.r*1.05 || (o.frz && o.r >= e.r*0.7);
+    const d = Math.hypot(o.x - e.x, o.y - e.y);
+    if (scared && d < 75 + e.r && d < fd) { flee = o; fd = d; }
+  }
+  const sp = e.sp || Math.abs(e.vx) || 30;
+  if (flee) { e.hunt = null; const dx = e.x - flee.x, dy = e.y - flee.y, m = Math.hypot(dx, dy) || 1; e.scared = 1; return {vx: dx/m*sp*1.8, vy: dy/m*sp*1.2}; }
+  e.scared = 0;
+  // 2. Laufende Jagd
+  const h = e.hunt;
+  if (h) {
+    h.t -= dt;
+    const tg = h.ref, gone = !tg || tg.dead || (tg.type === undefined && (tg.air || tg.ship || tg.y < SURF + 4)) || tg.r >= e.r*EAT_RATIO;
+    if (h.t <= 0 || gone) e.hunt = null;
+    else { const dx = tg.x - e.x, dy = tg.y - e.y, m = Math.hypot(dx, dy) || 1; return {vx: dx/m*sp*1.45, vy: dy/m*sp*1.45, tg}; }
+  }
+  // 3. Ab und zu ein neues Opfer suchen
+  e.huntCd = (e.huntCd ?? rnd(1, 3)) - dt;
+  if (e.huntCd <= 0) {
+    e.huntCd = rnd(2.5, 4.5);
+    if (Math.random() < 0.45) {
+      let best = null, bd = 1e9;
+      for (const o of hunters) { if (o.dead || (o === player && state !== 'play') || o.air || o.ship || o.inv > 0 || o.y < SURF + 4 || o.r >= e.r*EAT_RATIO) continue; const d = Math.hypot(o.x - e.x, o.y - e.y); if (d < 130 && d < bd) { best = o; bd = d; } }
+      for (const f of ents) { if (f === e || f.dead || f.type !== 'fish' || f.kind === 'shark' || f.gold || f.r >= e.r*0.7) continue; const d = Math.hypot(f.x - e.x, f.y - e.y); if (d < 100 && d < bd*1.2) { best = f; bd = d; } }
+      if (best) { e.hunt = {ref: best, t: rnd(3, 5)}; e.alarm = 1.2; }
+    }
+  }
+  return {vx: (Math.sign(e.vx) || 1)*sp, vy: 0};
+}
+// Hai frisst einen Fisch, den er erwischt
+function sharkBite(e, tg) {
+  if (!tg || tg.type !== 'fish' || tg.dead) return false;
+  if (Math.hypot(tg.x - e.x, tg.y - e.y) > e.spr.a*0.7 + tg.r*0.5) return false;
+  tg.dead = true; e.hunt = null;
+  burst(tg.x, tg.y, PALS[tg.pal].body, 6); popup(tg.x, tg.y - 6, 'HAPP', '#ffffff');
+  return true;
+}
+function sharkLocal(e, dt) { // Solo
+  const want = sharkDesire(e, [player], dt), k = Math.min(1, dt*2.2);
+  e.vx += (want.vx - e.vx)*k; e.vy = (e.vy || 0) + (want.vy - (e.vy || 0))*k;
+  if (Math.abs(e.vx) > 3) e.dir = e.vx > 0 ? 1 : -1;
+  e.y += e.vy*dt;
+  if (want.tg) sharkBite(e, want.tg);
+  e.alarm = Math.max(0, (e.alarm || 0) - dt);
+}
+// Multiplayer: nur der Host entscheidet und schickt neue Kurse
+function sharkHost(dt, hunters) {
+  const t = nowS();
+  for (const e of ents) {
+    if (e.dead || e.kind !== 'shark' || !e.net) continue;
+    e.thinkT = (e.thinkT || 0) - dt;
+    if (e.thinkT > 0) continue;
+    e.thinkT = 0.4;
+    if (!e.sp) e.sp = Math.abs(e.vx);
+    const want = sharkDesire(e, hunters, 0.4);
+    if (want.tg && sharkBite(e, want.tg)) mpSend('eat', {id: want.tg.id});
+    const nvx = e.vx + (want.vx - e.vx)*0.6, nvy = (e.vy || 0) + (want.vy - (e.vy || 0))*0.6;
+    const a0 = Math.atan2(e.vy || 0, e.vx), a1 = Math.atan2(nvy, nvx), sp0 = Math.hypot(e.vx, e.vy || 0), sp1 = Math.hypot(nvx, nvy);
+    let da = Math.abs(a1 - a0); if (da > Math.PI) da = 2*Math.PI - da;
+    if (da > 0.25 || Math.abs(sp1 - sp0) > sp0*0.25) {
+      const m = {k: 'tr', id: e.id, x0: Math.round(e.x*10)/10, y0: Math.round(e.y*10)/10, vx: Math.round(nvx), vy: Math.round(nvy), t0: t, al: want.tg ? 1 : 0};
+      applyTr(m); mpSend('tr', m);
+    }
+  }
+}
+function applyTr(m) {
+  const e = ents.find(x => x.id === m.id); if (!e || e.dead) return;
+  if (!e.sp) e.sp = Math.abs(e.vx);
+  Object.assign(e, {x0: +m.x0, y0: +m.y0, vx: +m.vx || 1, vy: +m.vy || 0, t0: +m.t0, bobA: 0, ph0: 0});
+  if (m.al) e.alarm = 1.2;
+}
+
 // Testzugang nur mit ?debug in der Adresse
-if (/[?&]debug\b/.test(location.search)) window.__bb = {player, ents, feats, get mp() { return mp; }, get state() { return state; }, get score() { return score; }, get lives() { return lives; }, get SURF() { return SURF; }, get W() { return W; }, hostEmit, nowS, emitFeat, mkBird, ft, fid, keys};
+if (/[?&]debug\b/.test(location.search)) window.__bb = {player, ents, feats, get mp() { return mp; }, get state() { return state; }, get score() { return score; }, get lives() { return lives; }, get SURF() { return SURF; }, get W() { return W; }, hostEmit, nowS, emitFeat, mkBird, ft, fid, keys, spawnFish};
 
 /* ---------- Easter Eggs ---------- */
 let pokes = 0, pokeT = 0, typed = '';

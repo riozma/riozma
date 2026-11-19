@@ -115,3 +115,25 @@ body{background:var(--deep);color:var(--ink);overflow:hidden;touch-action:none;u
 #joy::before{content:'';position:absolute;left:-48px;top:-48px;width:96px;height:96px;border-radius:50%;
   background:rgba(79,216,240,.08);box-shadow:0 0 0 3px rgba(79,216,240,.45)}
 #joyKnob{position:absolute;left:-18px;top:-18px;width:36px;height:36px;border-radius:50%;background:rgba(238,248,255,.55);box-shadow:0 0 0 3px rgba(3,16,31,.6)}
+
+/* ---------- Rekord & Statistik ---------- */
+.rec{font-size:10px;letter-spacing:.14em;color:var(--gold);text-shadow:2px 2px 0 var(--edge);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:min(260px,46vw)}
+.rec.big{margin:0;max-width:none;font-size:clamp(11px,2vw,14px)}
+#stats{justify-content:flex-start;background:rgba(3,12,26,.86);overflow-y:auto;pointer-events:auto}
+.statsbox{display:grid;gap:12px;justify-items:center;width:min(640px,100%);padding-bottom:24px}
+.catch{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;width:100%}
+.ccard{display:grid;grid-template-columns:44px 1fr;align-items:center;gap:8px;padding:8px;background:rgba(12,39,71,.8);box-shadow:0 0 0 2px #1d4a76;text-align:left}
+.ccard canvas{width:44px;height:30px;image-rendering:pixelated}
+.ccard .cn{font-size:10px;letter-spacing:.06em;color:#cfe6ff;line-height:1.3}
+.ccard .cc{font-size:16px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
+.ccard.none{opacity:.45}
+.ccard.none .cc{color:#7f97b6}
+.stotals{font-size:11px;line-height:1.8;letter-spacing:.08em;color:#cfe6ff;text-align:center;max-width:56ch}
+.stotals b{color:var(--gold)}
+.toplist{margin:0;padding:0;list-style:none;width:min(420px,100%);display:grid;gap:4px;counter-reset:r}
+.toplist li{display:grid;grid-template-columns:28px 1fr auto;gap:8px;font-size:12px;letter-spacing:.06em;padding:4px 8px;background:rgba(12,39,71,.6);counter-increment:r}
+.toplist li::before{content:counter(r) '.';color:var(--cyan)}
+.toplist li.me{color:var(--gold)}
+.toplist li span:last-child{font-variant-numeric:tabular-nums}
+.toplist .md{color:#7f97b6;font-size:9px;margin-left:6px}
+.entry{display:grid;gap:8px;justify-items:center;width:min(320px,100%)}
