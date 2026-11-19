@@ -234,7 +234,7 @@ async function updateSitemap(entries) {
   const file = path.join(ROOT, "sitemap.xml");
   let xml = await readFile(file, "utf8");
   xml = xml.replace(/^[ \t]*<url><loc>https:\/\/riozma\.ch\/fpl\/weekly\/[^<]*<\/loc><\/url>[ \t]*\r?\n/gm, "");
-  const urls = [`${SITE}/fpl/weekly/`, `${SITE}/fpl/weekly/concepts/`, `${SITE}/fpl/weekly/glossary/`, ...entries.map((e) => `${SITE}/fpl/weekly/${e.week}/`)];
+  const urls = [`${SITE}/fpl/weekly/`, `${SITE}/fpl/weekly/concepts/`, `${SITE}/fpl/weekly/glossary/`, `${SITE}/fpl/weekly/players/`, ...entries.map((e) => `${SITE}/fpl/weekly/${e.week}/`)];
   const lines = urls.map((u) => `  <url><loc>${u}</loc></url>`).join("\n") + "\n";
   xml = xml.replace(/<\/urlset>/, lines + "</urlset>");
   await writeIfChanged(file, xml);
@@ -247,6 +247,22 @@ async function main() {
   const curFile = path.join(WEEKLY, "curriculum.json");
   const curriculum = await readJson(curFile);
   const conceptIds = new Set(curriculum.concepts.map((c) => c.id));
+
+  // Liste der wichtigen Player (Seite /fpl/weekly/players/): Grundform prüfen, Nennungen rechnet die Seite selbst aus.
+  const players = await readJson(path.join(WEEKLY, "players.json"));
+  const playerIds = new Set();
+  for (const g of players.groups || []) {
+    if (!g.id || !g.title || !Array.isArray(g.players)) fail(`players.json: group ${g.id || "?"} needs id, title and players`);
+    for (const p of g.players || []) {
+      const w = `players.json: ${p.id || "?"}`;
+      if (!p.id || !/^[a-z0-9-]+$/.test(p.id)) fail(`${w}: id must be lowercase letters, digits, hyphens`);
+      if (playerIds.has(p.id)) fail(`${w}: duplicate id`);
+      playerIds.add(p.id);
+      if (!p.name || !p.what || !/^https:\/\//.test(p.url || "")) fail(`${w}: needs name, what and an https url`);
+      if (!Array.isArray(p.aliases) || !p.aliases.length) fail(`${w}: needs at least one alias`);
+      if (p.what && p.what.length > 240) fail(`${w}: 'what' is longer than 240 characters`);
+    }
+  }
 
   const dirs = (await readdir(ISSUES, { withFileTypes: true })).filter((d) => d.isDirectory() && /^\d{4}-\d{2}$/.test(d.name)).map((d) => d.name).sort();
   if (!dirs.length) fail("no issues found in fpl/weekly/issues/");

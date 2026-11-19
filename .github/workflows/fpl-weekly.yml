@@ -9,6 +9,7 @@ on:
       - "fpl/weekly/issues/**"
       - "fpl/weekly/curriculum.json"
       - "fpl/weekly/issue.schema.json"
+      - "fpl/weekly/players.json"
       - "scripts/fpl-weekly-build.mjs"
   workflow_dispatch:
 

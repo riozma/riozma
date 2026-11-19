@@ -1,0 +1,51 @@
+{
+  "updated": "2026-11-18",
+  "note": "Key players FPL Weekly follows every week. Mentions on the page are found automatically: every news item whose title, text or background contains one of a player's names. Names are matched case-sensitively as whole words.",
+  "groups": [
+    {
+      "id": "platforms",
+      "title": "Big software platforms",
+      "lead": "The companies whose software most planning and construction data passes through.",
+      "players": [
+        { "id": "autodesk", "name": "Autodesk", "country": "US", "url": "https://www.autodesk.com/", "aliases": ["Autodesk", "Revit", "AutoCAD", "Civil 3D"], "what": "Maker of Revit, AutoCAD and Civil 3D and of Autodesk Construction Cloud, the most widely used design software in building." },
+        { "id": "bentley", "name": "Bentley Systems", "country": "US", "url": "https://www.bentley.com/", "aliases": ["Bentley", "MicroStation", "iTwin", "Cesium"], "what": "Infrastructure software for roads, rail, bridges and utilities (MicroStation, OpenRoads, iTwin digital twins); owns the 3D geodata platform Cesium." },
+        { "id": "trimble", "name": "Trimble", "country": "US", "url": "https://www.trimble.com/", "aliases": ["Trimble", "Tekla", "SketchUp"], "what": "Surveying instruments, machine control and software such as Tekla, SketchUp and the common data environment Trimble Connect." },
+        { "id": "nemetschek", "name": "Nemetschek Group", "country": "DE", "url": "https://www.nemetschek.com/", "aliases": ["Nemetschek", "Allplan", "Graphisoft", "Archicad", "Bluebeam", "SCIA", "Solibri", "FRILO"], "what": "Munich-based group behind Allplan, Graphisoft (Archicad), Bluebeam, SCIA, FRILO and the model checker Solibri." },
+        { "id": "procore", "name": "Procore", "country": "US", "url": "https://www.procore.com/", "aliases": ["Procore"], "what": "Cloud platform for construction project management: documents, RFIs, change orders, budgets and site reports." },
+        { "id": "hexagon", "name": "Hexagon", "country": "SE", "url": "https://hexagon.com/", "aliases": ["Hexagon", "Leica Geosystems"], "what": "Measurement technology group; its Leica Geosystems brand makes laser scanners and survey instruments used on many sites." }
+      ]
+    },
+    {
+      "id": "structural",
+      "title": "Structural software (DACH)",
+      "lead": "The analysis and design programs that civil engineers in Switzerland, Germany and Austria use every day.",
+      "players": [
+        { "id": "dlubal", "name": "Dlubal Software", "country": "DE", "url": "https://www.dlubal.com/", "aliases": ["Dlubal", "RFEM", "RSTAB"], "what": "Finite-element programs RFEM and RSTAB for the structural analysis and design of buildings and bridges." },
+        { "id": "sofistik", "name": "SOFiSTiK", "country": "DE", "url": "https://www.sofistik.com/", "aliases": ["SOFiSTiK", "Sofistik"], "what": "Finite-element software for bridges and complex structures, with close integration into Revit." },
+        { "id": "cubus", "name": "cubus", "country": "CH", "url": "https://www.cubus.ch/", "aliases": ["cubus", "Cubus", "CEDRUS"], "what": "Zurich-based maker of structural software such as CEDRUS and STATIK, widely used in Swiss engineering offices." }
+      ]
+    },
+    {
+      "id": "knowledge",
+      "title": "AI for project knowledge",
+      "lead": "Young companies that use AI to make a project's documents searchable and answerable.",
+      "players": [
+        { "id": "stoa", "name": "Stoa", "country": "FI", "url": "https://stoabuild.com/", "aliases": ["Stoa", "stoabuild"], "what": "Helsinki start-up whose AI reads a construction project's documents and answers questions with citations to the source." }
+      ]
+    },
+    {
+      "id": "swiss",
+      "title": "Switzerland",
+      "lead": "Standards bodies, research, clients and builders that shape digital construction in Switzerland.",
+      "players": [
+        { "id": "sia", "name": "SIA", "country": "CH", "url": "https://www.sia.ch/", "aliases": ["SIA"], "what": "Swiss society of engineers and architects; publishes the Swiss construction standards and the phase model most projects follow." },
+        { "id": "bauen-digital", "name": "Bauen digital Schweiz / buildingSMART Switzerland", "country": "CH", "url": "https://bauen-digital.ch/", "aliases": ["Bauen digital Schweiz", "buildingSMART Switzerland", "buildingSMART Schweiz"], "what": "The Swiss chapter of buildingSMART; promotes open BIM standards such as IFC and guidelines for digital collaboration." },
+        { "id": "nccr-dfab", "name": "NCCR Digital Fabrication (ETH Zurich)", "country": "CH", "url": "https://dfab.ch/", "aliases": ["NCCR Digital Fabrication", "NFS Digitale Fabrikation", "dfab"], "what": "National research centre led by ETH Zurich on robotics, 3D printing and digital fabrication in architecture and construction." },
+        { "id": "implenia", "name": "Implenia", "country": "CH", "url": "https://implenia.com/", "aliases": ["Implenia"], "what": "Switzerland's largest construction and civil engineering company, also active in Germany, Austria and Scandinavia." },
+        { "id": "bkw", "name": "BKW", "country": "CH", "url": "https://www.bkw.ch/", "aliases": ["BKW"], "what": "Bern-based energy and infrastructure group that has built up one of the largest engineering and planning networks in Europe." },
+        { "id": "sbb", "name": "SBB", "country": "CH", "url": "https://www.sbb.ch/", "aliases": ["SBB", "Swiss Federal Railways"], "what": "Swiss Federal Railways, one of the country's largest clients for construction and owner of a large rail infrastructure." },
+        { "id": "astra", "name": "ASTRA (Federal Roads Office)", "country": "CH", "url": "https://www.astra.admin.ch/", "aliases": ["ASTRA", "Federal Roads Office", "FEDRO"], "what": "Swiss Federal Roads Office; builds, operates and maintains the national motorway network." }
+      ]
+    }
+  ]
+}

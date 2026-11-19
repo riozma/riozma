@@ -68,6 +68,11 @@ nur für die Nische Digitalisierung, KI, Automatisierung und Kreislaufwirtschaft
    Projektwissen mit Quellen festhalten oder KI-Ergebnisse prüfen und freigeben lassen. Neutral wie jeder andere Beitrag schreiben.
    **Beobachtungsliste:** `watchlist.md` nennt Themen, bei denen wir besonders dranbleiben (derzeit MCP-Verbindungen für Bauingenieur-Software
    und KI-Benchmarks für den Bau). Jede Ausgabe prüft sie gezielt, trägt neue Stände dort ein und bringt wesentliche Änderungen als eigenen Beitrag.
+   **Wichtige Player:** `players.json` listet die Firmen und Institutionen, die wir jede Woche verfolgen (grosse Plattformen, Statik-Software
+   DACH, KI für Projektwissen, Schweiz). Jede Ausgabe sucht gezielt nach Neuigkeiten zu jedem Player; eine relevante Meldung wird ein
+   eigener Beitrag (Finanzierungsregel gilt weiter). Die Seite `/fpl/weekly/players/` zeigt die Liste und findet die Beiträge, die einen Player
+   nennen, selbst (ganze Wörter aus `aliases`, Gross-/Kleinschreibung zählt). Neue Player nur nach Rücksprache mit der Moderation aufnehmen;
+   `what` ist ein neutraler Satz ohne Wertung.
 6. **Gegenlesen (Redigat).** Jeden Beitrag noch einmal gegen seine Quelle lesen: Zahlen, Namen, Einheiten, Währung, Datum, Rechtschreibung.
    Doppelte Geschichten streichen, Titel prüfen, Reihenfolge der Beiträge nach Wichtigkeit festlegen (wichtigster zuerst),
    dann `node scripts/fpl-weekly-build.mjs --check`.
