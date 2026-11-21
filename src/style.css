@@ -4441,3 +4441,14 @@ img.werk-image.img-progressive { filter: none; transform: none; }
 .karte-edit input { flex: 1 1 120px; }
 .karte-edit select { flex: 1 1 140px; }
 .karte-edit-toggle { background: none; border: 0; color: #777; cursor: pointer; font-size: 1rem; padding: 0 0.25rem; }
+
+/* Impressum, Datenschutz und Footer-Links */
+.site-legal { margin: 0.35rem 0 0; font-size: 0.8rem; }
+.site-legal a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+body.landing-body .site-legal a { color: #e6f0e3; }
+.legal-main { max-width: 46rem; }
+.legal-main h1 { margin-bottom: 1.25rem; }
+.legal-main h2 { font-size: 1.15rem; margin: 1.75rem 0 0.5rem; }
+.legal-main p, .legal-main li { line-height: 1.6; }
+.legal-main ul { padding-left: 1.25rem; }
+.legal-stand { color: var(--color-text-muted); font-size: 0.85rem; margin-top: 2rem; }
