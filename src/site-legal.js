@@ -10,10 +10,12 @@
 
   if (isProduction && !optOut) {
     var s = document.createElement("script");
-    s.defer = true;
-    s.setAttribute("data-domain", "riozma.ch");
-    s.src = "https://plausible.io/js/script.js";
+    s.async = true;
+    s.src = "https://plausible.io/js/pa-s7yLaYRvgMKr_h2efMXbl.js";
     document.head.appendChild(s);
+    window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments); };
+    window.plausible.init = window.plausible.init || function (i) { window.plausible.o = i || {}; };
+    window.plausible.init();
   }
 
   function addLegalLinks() {
