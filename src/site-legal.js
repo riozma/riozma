@@ -1,21 +1,16 @@
-// Gemeinsam für alle Seiten: Plausible-Statistik (ohne Cookies, ohne persönliche Daten)
+// Gemeinsam für alle Seiten: GoatCounter-Statistik (ohne Cookies, ohne persönliche Daten)
 // und Links zu Impressum und Datenschutz im Footer.
 (function () {
   "use strict";
 
   // Statistik nur auf der echten Seite zählen, nicht lokal oder in Vorschauen.
-  var isProduction = location.hostname === "riozma.ch";
-  var optOut = false;
-  try { optOut = localStorage.getItem("plausible_ignore") === "true"; } catch (e) {}
-
-  if (isProduction && !optOut) {
+  // Eigene Besuche ausschliessen: in der Konsole localStorage.skipgc = "t" setzen.
+  if (location.hostname === "riozma.ch") {
     var s = document.createElement("script");
     s.async = true;
-    s.src = "https://plausible.io/js/pa-s7yLaYRvgMKr_h2efMXbl.js";
+    s.setAttribute("data-goatcounter", "https://riozma.goatcounter.com/count");
+    s.src = "https://gc.zgo.at/count.js";
     document.head.appendChild(s);
-    window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments); };
-    window.plausible.init = window.plausible.init || function (i) { window.plausible.o = i || {}; };
-    window.plausible.init();
   }
 
   function addLegalLinks() {
