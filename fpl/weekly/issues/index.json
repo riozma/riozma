@@ -1,6 +1,25 @@
 {
   "issues": [
     {
+      "week": "2026-48",
+      "issue": 6,
+      "date": "2026-11-23",
+      "title": "Stoa raises money for AI that cites its sources, a London office is built from 78% reused steel",
+      "summary": "Helsinki start-up Stoa raised €3.5M for an AI that answers site questions from a project's documents with a link to the source, and Linarc's assistant Lia now compares drawing revisions and drafts submittal registers. In London, software built on Tekla matched reclaimed beams to a new office frame. Taisei sets up a ¥24bn fund for robotics and AI, PSI demolishes Switzerland's first research reactor building, and a London conference asks who pays for construction robots. Our focus: data formats beyond IFC.",
+      "focus_title": "Data formats beyond IFC: BCF, CityGML, point clouds",
+      "focus_concept_id": "m2-formats",
+      "focus_kind": "concept",
+      "categories": [
+        "market",
+        "tools",
+        "circular",
+        "swiss",
+        "digital",
+        "robotics"
+      ],
+      "news_count": 8
+    },
+    {
       "week": "2026-47",
       "issue": 5,
       "date": "2026-11-16",
