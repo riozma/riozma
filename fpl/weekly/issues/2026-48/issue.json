@@ -1,0 +1,298 @@
+{
+  "issue": 6,
+  "week": "2026-48",
+  "date": "2026-11-23",
+  "covers": {
+    "from": "2026-11-16",
+    "to": "2026-11-22"
+  },
+  "title": "Stoa raises money for AI that cites its sources, a London office is built from 78% reused steel",
+  "summary": "Helsinki start-up Stoa raised €3.5M for an AI that answers site questions from a project's documents with a link to the source, and Linarc's assistant Lia now compares drawing revisions and drafts submittal registers. In London, software built on Tekla matched reclaimed beams to a new office frame. Taisei sets up a ¥24bn fund for robotics and AI, PSI demolishes Switzerland's first research reactor building, and a London conference asks who pays for construction robots. Our focus: data formats beyond IFC.",
+  "generated": {
+    "by": "Claude (Anthropic), scheduled FPL Weekly task",
+    "method": "Web search over news from 16 to 22 November 2026, plus targeted searches for the watchlist topics (MCP connections for engineering software, AI benchmarks for construction) and for each player on our key players list. Then reading the original or best available source for every item. Selection, explanations and summaries are written by AI. Company figures are marked as claims. The Groundworks conference took place on 11 November; the reports used here were published on 17 November. Iconic and Drillbit announced their rounds on 12 and 14 November and were reported in our week; they appear under 'Also funded'. Bentley's MCP servers for STAAD.Pro and SACS (21 October) were found during the watchlist check; they are too old for an item and are recorded on the watchlist.",
+    "created_at": "2026-11-23T09:30:00+01:00"
+  },
+  "news": [
+    {
+      "id": "stoa-pre-seed-project-knowledge",
+      "category": "market",
+      "title": "Stoa raises €3.5M for an AI that answers site questions from drawings, schedules and models, with a citation to the source",
+      "body": "Stoa, a start-up from Helsinki, announced a €3.5 million pre-seed round on 16 November, led by Lifeline Ventures, an early investor in Wolt and Supercell. Illusian (the investment company of the Supercell and Wolt co-founders) and Wave Ventures joined, as did angel investors including former Nokia CEO Pekka Lundmark and, according to Tech Funding News, Tracy Young and Ralph Gootee, the co-founders of the construction app PlanGrid. Stoa's platform brings together a project's drawings, schedules, contracts, building models and quality and safety reports, finds relevant updates and delivers the information to site teams. Answers come with a citation to the original document, 'whether it's a drawing or a schedule or an Excel', co-founder Camilla Komulainen told Tech Funding News; if information is missing, the system says so instead of guessing. CEO Johannes Korpela says each customer gets its own data model, built as a graph of the project's objects and relationships, to limit made-up answers. The team of close to ten works mainly on data centres and other complex projects and, by its own figures, is used on more than 25 Nordic sites, saving engineers and site managers two to eight hours a week. The money goes into product development and expansion to the UK and US.\n\nWhy it matters: the information that prevents most site mistakes usually exists already, says co-founder Taavi Paananen, 'it's just in the wrong system at the wrong time'. Tools like Stoa do not replace those systems; they read across them, and the citation is what lets a site manager check the answer.",
+      "background": "Stoa belongs to a new group of start-ups that put an AI layer over the documents a project already has, instead of asking teams to enter data into yet another app. The approach is often called retrieval: the AI first searches the project files, then answers only from what it found and links to it. The weak points are drawings (reading a sheet correctly is still hard for AI, as recent benchmarks show) and keeping the index current when revisions arrive every day. Two articles on the round differ slightly: Tech.eu speaks of 'tens of construction sites', Tech Funding News of more than 25, and its headline converts the round to $3.9M. Stoa is on our list of key players we follow each week.",
+      "funding_context": {
+        "what": "Software that reads a construction project's drawings, schedules, contracts, BIM models and reports, and answers site teams' questions with a link to the source document. A person stays in the loop.",
+        "size": "Roughly a normal pre-seed for European software (estimate). Small next to US peers: Trunk Tools raised a $40M Series B in July 2025, and Conxai in Munich €5M in April 2026 (figures from Tech Funding News).",
+        "signal": "People who built the first wave of construction apps (PlanGrid was sold to Autodesk for $875M in 2018) now back AI that reads across all of a project's systems. Data centres, with their tight schedules, are the entry market.",
+        "for_us": "Such tools are only as good as the documents they read: clear sheet numbers, revisions and specifications make answers checkable. Being able to verify a cited answer becomes a core planning skill."
+      },
+      "region": "EU",
+      "topics": [
+        "project-knowledge",
+        "ai-assistants",
+        "data-centres",
+        "citations"
+      ],
+      "source_type": "trade",
+      "source_name": "Tech.eu",
+      "source_url": "https://tech.eu/2026/11/16/backed-by-supercell-wolt-and-plangrid-founders-stoa-lands-eur35m-to-bring-ai-to-construction-sites/",
+      "more_sources": [
+        {
+          "name": "Tech Funding News: interview with the founders",
+          "url": "https://techfundingnews.com/stoa-3-5m-pre-seed-ai-construction-data-centres/"
+        },
+        {
+          "name": "Stoa website",
+          "url": "https://stoabuild.com/"
+        }
+      ],
+      "published_at": "2026-11-16",
+      "image_url": "https://cdn.tech.eu/uploads/2026/11/stoa-featured-616.png",
+      "image_credit": "Tech.eu"
+    },
+    {
+      "id": "linarc-lia-documents-with-citations",
+      "category": "tools",
+      "title": "Linarc's AI assistant 'Lia' indexes plan sets, compares revisions and drafts submittal registers, with a confidence level and a source for every item",
+      "body": "Linarc, a construction project management platform with offices in Los Angeles, Austin and Chennai, announced on 17 November that its AI assistant Lia is live in production. Lia does four things: it reads a plan set and builds the sheet index (names, codes, revisions, scales); it compares two versions of a sheet and finds added, removed and changed elements, including changes nobody clouded; it builds the submittal register from the whole specification, not only the sections titled 'Submittals'; and it extracts contract terms such as milestones, liquidated damages, payment terms and retainage. According to the press release, every item comes with a confidence level and a citation that links to the source document. Linarc's own product page adds that Lia leaves a field empty if it cannot point to a page, and that 'nothing saves until you approve'. From a revision comparison, a user can raise a pre-filled RFI with one click. Procurement workflows based on the specification are in quality assurance, AI scheduling is in development. Linarc gives no accuracy figures or prices, and we found no connector for outside AI assistants.\n\nWhy it matters: comparing revisions and building submittal logs are tedious tasks where missed details cost money later. The design choice to show a source and a confidence for each field, and to save nothing without approval, is becoming the standard pattern for AI in project documents.",
+      "background": "In US construction, a 'submittal' is a document a contractor must send for approval before installing something: product data, shop drawings, samples. The submittal register lists every required submittal, and building it from a long specification is usually manual work. An RFI (request for information) is a formal question from the contractor to the design team. 'Clouding' means marking changed areas on a revised drawing with a cloud-shaped line; unclouded changes are a classic source of errors. Linarc sells modules for scheduling, cost, RFIs and submittals and pay applications, mainly to commercial contractors.",
+      "region": "US",
+      "topics": [
+        "ai-assistants",
+        "drawings",
+        "submittals",
+        "citations"
+      ],
+      "source_type": "primary",
+      "source_name": "Linarc",
+      "source_url": "https://www.linarc.com/lia",
+      "more_sources": [
+        {
+          "name": "Press release (GlobeNewswire, via The Manila Times)",
+          "url": "https://www.manilatimes.net/2026/11/17/tmt-newswire/globenewswire/linarc-introduces-lia-an-ai-assistant-that-turns-construction-documents-into-actionable-project-intelligence-from-day-one/2472062"
+        },
+        {
+          "name": "Construction Industry AI: review of the launch",
+          "url": "https://www.constructionindustry.ai/product/linarc-lia-plan-sets-submittals-contract-intelligence-confidence-citations/"
+        }
+      ],
+      "published_at": "2026-11-17",
+      "image_url": "https://www.constructionindustry.ai/images/articles/linarc-lia-plan-set-drafting-tools.jpg",
+      "image_credit": "Construction Industry AI"
+    },
+    {
+      "id": "william-hare-30-duke-street-steel-reuse",
+      "category": "circular",
+      "title": "London office reuses about 78% of its steel frame, matched to the new design by software built on Tekla",
+      "body": "At 30 Duke Street in St James's, London, about 78% of the structural steel frame comes from reclaimed members, which Construction Briefing calls the UK's largest commercial office steel reuse scheme. The developer is GPE, the main contractor Mace, and the steelwork contractor William Hare fabricated, supplied and erected the frame. The steel came from several sources, including the demolished City Place House in London. To make this work at scale, William Hare built its own programming interface (API) on Trimble's Tekla Structures. The system catalogued every reclaimed member with its existing holes, cleats and defects and then matched members automatically to positions in the new design, avoiding clashes with the old features; in some cases one reclaimed section produced three or four new pieces. Engineers refined the results where needed. Digital material passports with steel grades, testing dates and the origin of each component were stored in the Tekla model. The estimated embodied carbon saving is 744 tonnes of CO2. 'You really need to maximise automation where possible, otherwise it's so labour intensive', said Jonathan Davis, preconstruction technical director at William Hare.\n\nWhy it matters: reusing steel is not limited by the steel but by the paperwork and the matching. Software that treats a stock of used beams like an inventory turns a craft exercise into something a contractor can do on a whole building.",
+      "background": "Reclaimed steel beams are rarely 'clean': they have holes, welded plates and cut ends from their first life, and each one is a slightly different length. Matching a stock of such members to a new design is a combinatorial puzzle that is slow by hand. Tekla Structures is a widely used program for detailing steel and concrete structures, from Trimble. Its API lets companies write their own tools that read and change the model. Material passports record what a component is made of and where it came from, so that it can be checked and reused again later.",
+      "region": "UK",
+      "topics": [
+        "steel-reuse",
+        "material-passports",
+        "automation",
+        "tekla"
+      ],
+      "source_type": "trade",
+      "source_name": "Construction Briefing",
+      "source_url": "https://www.constructionbriefing.com/news/digital-tools-enable-large-scale-steel-reuse-on-london-project/8137154.article",
+      "published_at": "2026-11-19",
+      "image_url": "https://www.constructionbriefing.com/Images/1260x628/20261119-094512-30-Duke-Street--Reuse.jpg",
+      "image_credit": "Mace, via Construction Briefing"
+    },
+    {
+      "id": "taisei-cvc-fund-ai-robotics",
+      "category": "market",
+      "title": "Japanese contractor Taisei sets up a ¥24bn venture fund for AI, robotics and digital-twin start-ups worldwide",
+      "body": "Taisei, one of Japan's five largest general contractors, will invest about ¥24 billion (US$150 million) in start-ups through a new corporate venture fund, announced on 16 November. The fund runs for ten years, from November 2026 to November 2036. It is managed by a company set up by Pegasus Tech Ventures, a venture firm from San Jose that runs funds for corporations; Taisei is the limited partner that provides the money. The fund will look worldwide for start-ups with advanced technology in AI, robotics and digital twins, or with new business models. Taisei names three aims: keep its existing businesses competitive, make operations more efficient and create new businesses. The release names no target companies, ticket sizes or sector split. According to Pegasus, Taisei's is its sixth corporate fund this year; others include AISIN (US$100M) and the online retailer Japanet (US$200M).\n\nWhy it matters: Japanese contractors face a shrinking workforce and have long tested robots on their own sites. With a fund of this size, Taisei becomes a buyer and investor for start-ups well beyond Japan.",
+      "background": "A corporate venture capital (CVC) fund invests a company's money in start-ups, usually to get early access to technology that fits its business. Outsourcing the management, as Taisei does, is common for companies without their own investment team: the manager (general partner) finds and evaluates start-ups, the corporation (limited partner) provides the capital. Taisei was founded in 1873 and is based in Tokyo. Japan's large contractors, sometimes called 'super general contractors', have tested robots and automation on their own sites for years.",
+      "funding_context": {
+        "what": "Not a start-up round but a ten-year fund of about ¥24bn (US$150M) that a contractor gives to an outside manager to invest in AI, robotics and digital-twin start-ups worldwide.",
+        "size": "Large for one contractor's fund. Comparable to the corporate funds Pegasus set up this year for AISIN (US$100M) and Japanet (US$200M). Spread over ten years, roughly US$15M a year (estimate).",
+        "signal": "Large contractors are moving from in-house development to buying access to outside technology, and the labour shortage is driving it. Robotics and digital twins are where they expect the payoff.",
+        "for_us": "More corporate money for construction robotics and digital twins means more pilots and buyers for start-ups, also European ones (estimate). Japan remains a market to watch for robots that actually reach sites."
+      },
+      "region": "Asia",
+      "topics": [
+        "venture-capital",
+        "robotics",
+        "digital-twin",
+        "labour-shortage"
+      ],
+      "source_type": "primary",
+      "source_name": "Pegasus Tech Ventures (PR Times, Japanese)",
+      "source_url": "https://prtimes.jp/main/html/rd/p/000000242.000044738.html",
+      "more_sources": [
+        {
+          "name": "Construction Industry AI: Taisei's ¥24bn fund",
+          "url": "https://www.constructionindustry.ai/funding/taisei-24bn-yen-cvc-fund-pegasus-tech-ventures-ai-robotics/"
+        }
+      ],
+      "published_at": "2026-11-16",
+      "image_url": "https://www.constructionindustry.ai/images/articles/taisei-tower-cranes-dusk.jpg",
+      "image_credit": "Construction Industry AI"
+    },
+    {
+      "id": "psi-saphir-reactor-dismantling",
+      "category": "swiss",
+      "title": "Switzerland's first research reactor building comes down: 180,000 measuring points before the excavators could start",
+      "body": "The Paul Scherrer Institute (PSI) in Würenlingen AG is demolishing the building of Saphir, Switzerland's first research reactor, PSI announced on 17 November. Saphir first started on 30 April 1957 and ran until the end of 1993. Since then it has been dismantled step by step: the application for decommissioning was filed in 1998, work began in 2002, and by 2008 the reactor internals, underwater installations and the pool, which once held about 200,000 litres of water around the core, were largely removed. Before the building could be released as conventional, every surface was measured for radiation: about 180,000 measuring points and 6,000 hours of measuring time, roughly 250 days of pure measuring at about two minutes per square metre. Where activation of the concrete was suspected, material was removed and measured again. 'From this point the building can be demolished like a conventional building', says Sabine Mayer, head of radiation protection and safety at PSI. The remaining material is mostly concrete. Plant manager Sophie Harzmann expects a green field in three months. Saphir serves as a pilot for dismantling PSI's larger Diorit reactor, where more automated surveying is planned. PSI gives no figures on cost or material quantities.\n\nWhy it matters: a demolition is only as fast as the proof that the material is clean. Here, systematic measurement of every square metre was the critical path, and the plan to automate it for the next reactor shows where the effort lies.",
+      "background": "The Paul Scherrer Institute is the largest research institute for natural and engineering sciences in Switzerland and part of the ETH Domain. A research reactor produces neutrons for experiments and isotopes, not electricity. Nuclear facilities in Switzerland are supervised by ENSI (formerly HSK). 'Free release' means that material has been measured and found below legal limits, so it can be treated like ordinary construction waste. PSI is exchanging experience with other operators, including the Mühleberg nuclear power plant, which is being decommissioned near Bern.",
+      "region": "CH",
+      "topics": [
+        "dismantling",
+        "decommissioning",
+        "measurement",
+        "research"
+      ],
+      "source_type": "primary",
+      "source_name": "Paul Scherrer Institut",
+      "source_url": "https://www.psi.ch/de/news/medienmitteilungen/ein-stueck-schweizer-reaktorgeschichte-geht-zu-ende",
+      "more_sources": [
+        {
+          "name": "Baublatt: Saphir-Rückbau am PSI",
+          "url": "https://www.baublatt.ch/bauprojekte/saphir-rueckbau-am-psi-der-erste-forschungsreaktor-der-schweiz-verschwindet-39905"
+        }
+      ],
+      "published_at": "2026-11-17",
+      "image_url": "https://www.psi.ch/sites/default/files/styles/primer_og_image/public/2026-11/20260819_saphir_rueckbau_0065.jpg.webp?itok=kbVvbXtm",
+      "image_credit": "Paul Scherrer Institut"
+    },
+    {
+      "id": "cornell-pentimento-building-drift",
+      "category": "digital",
+      "title": "Cornell tool records how builders adapt reclaimed materials on site, and shows the gap to the plan in 3D",
+      "body": "Researchers at Cornell Tech and Cornell's computing faculty have built Pentimento, a tool that documents how a structure made of reclaimed materials drifts away from its plan during construction, Cornell reported on 17 November. Builders wear smart glasses that record video and speech while they work. The footage is uploaded to a web interface; software estimates where each camera was (structure from motion, here with the open-source tool COLMAP) and creates a 3D reconstruction (a Gaussian splat) that is laid over the 3D model of the design and can be viewed in a browser. The team tested it on ReShelter, a pavilion of reclaimed materials near Hvalsø, west of Copenhagen, built with the Royal Danish Academy's CITA in winter and spring 2026. They identify five causes of 'building drift': weather and site conditions, material and tool limits, the hidden history of used materials, imperfect tools, and gaps in knowledge between the people involved. The paper won the Best Paper Award at the ACADIA conference in Detroit in October. 'The challenge is that you have an imperfect reflection of how the materials were used in previous buildings', says lead author Ritik Batra.\n\nWhy it matters: with reused materials, the as-built never matches the design exactly. Recording why it changed is what the next reuser, and any digital twin, will need.",
+      "background": "Pentimento is a term from painting: traces of an earlier version that show through the final picture. A Gaussian splat is a recent way to reconstruct a scene in 3D from ordinary photos or video, rendering it as millions of small, soft colour blobs; it looks realistic and can be viewed in a browser, but unlike a model it has no objects. Structure from motion is the older technique that works out camera positions from overlapping images. ACADIA is the Association for Computer Aided Design in Architecture, a North American research conference. The focus of this issue explains point clouds and how they relate to models.",
+      "region": "US",
+      "topics": [
+        "reuse",
+        "as-built",
+        "reality-capture",
+        "research"
+      ],
+      "source_type": "primary",
+      "source_name": "Cornell Chronicle",
+      "source_url": "https://news.cornell.edu/stories/2026/11/tracking-flaws-used-building-materials-facilitates-reuse",
+      "published_at": "2026-11-17",
+      "image_url": "https://news.cornell.edu/sites/default/files/styles/story_thumbnail_lg/public/2026-11/teaser.jpg?itok=aubVhdhU",
+      "image_credit": "Cornell University"
+    },
+    {
+      "id": "groundworks-construction-robotics-london",
+      "category": "robotics",
+      "title": "At London's first construction robotics conference: a bricklaying robot at 800 bricks a day, and the question of who pays for it",
+      "body": "The first Groundworks conference on construction robotics took place on 11 November at UCL Here East in London, with talks, panels and live demonstrations; Robotics & Automation News published two reports on 17 November. Salar Al Khafaji, founder of the Dutch company Monumental, said its bricklaying robot places 800 bricks a day, about twice what an average human bricklayer manages, and called humanoid robots 'overhyped, especially for this sector'. Flo Mobility from India showed self-driving vehicles that carry material on site, rented from around £1,000 to £1,500 a month. Hyperion Robotics presented robotic 3D printing of concrete elements to order, and Mechasys from Canada a layout system that projects the plan onto the site. Steve Davies of the UK specialist contractor Beton Bauen said productivity in construction has risen about 1%; Mingyu Zhu of the architects Scott Brownrigg answered that it is 'probably closer to zero'. A panel titled 'Who Pays for the Robot?' brought together Monumental, Mace and the UK Department for Business and Trade. Speakers named three conditions for wider use: plan tasks for automation early in design, give the supply chain a business case to invest, and build trust with evidence from real projects.\n\nWhy it matters: the technology is no longer the main question. Who plans for it, who buys it and who carries the risk on a site that changes every day decides whether robots leave the demo stage.",
+      "background": "Robots on building sites so far work best on narrow, repetitive tasks: marking the layout on the floor, drilling ceilings, tying rebar, laying bricks or blocks along a straight wall. Each needs a site that is prepared for it, which is why speakers stressed planning for automation during design. The productivity figures quoted are rough statements by speakers, not measured data, but they echo studies showing construction productivity has barely grown for decades while manufacturing has. The conference took place during a slowdown in London development, which one report saw as a good moment for trials.",
+      "region": "UK",
+      "topics": [
+        "site-robotics",
+        "bricklaying",
+        "adoption",
+        "productivity"
+      ],
+      "source_type": "trade",
+      "source_name": "Robotics & Automation News",
+      "source_url": "https://roboticsandautomationnews.com/2026/11/17/conference-report-construction-industry-on-the-verge-of-a-robotics-revolution/107197/",
+      "more_sources": [
+        {
+          "name": "Robotics & Automation News: Groundworks calls for faster adoption",
+          "url": "https://roboticsandautomationnews.com/2026/11/17/groundworks-2026-calls-for-faster-adoption-of-construction-robotics-in-uk/107231/"
+        }
+      ],
+      "published_at": "2026-11-17",
+      "image_url": "https://roboticsandautomationnews.com/wp-content/uploads/2026/11/groundworks-audience-1.jpg",
+      "image_credit": "Robotics & Automation News"
+    },
+    {
+      "id": "volvo-ce-trimble-earthworks-integrated",
+      "category": "robotics",
+      "title": "Volvo CE builds Trimble's excavator guidance directly into its cab display, without extra hardware",
+      "body": "Volvo Construction Equipment and Trimble have developed a fully integrated machine control system for excavators, Construction Briefing reported on 19 November. Trimble Earthworks, a grade control platform that guides the operator to the design surface, will run directly on the Volvo Co-Pilot touchscreen of selected F-series excavators from the first quarter of 2027. Until now, such systems typically need their own display and control boxes in the cab. Volvo says the integration removes the extra in-cab hardware, speeds up daily software management and simplifies support. The system works with 3D design models, gives real-time guidance and connects the machine with the office. It builds on earlier work that linked Trimble Earthworks with Volvo's own Dig Assist. 'Integrating Trimble Earthworks directly into our excavators and Co-Pilot gives users clear guidance right from the cab', said Matthew McLean, product manager at Volvo CE. The companies give no prices, models or markets.\n\nWhy it matters: machine control is the most widespread form of automation on sites today. When it moves from an add-on into the machine itself, 3D design data becomes something the excavator reads directly, which raises the stakes for clean, correct models of the terrain.",
+      "background": "Machine control (or grade control) uses GNSS positioning and sensors on the boom and bucket to show the operator, or in some systems to control directly, where to dig relative to a 3D design surface. It replaces much of the staking out by surveyors. Trimble, Topcon and Leica Geosystems (Hexagon) are the main suppliers; the systems are usually retrofitted to machines of any brand. Trimble is on our list of key players.",
+      "region": "Global",
+      "topics": [
+        "machine-control",
+        "excavators",
+        "3d-models",
+        "earthworks"
+      ],
+      "source_type": "trade",
+      "source_name": "Construction Briefing",
+      "source_url": "https://www.constructionbriefing.com/news/volvo-ce-and-trimble-eliminate-extra-hardware-in-new-excavator-tie-up/8137196.article",
+      "published_at": "2026-11-19",
+      "image_url": "https://www.constructionbriefing.com/Images/1260x628/20261119-153802-volvocetrimblereleasefinal012324x1200.jpg",
+      "image_credit": "Volvo CE / Trimble, via Construction Briefing"
+    }
+  ],
+  "also_funded": [
+    {
+      "name": "Promise Robotics",
+      "amount": "CAD 40M Series B (17 Nov)",
+      "what": "Robotic factories that prefabricate homes from builders' own designs",
+      "url": "https://www.prnewswire.com/news-releases/promise-robotics-raises-40-million-cad-series-b-to-scale-the-production-infrastructure-powering-homebuilding-302941746.html"
+    },
+    {
+      "name": "Iconic",
+      "amount": "USD 10M seed (12 Nov)",
+      "what": "AI that cross-checks design and contract documents of megaprojects",
+      "url": "https://www.iconic.works/seed"
+    },
+    {
+      "name": "Drillbit",
+      "amount": "USD 4.4M seed (14 Nov)",
+      "what": "AI office worker for residential trades: calls, quotes, scheduling",
+      "url": "https://dealroom.co/news/172736-drillbit-raises-4-4m-to-put-ai-office-workers-inside-home-services-firms/"
+    }
+  ],
+  "focus": {
+    "title": "Data formats beyond IFC: BCF, CityGML, point clouds",
+    "subtitle": "Module 2 · Concept 1: the open formats for issues, city context and measured reality, and how they connect to the building model",
+    "kind": "concept",
+    "concept_id": "m2-formats",
+    "file": "focus.html",
+    "glossary": [
+      {
+        "term": "BCF (BIM Collaboration Format)",
+        "definition": "An open buildingSMART format for issues about a model: comment, status, screenshot, camera view and the IDs of the elements concerned. Exchanged as a file (.bcfzip) or through the BCF API."
+      },
+      {
+        "term": "GlobalId",
+        "definition": "The unique identifier of an element in an IFC model. BCF issues and many checks refer to elements by this ID, so it should stay stable between exports."
+      },
+      {
+        "term": "CityGML",
+        "definition": "An Open Geospatial Consortium (OGC) standard for 3D city models with buildings, roads, vegetation and terrain at several levels of detail."
+      },
+      {
+        "term": "3D Tiles",
+        "definition": "An OGC community standard, developed by Cesium, for streaming very large 3D datasets such as city models and point clouds in tiles, for example in a web browser."
+      },
+      {
+        "term": "Point cloud (E57, LAS/LAZ)",
+        "definition": "Millions of measured points from laser scanning or photogrammetry. E57 is the common open exchange format for scanner data, LAS and the compressed LAZ come from airborne laser scanning."
+      }
+    ],
+    "further_reading": [
+      {
+        "title": "buildingSMART International: BIM Collaboration Format (BCF)",
+        "url": "https://technical.buildingsmart.org/standards/bcf/"
+      },
+      {
+        "title": "Open Geospatial Consortium: CityGML",
+        "url": "https://www.ogc.org/standard/citygml/"
+      }
+    ]
+  },
+  "question": {
+    "text": "Besides the model itself, which project data do you find hardest to exchange?",
+    "options": [
+      "Issues and comments on the model",
+      "Scans and point clouds of existing buildings",
+      "Terrain and city context",
+      "Specifications and contract documents",
+      "I have not exchanged project data yet"
+    ]
+  },
+  "whatsapp_teaser": "🏗️ *FPL Weekly #6* is out!\nStoa raises €3.5M for an AI that answers site questions with a link to the source, a London office is built from 78% reused steel, and Taisei launches a ¥24bn fund for construction robotics and AI.\n🔍 Focus: data formats beyond IFC (BCF, CityGML, point clouds), with an interactive format picker.\n👉 https://riozma.ch/fpl/weekly/2026-48/"
+}

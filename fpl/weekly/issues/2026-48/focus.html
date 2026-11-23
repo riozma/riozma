@@ -1,0 +1,130 @@
+<!-- FPL Weekly 2026-48 · Focus: Data formats beyond IFC. Fragment, wird vom Renderer in .fplw-focus eingesetzt. -->
+<style>
+  .fplw-focus .f-lead { font-size: 1.1rem; }
+  .fplw-focus figure { margin: 28px 0; }
+  .fplw-focus figcaption { font-size: .85rem; opacity: .75; margin-top: 6px; }
+  .fplw-focus svg { width: 100%; height: auto; display: block; }
+  .fplw-focus .f-box { border: 2px solid var(--blue, #536a89); border-radius: 10px; padding: 16px; margin: 28px 0; }
+  .fplw-focus .f-box h4 { margin: 0 0 10px; }
+  .fplw-focus .f-pick { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .fplw-focus .f-pick button { font: inherit; font-size: .88rem; padding: 6px 10px; border: 1px solid var(--line, #d9dfe7); border-radius: 999px; background: var(--soft, #e8edf3); color: var(--ink, #1d2733); cursor: pointer; text-align: left; }
+  .fplw-focus .f-pick button[aria-pressed="true"] { background: var(--blue, #536a89); color: #fff; border-color: var(--blue, #536a89); }
+  .fplw-focus .f-ans { display: grid; gap: 6px; }
+  .fplw-focus .f-ans div { padding: 8px 10px; border-radius: 6px; background: var(--soft, #e8edf3); font-size: .92rem; }
+  .fplw-focus .f-ans b { display: block; margin-bottom: 2px; }
+  .fplw-focus .f-ans .f-no { background: #fbeceb; }
+  .fplw-focus .f-small { font-size: .8rem; opacity: .75; }
+  .fplw-focus table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  .fplw-focus th, .fplw-focus td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line, #d9dfe7); vertical-align: top; }
+  .fplw-focus .f-tw { overflow-x: auto; }
+</style>
+
+<p class="f-lead">Last week's focus was IFC, the open format for building models. But a project exchanges far more than models: lists of problems, the city around the plot, scans of what is already there. Each of these has its own open format, and knowing which one fits saves a lot of conversion pain. This week Stoa, a Helsinki start-up, raised money for an AI that reads drawings, schedules and models together; tools like that only work if the data underneath is in formats a machine can open.</p>
+
+<h3>Four layers of project data</h3>
+<p>It helps to think of four layers. IFC describes the designed building. Next to it sit the issues people raise about the design, the existing reality captured by scanners, and the city and terrain the building sits in. Each layer has an open standard:</p>
+
+<figure>
+  <svg viewBox="0 0 640 300" role="img" aria-label="Four layers of project data: city model, building model, issues, and reality capture, with their formats">
+    <defs>
+      <marker id="fw48-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#536a89"/></marker>
+    </defs>
+    <g font-size="15" fill="#1d2733">
+      <rect x="10" y="12" width="620" height="62" rx="10" fill="#e8edf3" stroke="#536a89"/>
+      <text x="26" y="38" font-weight="700">City and terrain</text>
+      <text x="26" y="60">CityGML, 3D Tiles · buildings as blocks, roofs, terrain</text>
+
+      <rect x="10" y="90" width="380" height="110" rx="10" fill="#536a89"/>
+      <text x="26" y="118" fill="#fff" font-weight="700">Designed building</text>
+      <text x="26" y="142" fill="#fff">IFC · walls, slabs, properties,</text>
+      <text x="26" y="164" fill="#fff">each element with a unique ID</text>
+      <text x="26" y="186" fill="#fff">(GlobalId)</text>
+
+      <rect x="420" y="90" width="210" height="110" rx="10" fill="#fff" stroke="#d68d00" stroke-width="2"/>
+      <text x="436" y="118" font-weight="700">Issues</text>
+      <text x="436" y="142">BCF · comment,</text>
+      <text x="436" y="164">camera view, the IDs</text>
+      <text x="436" y="186">of affected elements</text>
+
+      <rect x="10" y="216" width="620" height="70" rx="10" fill="#e8edf3" stroke="#536a89"/>
+      <text x="26" y="244" font-weight="700">Existing reality</text>
+      <text x="26" y="266">Point clouds: E57, LAS/LAZ · millions of measured points, no objects</text>
+    </g>
+    <g stroke="#d68d00" stroke-width="2.5" marker-end="url(#fw48-a)"><path d="M418 160 H396"/></g>
+  </svg>
+  <figcaption>The building model sits between the city above and the measured reality below. BCF does not carry a model at all: it points at elements of the IFC model by their IDs.</figcaption>
+</figure>
+
+<h3>BCF: the issue, not the model</h3>
+<p>The BIM Collaboration Format, also maintained by buildingSMART, carries comments about a model. A BCF "topic" holds a title, a status, who it is assigned to, comments, a screenshot and a saved camera view. Most importantly it lists the IDs of the elements concerned. When an engineer opens the topic in a different program, that program zooms to the same spot and highlights the same beam, because both programs read the same IFC IDs.</p>
+<p>BCF exists as a file (a zipped <code>.bcfzip</code> with small XML files) and as a web interface, the BCF API, through which platforms exchange issues directly. It is what clash detection and model checking tools export, and it is the reason a clash found in Solibri can show up in Revit or Archicad. The catch: if a model is re-exported and the element IDs change, the old issues point at nothing.</p>
+
+<h3>CityGML and 3D Tiles: the building in its context</h3>
+<p>CityGML is a standard of the Open Geospatial Consortium (OGC) for 3D city models. It describes buildings, roads, vegetation and terrain at different levels of detail, from a simple block to a building with detailed roof shapes. City and national mapping agencies use it, and in Switzerland swisstopo offers a 3D model of all buildings, swissBUILDINGS3D, as open data. Planners use such models for shadow studies, views, noise and the first volume study in a competition.</p>
+<p>Where CityGML is about meaning (this is a roof, this is a wall), <strong>3D Tiles</strong>, also an OGC community standard and developed by Cesium, is about streaming: it cuts huge 3D datasets into tiles so that a browser can show a whole city or a scanned site smoothly. That is the platform Bentley bought, which featured in issue #5.</p>
+
+<h3>Point clouds: measured, but not yet understood</h3>
+<p>Laser scanners and photogrammetry produce point clouds: millions of points with coordinates and often colour. <strong>E57</strong> (an ASTM standard) is the common open exchange format for scanner data; <strong>LAS</strong> and its compressed form <strong>LAZ</strong> come from airborne laser scanning and are used, for example, for swisstopo's national surface model swissSURFACE3D. A point cloud is precise but "dumb": it has no walls or pipes, only points. Turning it into a model ("scan to BIM") is still a lot of manual work, which is why so many start-ups try to automate it.</p>
+
+<div class="f-box" data-widget="fmtpick">
+  <h4>Which format for which job?</h4>
+  <p class="f-small" style="margin-top:0">Pick a task to see the usual choice, and a common mistake.</p>
+  <div class="f-pick" role="group" aria-label="Task"></div>
+  <div class="f-ans" aria-live="polite"></div>
+  <p class="f-small">Simplified. Projects agree their formats and versions in the BIM execution plan.</p>
+</div>
+
+<script>
+(function () {
+  var root = document.currentScript ? document.currentScript.previousElementSibling : null;
+  if (!root || root.getAttribute('data-widget') !== 'fmtpick') root = document.querySelector('.fplw-focus [data-widget="fmtpick"]');
+  if (!root) return;
+  var tasks = [
+    { n: 'Report a clash to the engineer', f: 'BCF', why: 'Carries the comment, a screenshot, the camera view and the IDs of the two clashing elements, and it works across programs.', no: 'A PDF with a screenshot: the engineer has to find the spot by hand, and the status cannot be tracked.' },
+    { n: 'Hand over the structural model for coordination', f: 'IFC (agreed version and view)', why: 'The open format for the designed elements, with classes and properties others can check.', no: 'The native file of your program: the receiver may not have it, and nothing is checked.' },
+    { n: 'Survey an existing building before renovation', f: 'Point cloud (E57) plus a model built from it', why: 'E57 keeps the scanner data open and readable by most programs; the model is drawn on top for planning.', no: 'Assuming the old drawings are right: walls are rarely where the archive plans say.' },
+    { n: 'Show a new building in its neighbourhood', f: 'CityGML (e.g. swissBUILDINGS3D) plus your IFC', why: 'The city model gives the surrounding buildings and terrain for shadow and view studies.', no: 'Modelling the neighbours by hand from photos.' },
+    { n: 'Show a whole site or city in a browser', f: '3D Tiles', why: 'Streams huge models and point clouds in tiles, so a normal laptop can display them.', no: 'Sending a multi-gigabyte point cloud by file transfer to every participant.' },
+    { n: 'Give an AI assistant the project context', f: 'Open formats with stable IDs: IFC, BCF, documents as text', why: 'An AI can only cite and check what it can open and link: an issue in BCF points to an element in IFC, which points to a document.', no: 'Screenshots and scanned PDFs: readable for people, but hard to link and check.' }
+  ];
+  var pick = root.querySelector('.f-pick'), ans = root.querySelector('.f-ans');
+  var cur = 0;
+  var btns = tasks.map(function (t, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = t.n;
+    b.addEventListener('click', function () { cur = i; render(); });
+    pick.appendChild(b);
+    return b;
+  });
+  function box(cls, title, text) {
+    var d = document.createElement('div'); if (cls) d.className = cls;
+    var b = document.createElement('b'); b.textContent = title;
+    d.appendChild(b); d.appendChild(document.createTextNode(text));
+    return d;
+  }
+  function render() {
+    var t = tasks[cur];
+    btns.forEach(function (b, j) { b.setAttribute('aria-pressed', j === cur ? 'true' : 'false'); });
+    ans.textContent = '';
+    ans.appendChild(box('', 'Usual choice: ' + t.f, t.why));
+    ans.appendChild(box('f-no', 'Common mistake', t.no));
+  }
+  render();
+})();
+</script>
+
+<h3>Side by side</h3>
+<div class="f-tw">
+<table>
+  <tr><th>Format</th><th>Carries</th><th>Maintained by</th><th>Typical use</th></tr>
+  <tr><td>IFC</td><td>Designed elements with properties</td><td>buildingSMART (ISO 16739)</td><td>Coordination, checking, handover</td></tr>
+  <tr><td>BCF</td><td>Issues pointing at model elements</td><td>buildingSMART</td><td>Clashes, review comments</td></tr>
+  <tr><td>CityGML</td><td>City objects with meaning, levels of detail</td><td>OGC</td><td>Context, urban planning, analyses</td></tr>
+  <tr><td>3D Tiles</td><td>Streamable 3D content</td><td>OGC community standard (Cesium)</td><td>Web viewers, digital twins</td></tr>
+  <tr><td>E57, LAS/LAZ</td><td>Measured points</td><td>ASTM; ASPRS</td><td>Existing buildings, terrain, progress checks</td></tr>
+</table>
+</div>
+
+<h3>What it means for us as future planners</h3>
+<p>The formats only work together through shared references: element IDs that stay stable between exports, and coordinates that put the building in the right place in the city model and on the point cloud. Getting those two things right is unglamorous, but it decides whether a clash list, a scan and a city model can be combined, by people or by an AI. When you join a project, ask early which formats are agreed and who keeps the IDs stable.</p>
+<p><strong>Next in Module 2:</strong> Model checking and clash detection: how rules find problems in a model before the site does.</p>

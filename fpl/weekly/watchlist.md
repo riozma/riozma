@@ -15,7 +15,7 @@ Koordination und Prüfung (Bluebeam, Solibri, Navisworks), Datenstandards (IFC, 
 **Wesentlich ist:** ein neuer offizieller Server für ein Statik- oder Bemessungsprogramm, der Schritt von «nur lesen» zu «schreiben»,
 Beta zu allgemein verfügbar, eine Verbindung über mehrere Hersteller hinweg, neue Bedingungen (Lizenz, Preis, nur eigener Assistent).
 
-**Stand (zuletzt geprüft 2026-11-16):**
+**Stand (zuletzt geprüft 2026-11-23):**
 
 | Programm | Stand | Quelle |
 |---|---|---|
@@ -26,11 +26,14 @@ Beta zu allgemein verfügbar, eine Verbindung über mehrere Hersteller hinweg, n
 | SCIA, FRILO, RISA, SDS2 | KI-Funktionen in Allplan Max 2027, kein eigener MCP-Server bekannt | Nemetschek, 29.10.2026 |
 | Bluebeam | MCP in Bluebeam Max seit Mai 2026 | dto. |
 | MicroStation (Bentley) | Early Access für ausgewählte Kunden | Internet für Architekten |
+| STAAD.Pro, STAAD Foundation Advanced, SACS (Bentley) | MCP-Server mit Schreibzugriff (Modell erstellen und ändern, Lasten, Berechnung starten); SACS als Tech Preview, «geplanter Rollout»; Zugang auf Anfrage; Code openstaad-mcp auf GitHub. Erster offizieller Server für ein Statikprogramm auf der Liste, aber schon seit 21.10.2026, in #6 nur hier vermerkt | bentley.com Blog 21.10.2026, bentley.com/en/infrastructure-ai/mcp-servers |
 | Rhino / Grasshopper | McNeel Rhino MCP Platform | dto. |
 | Tekla Structures, Vectorworks, BricsCAD | kein offizieller Server, nur Community | dto. |
 | Dlubal RFEM 6, RSTAB 9, RSECTION | Paket «dlubal-mcp» auf PyPI (1.0.27 vom 11.11.2026), Konto «dlubal_team9», braucht API-Service-Abo; Dlubal-Website nennt «MCP-Konnektor» nur in Metadaten zu Dlubal CALC; offizieller Status nicht bestätigt | pypi.org/project/dlubal-mcp, dlubal.com |
 | ETABS, Tekla Structural Designer | nur Community-Projekte (GitHub) | GitHub, mcp.pub |
-| Sofistik, Cubus, Axis VM | noch nicht geprüft | |
+| Dlubal CALC | KI-Arbeitsbereich im Browser, rechnet und dokumentiert nach Aufgabenbeschreibung, «direkte Anbindung an RFEM 6»; kein MCP und keine externen Assistenten erwähnt | baulinks.de, 6.11.2026 |
+| Sofistik | Highlights 2026 ohne KI- oder MCP-Funktionen; Seite «Highlights 2027» noch nicht geprüft | sofistik.com |
+| Cubus, Axis VM | noch nicht geprüft | |
 | Trimble Connect | KI-Assistent «Trimble Assist» und «Agent Studio» (9.11.2026), kein MCP und keine Konnektoren für externe Assistenten erwähnt | Construction Briefing, ENR |
 | Qonic | eigener MCP-Server, KI-Agenten im Modell (5.11.2026) | AEC Magazine |
 | ODA (DWG, IFC, STEP) | angekündigt, selbst gehostete MCP-Server | AEC Magazine, Juli 2026 |
@@ -46,7 +49,7 @@ ein neuer Benchmark, der sich durchsetzt, eine Änderung der Methode, die alte W
 das eine bisher ungelöste Bauaufgabe zuverlässig kann (z. B. Ausmass aus Plänen, Modelländerungen in IFC, Statik-Nachweise).
 Immer nennen, wer gemessen hat (Autoren, Hersteller, unabhängig) und ob die Werte vergleichbar sind.
 
-**Stand (zuletzt geprüft 2026-11-16):**
+**Stand (zuletzt geprüft 2026-11-23):**
 
 | Benchmark | Misst | Bestwert bisher | Quelle |
 |---|---|---|---|
@@ -58,5 +61,7 @@ Immer nennen, wer gemessen hat (Autoren, Hersteller, unabhängig) und ob die Wer
 | Construction AI Leaderboard (ONESTRUCTION, 7.11.2026) | Mittel aus AEC-Bench, BIM-Edit, IFC-Bench-V2, CEQuest, IDS | Claude Opus 5.5 73,7, Gemini 4 Argon 73,6, Claude Opus 5 72,7 (eigene Läufe, nicht mit offiziellen Werten vergleichbar) | Hugging Face Blog |
 | Structural engineering benchmark (Uni Neapel, Mai 2026) | Statikaufgaben in drei Stufen, 800 Instanzen | noch keine Werte veröffentlicht | Zenodo 20189957 |
 | Mebbian auf AEC-Bench (Okt 2026) | eine Aufgabenfamilie (Planliste vs. Pläne) | 81,9 % Modell allein, 88,9 % mit Mebbian (Herstellerlauf, 12 Plansätze) | mebbian.ai |
+
+Weitere Benchmarks (Übersicht COXIT, 23.10.2026, nur beobachten): TakeoffBench-v1 (Handoff, Aug 2026; Ausmass, bestes Modell 61,4 gegen 77,6 für Fachleute), CaseVBench (COXIT, eigener Benchmark, alle zwei Wochen aktualisiert), DrawingVQA (CVPR 2026; Gemini 3 Pro 77,2 % gegen 94,9 % Fachleute), LED-BENCH (Tongji, Okt 2026), Blueprint-Bench 2 (Andon Labs; Gemini 4 Argon 0,544 gegen Mensch 0,586). Keine wesentliche Änderung in der Woche 16.–22.11.2026.
 
 Hinweis: AECFoundry zählt in einer Übersicht (20.10.2026) 99 AEC-Benchmarks, fast neun von zehn aus 2025 oder 2026. Wir verfolgen nur die gängigsten.
