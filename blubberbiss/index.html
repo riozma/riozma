@@ -113,7 +113,7 @@
   <h2 class="logo mid" id="overTitle">GEFRESSEN!</h2>
   <div class="stack">
     <div class="stat">PUNKTE <b id="finalScore">0</b></div>
-    <div class="stat">LEVEL <b id="finalLvl">1</b> · HI <b id="finalHi">0</b></div>
+    <div class="stat"><span id="lvlLabel">LEVEL</span> <b id="finalLvl">1</b><span id="hiPart"> · HI <b id="finalHi">0</b></span></div>
     <div class="stat">NURIJA-ALBUM <b id="finalAlbum">0/6</b></div>
     <div class="stat" id="newHi" hidden>NEUER REKORD!</div>
     <div class="stat" id="overRank" hidden></div>
@@ -167,7 +167,8 @@
 <section id="loot" class="screen overlay" hidden>
   <div class="statsbox">
     <h2 class="logo mid" id="lootTitle">LOOTBOX!</h2>
-    <div id="lootBox" class="lootbox" aria-hidden="true"><i></i></div>
+    <div id="lootBox" class="lootbox" role="button" tabindex="0" aria-label="Lootbox öffnen"><i></i></div>
+    <p class="blink" id="lootHint"></p>
     <ul class="lootlist" id="lootList"></ul>
     <button id="lootDone" class="pxbtn gold" hidden>EINSACKEN</button>
   </div>

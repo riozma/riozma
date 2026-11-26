@@ -1312,6 +1312,7 @@ function showOver() {
   if (newHi) { hi = score; try { localStorage.setItem('blubberbiss-hi', String(hi)); } catch (e) {} }
   $('overTitle').textContent = {nurija: 'NURIJA HAT DICH!', ship: 'GEFISCHT!', bird: 'GESCHNAPPT!', kraken: 'VERSCHLUNGEN!'}[killer] || 'GEFRESSEN!';
   $('finalScore').textContent = score; $('finalLvl').textContent = level; $('finalHi').textContent = hi;
+  $('lvlLabel').textContent = 'LEVEL'; $('hiPart').hidden = false; $('againBtn').textContent = 'NOCHMAL';
   $('finalAlbum').textContent = nStage + '/6';
   $('newHi').hidden = !newHi; $('hud').hidden = true; $('over').hidden = false;
   countBest(); overLeaderboard(); submitWealth(); openLoot();
@@ -1335,6 +1336,8 @@ function soundLabel() { $('soundBtn').textContent = muted ? 'TON: AUS' : 'TON: A
    Nurija und gibt die gemeinsame Uhr vor. Alle Fische bewegen sich nach einer festen Formel ab ihrer
    Startzeit, darum sehen alle dasselbe, ohne dass Positionen übertragen werden müssen.
    Wer gefressen wird, meldet das selbst («eaten»), so entscheidet der Bildschirm des Opfers. */
+// Testraum: nur mit ?debug&room=name, damit Tests nie im echten Ozean landen
+const ROOM_PREFIX = (() => { const q = new URLSearchParams(location.search), r = (q.get('room') || '').replace(/[^a-z0-9]/gi, '').slice(0, 20); return q.has('debug') && r ? 'blubberbiss-test-' + r + '-' : 'blubberbiss-ozean-'; })();
 const ROOM_MAX = 12, SEND_EVERY = 0.2, PEER_TIMEOUT = 4000;
 const ADJ = ['Flinke', 'Wilde', 'Kleine', 'Freche', 'Mutige', 'Dicke', 'Stille', 'Wache', 'Blaue', 'Rote', 'Flotte', 'Gierige'];
 const NOUN = ['Egli', 'Hecht', 'Krabbe', 'Barbe', 'Qualle', 'Forelle', 'Grundel', 'Sardine', 'Flunder', 'Muräne', 'Zander', 'Felche'];
@@ -1414,7 +1417,7 @@ async function mpJoinNow() {
 
 function mpConnect(room) {
   if (!mp) return;
-  const ch = mp.client.channel('blubberbiss-ozean-' + room, {config: {broadcast: {self: false}, presence: {key: myId}}});
+  const ch = mp.client.channel(ROOM_PREFIX + room, {config: {broadcast: {self: false}, presence: {key: myId}}});
   mp.ch = ch; mp.room = room;
   ch.on('broadcast', {event: 'm'}, ({payload}) => { if (mp && mp.ch === ch) mpRecv(payload); });
   ch.on('presence', {event: 'sync'}, () => { if (mp && mp.ch === ch) mpPresence(); });
@@ -1715,6 +1718,24 @@ function mpHurt(src) {
   p.r = Math.max(START_R, p.r*0.75); p.inv = 1.6; shake = 4; flash = 1; flashCol = '255,60,90'; combo = 0; comboT = 0;
   sfx.hurt(); burst(p.x, p.y, '#f2c14e', 10, 50); popup(p.x, p.y - p.r - 6, 'AUTSCH', '#ff7ab0');
 }
+// Multiplayer-Todesbildschirm: kein automatisches Wiedereinsteigen
+function showMpOver() {
+  const d = mp.lastDeath || {lost: 0, title: 'GEFRESSEN!'};
+  $('overTitle').textContent = d.title;
+  $('finalScore').textContent = d.lost; $('finalHi').textContent = stats.bestMulti || 0;
+  $('lvlLabel').textContent = 'DEIN BESTER OZEAN-WERT'; $('finalLvl').textContent = stats.bestMulti || 0; $('hiPart').hidden = true;
+  $('finalAlbum').textContent = nStage + '/6'; $('newHi').hidden = true; $('overRank').hidden = true; $('overEntry').hidden = true;
+  $('againBtn').textContent = 'WIEDER INS WASSER';
+  $('hud').hidden = true; $('blubbBtn').hidden = true; $('pause').hidden = true; mp.menu = false;
+  $('over').hidden = false; overReady = time + 0.5;
+  openLoot();
+  try { $('againBtn').focus({preventScroll: true}); } catch (e) {}
+}
+function mpRespawn() {
+  if (!mp || state !== 'mpdead') return;
+  $('over').hidden = true; $('loot').hidden = true; $('hud').hidden = false; $('blubbBtn').hidden = false; hudCache = '';
+  mpSpawnPlayer(); banner('ZURÜCK IM WASSER', 'VIEL GLÜCK');
+}
 function mpDie(src) {
   const p = player;
   if (mp.peak > 0) submitScore(mp.peak, 'multi', mp.name);
@@ -1722,8 +1743,9 @@ function mpDie(src) {
   mpSend('eaten', {by: src.isPeer ? src.id : null, nur: src.isNurija ? 1 : 0, w: label, r: Math.round(p.r*10)/10, king: mp.kingId === myId ? 1 : 0, n: mp.name});
   feedPush(`<b>${esc(label || src.name)}</b> ${src.label === 'Fischer' ? 'isst' : 'frisst'} <b>dich</b>`);
   caught = null;
-  state = 'mpdead'; mp.deadT = 2.4; p.dead = true; if (nurija) nurija.survive = false;
-  runSkin = null; if (mp.bounty) mp.bounty[myId] = 0; if (runLoot > 0) { mp.deadT = 5; setTimeout(() => openLoot(), 700); }
+  state = 'mpdead'; mp.deadT = 1.4; p.dead = true; if (nurija) nurija.survive = false;
+  runSkin = null; if (mp.bounty) mp.bounty[myId] = 0;
+  mp.lastDeath = {lost: score, title: src.isNurija ? 'NURIJA HAT DICH!' : src.label === 'Fischer' ? 'GEFISCHT!' : src.label === 'Möwe' ? 'GESCHNAPPT!' : src.label === 'Krake' ? 'VERSCHLUNGEN!' : 'GEFRESSEN!'};
   const lost = score; score = 0; mp.peak = 0; combo = 0; comboT = 0; frzT = 0; // Tod = Punkte weg, Neustart bei 0
   shake = 5; flash = 1; flashCol = '255,60,90'; sfx.over(); burst(p.x, p.y, '#f2c14e', 16, 60);
   const by = src.isFeat ? ({Fischer: 'VOM FISCHER', 'Möwe': 'VON DER MÖWE', Krake: 'VOM KRAKEN', Hai: 'VOM HAI', Fisch: 'VON EINEM GRÖSSEREN FISCH'}[src.label] || '')
@@ -1787,7 +1809,7 @@ function mpUpdate(dt) {
     comboT -= dt; if (comboT <= 0) combo = 0;
     if (p.shield > 0) p.shield = Math.max(0, p.shield - dt);
   } else if (state === 'caught') updateCaught(dt);
-  else if (state === 'mpdead') { p.y -= 14*dt; mp.deadT -= dt; if (mp.deadT <= 0) mpSpawnPlayer(); }
+  else if (state === 'mpdead') { p.y -= 14*dt; if (mp.deadT > 0) { mp.deadT -= dt; if (mp.deadT <= 0) showMpOver(); } }
   updateFeats(dt); updateLoot(dt); propIncome(dt); visitorRent(dt);
   updateNurija(dt);
   p.inv = Math.max(0, p.inv - dt); p.puff = Math.max(0, p.puff - dt); frzT = Math.max(0, frzT - dt);
@@ -2381,25 +2403,33 @@ function rollLoot() {
 }
 function openLoot(after) {
   if (runLoot <= 0) { if (after) after(); return; }
-  const n = runLoot; runLoot = 0;
-  const el = $('loot'), list = $('lootList'); list.innerHTML = ''; el.hidden = false;
-  $('lootTitle').textContent = n === 1 ? 'LOOTBOX!' : n + ' LOOTBOXEN!';
-  let i = 0;
-  const next = () => {
-    if (i >= n) { saveStats(); wealthDirty = true; submitWealth(); $('lootDone').hidden = false; $('lootDone').onclick = () => { el.hidden = true; if (after) after(); }; return; }
-    i++;
-    const box = $('lootBox'); box.classList.remove('open'); void box.offsetWidth; box.classList.add('shaking');
+  let left = runLoot; runLoot = 0;
+  const el = $('loot'), list = $('lootList'), box = $('lootBox'), hint = $('lootHint'), done = $('lootDone');
+  list.innerHTML = ''; el.hidden = false; done.hidden = true; box.classList.remove('open', 'shaking');
+  $('lootTitle').textContent = left === 1 ? 'LOOTBOX!' : left + ' LOOTBOXEN!';
+  let busy = false;
+  const showHint = () => { hint.textContent = left > 0 ? 'KLICK AUF DIE TRUHE ZUM ÖFFNEN' + (left > 1 ? ' · NOCH ' + left : '') : ''; };
+  const finish = () => { saveStats(); wealthDirty = true; submitWealth(); done.hidden = false; done.focus({preventScroll: true}); };
+  // Ein Klick öffnet genau eine Truhe
+  const openOne = () => {
+    if (busy || left <= 0) return;
+    busy = true; left--; hint.textContent = '';
+    box.classList.remove('open'); void box.offsetWidth; box.classList.add('shaking');
     [300, 340, 380, 420].forEach((f, k) => tone(f, f*1.2, 0.07, 'square', 0.05, k*0.12));
     setTimeout(() => {
       const r = rollLoot(); if (r.t === 'coins') addCoins(r.n);
       box.classList.remove('shaking'); box.classList.add('open');
-      if (r.big) { sfx.level(); flash = 1; flashCol = '255,210,90'; } else sfx.pearl();
+      if (r.big) { sfx.level(); flash = 1; flashCol = '255,210,90'; confetti(60); } else sfx.pearl();
       const li = document.createElement('li'); li.className = r.big ? 'big' : ''; li.textContent = r.label; list.appendChild(li);
-      setTimeout(next, 650);
+      busy = false;
+      if (left > 0) setTimeout(() => { box.classList.remove('open'); showHint(); }, 500); else finish();
     }, 700);
   };
-  $('lootDone').hidden = true;
-  next();
+  box.onclick = openOne;
+  box.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openOne(); } };
+  done.onclick = () => { el.hidden = true; if (after) after(); };
+  showHint();
+  setTimeout(() => { try { box.focus({preventScroll: true}); } catch (e) {} }, 50);
 }
 
 /* ---------- Mystery-Fisch & Glücksrad: Skin für den Rest des Laufs ---------- */
@@ -2415,7 +2445,9 @@ function startWheel() {
   const segs = WHEEL.length, seg = 360 / segs;
   const target = 360*7 + (360 - (won*seg + seg/2)); // Zeiger oben
   wheel = {won, t: 0, dur: 4.6, target, last: -1, prevState: state};
-  if (!mp && state === 'play') state = 'wheel'; else player.inv = Math.max(player.inv, 6.5);
+  if (!mp && state === 'play') state = 'wheel';
+  // Schild während des Glücksrads (Solo steht das Spiel still, darum dort kürzer)
+  player.inv = Math.max(player.inv, mp ? 6.5 : 2); player.shield = Math.max(player.shield, mp ? 7.5 : 2.5);
   $('wheel').hidden = false; $('wheelWin').textContent = ''; $('wheelWin').classList.remove('show');
   drawWheel(0);
   banner('MYSTERY-FISCH!', 'DAS GLÜCKSRAD DREHT SICH');
@@ -2654,6 +2686,7 @@ window.addEventListener('keydown', e => {
   if (mp) {
     if (k === 'escape' || k === 'p') { if (mp.menu) resume(); else pause(); return; }
     if (k === 'b' && !e.repeat) { blubb(); return; }
+    if ((k === 'enter' || k === ' ') && state === 'mpdead' && !$('over').hidden && $('loot').hidden && time >= overReady) { mpRespawn(); return; }
     keys.add(k); return;
   }
   if (!$('join').hidden) return;
@@ -2675,7 +2708,7 @@ $('overMenuBtn').addEventListener('click', setTitle);
 $('menuBtn').addEventListener('click', e => { e.stopPropagation(); pause(); });
 $('resumeBtn').addEventListener('click', resume);
 $('restartBtn').addEventListener('click', () => { if (mp) setTitle(); else newGame(); });
-$('againBtn').addEventListener('click', () => { if (time >= overReady) newGame(); });
+$('againBtn').addEventListener('click', () => { if (time < overReady) return; if (mp) mpRespawn(); else newGame(); });
 $('soundBtn').addEventListener('click', () => { muted = !muted; soundLabel(); try { localStorage.setItem('blubberbiss-mute', muted ? '1' : '0'); } catch (e) {} });
 window.addEventListener('resize', resize);
 

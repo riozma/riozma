@@ -182,3 +182,6 @@ button.ccard:disabled{cursor:default}
 .brow b{color:var(--gold)}
 .tag .bt{color:#3a2400;background:var(--gold);font-size:9px;padding:0 3px}
 @media (prefers-reduced-motion:reduce){.wheeltitle,#wheelCanvas,.lootbox.shaking{animation:none}}
+.lootbox{cursor:pointer}
+.lootbox:focus-visible{outline:3px solid var(--cyan);outline-offset:8px}
+#loot{background:rgba(3,12,26,.95)}
