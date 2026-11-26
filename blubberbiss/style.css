@@ -63,7 +63,7 @@ body{background:var(--deep);color:var(--ink);overflow:hidden;touch-action:none;u
 /* Nurija-Album */
 .album{display:flex;gap:12px;align-items:center;text-align:left;background:rgba(3,16,31,.78);padding:10px 14px;margin-top:6px;
   box-shadow:0 0 0 3px var(--edge),inset 0 0 0 2px #1d4a76;max-width:min(380px,100%);cursor:pointer}
-.album canvas{width:52px;height:81px;flex:none}
+.album canvas{width:60px;height:52px;flex:none}
 #hi{position:fixed;left:0;top:0;z-index:1;pointer-events:none}
 .album .txt{min-width:0}
 .lore{font-size:11px;line-height:1.6;color:#cfe6ff;margin-top:4px}
@@ -137,3 +137,16 @@ body{background:var(--deep);color:var(--ink);overflow:hidden;touch-action:none;u
 .toplist li span:last-child{font-variant-numeric:tabular-nums}
 .toplist .md{color:#7f97b6;font-size:9px;margin-left:6px}
 .entry{display:grid;gap:8px;justify-items:center;width:min(320px,100%)}
+
+/* ---------- Garderobe & Münzen ---------- */
+.chip.coin{background:var(--gold);color:#3a2400}
+#shop{justify-content:flex-start;background:rgba(3,12,26,.9);overflow-y:auto;pointer-events:auto}
+#shopPreview{width:270px;height:168px;image-rendering:pixelated;background:radial-gradient(ellipse at center,rgba(79,216,240,.16),transparent 70%)}
+button.ccard{font:inherit;color:inherit;border:0;cursor:pointer}
+button.ccard:disabled{cursor:default}
+.ccard.on{box-shadow:0 0 0 3px var(--gold)}
+.ccard.rare .cn{color:#ffe98a}
+.ccard .cc.small{font-size:10px;letter-spacing:.08em}
+.ccard canvas{flex:none}
+.ccard.shake{animation:shake .45s steps(6)}
+.tag{font-size:8px;letter-spacing:.1em;background:var(--pink);color:#fff;padding:1px 3px}

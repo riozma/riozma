@@ -34,6 +34,7 @@
     <div id="hearts"></div>
     <div class="lvl" id="lvlBox">LV <span id="lvl">1</span></div>
     <div id="board" hidden></div>
+    <div id="coinChip" class="chip coin">● 0</div>
     <div id="shieldChip" class="chip" hidden>SCHILD</div>
     <div id="evChip" class="chip" hidden></div>
   </div>
@@ -48,7 +49,7 @@
     <h1 class="logo">BLUBBERBISS</h1>
     <p class="sub">FRISS ODER WIRST GEFRESSEN</p>
     <div class="album" id="albumCard" title="Nurija-Album">
-      <canvas id="album" width="156" height="243" aria-label="Nurija-Album"></canvas>
+      <canvas id="album" width="180" height="157" aria-label="Nurija-Album"></canvas>
       <div class="txt">
         <div class="label">NURIJA-ALBUM <span id="albumCount">0/6</span></div>
         <div class="lore" id="albumLore"></div>
@@ -59,8 +60,12 @@
     <div class="modes">
       <button id="soloBtn" class="pxbtn">SOLO</button>
       <button id="mpBtn" class="pxbtn gold">MULTIPLAYER</button>
-      <button id="statsBtn" class="pxbtn">STATISTIK</button>
     </div>
+    <div class="modes">
+      <button id="shopBtn" class="pxbtn small">GARDEROBE</button>
+      <button id="statsBtn" class="pxbtn small">STATISTIK</button>
+    </div>
+    <p class="rec big" id="richTitle" hidden></p>
     <p class="rec big" id="recTitle" hidden></p>
     <p class="hint">Drücken und ziehen (Joystick) oder Pfeiltasten. Friss kleinere Fische, spring aus dem Wasser, klau Gold auf Schiffen. Aber nicht zu lange bleiben. Und wenn die Sirene heult: weg da.</p>
     <p class="hint">HI-SCORE <span id="hiTitle">0</span> · <span id="onlineHint">OZEAN WIRD GESUCHT …</span></p>
@@ -112,7 +117,7 @@
       <button id="overSubmit" class="pxbtn gold small">EINTRAGEN</button>
     </div>
   </div>
-  <div class="btnrow"><button id="againBtn" class="pxbtn">NOCHMAL</button><button id="overStatsBtn" class="pxbtn">STATISTIK</button><button id="overMenuBtn" class="pxbtn">MENÜ</button></div>
+  <div class="btnrow"><button id="againBtn" class="pxbtn">NOCHMAL</button><button id="overShopBtn" class="pxbtn">GARDEROBE</button><button id="overStatsBtn" class="pxbtn">STATISTIK</button><button id="overMenuBtn" class="pxbtn">MENÜ</button></div>
 </section>
 
 <section id="stats" class="screen" hidden>
@@ -124,6 +129,22 @@
     <div class="label">ALLZEIT-BESTENLISTE</div>
     <ol class="toplist" id="topList"></ol>
     <div class="btnrow"><button id="statsBack" class="pxbtn">ZURÜCK</button></div>
+  </div>
+</section>
+
+<section id="shop" class="screen" hidden>
+  <div class="statsbox">
+    <h2 class="logo mid">GARDEROBE</h2>
+    <canvas id="shopPreview" width="90" height="56" aria-label="Vorschau deines Fischs"></canvas>
+    <div class="stotals" id="shopCoins"></div>
+    <p class="hint">Münzen bleiben dir über alle Leben erhalten. Generational Wealth. Verdienen: Gold auf Schiffen klauen, Schatztruhen, Goldfische, seltene Fische, Sardinen. Achtung vor dem Immobilienhai.</p>
+    <div class="label">SKINS · ALLES, WAS DU SCHON GEFRESSEN HAST</div>
+    <div class="catch" id="skinGrid"></div>
+    <div class="label">ACCESSOIRES · NUR ZUM ANGEBEN</div>
+    <div class="catch" id="accGrid"></div>
+    <div class="label">REICHSTE FISCHE IM MEER</div>
+    <ol class="toplist" id="richList"></ol>
+    <div class="btnrow"><button id="shopBack" class="pxbtn">ZURÜCK</button></div>
   </div>
 </section>
 
