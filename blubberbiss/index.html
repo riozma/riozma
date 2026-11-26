@@ -35,6 +35,7 @@
     <div class="lvl" id="lvlBox">LV <span id="lvl">1</span></div>
     <div id="board" hidden></div>
     <div id="coinChip" class="chip coin">● 0</div>
+    <div id="lootChip" class="chip loot" hidden></div>
     <div id="shieldChip" class="chip" hidden>SCHILD</div>
     <div id="evChip" class="chip" hidden></div>
   </div>
@@ -102,6 +103,10 @@
     <button id="soundBtn" class="pxbtn">TON: AN</button>
     <button id="restartBtn" class="pxbtn">NEUSTART</button>
   </div>
+  <div class="bountybox" id="bountyBox" hidden>
+    <div class="label">KOPFGELD AUSSETZEN · WER IHN FRISST, KASSIERT</div>
+    <div id="bountyList"></div>
+  </div>
 </section>
 
 <section id="over" class="screen" hidden>
@@ -142,11 +147,40 @@
     <div class="catch" id="skinGrid"></div>
     <div class="label">ACCESSOIRES · NUR ZUM ANGEBEN</div>
     <div class="catch" id="accGrid"></div>
+    <div class="label">IMMOBILIEN · PASSIVES EINKOMMEN · IM OZEAN ZAHLEN BESUCHER MIETE</div>
+    <div class="catch" id="propGrid"></div>
+    <div class="label">NURIJA-STIFTUNG · SPENDEN</div>
+    <p class="hint">Bringt nichts, ausser einem Platz auf der Spenderliste.</p>
+    <div class="btnrow" id="donateRow">
+      <button class="pxbtn small" data-a="100">● 100</button>
+      <button class="pxbtn small" data-a="1000">● 1'000</button>
+      <button class="pxbtn small" data-a="10000">● 10'000</button>
+    </div>
+    <div class="stotals" id="donatedMine"></div>
+    <ol class="toplist" id="donorList"></ol>
     <div class="label">REICHSTE FISCHE IM MEER</div>
     <ol class="toplist" id="richList"></ol>
     <div class="btnrow"><button id="shopBack" class="pxbtn">ZURÜCK</button></div>
   </div>
 </section>
+
+<section id="loot" class="screen overlay" hidden>
+  <div class="statsbox">
+    <h2 class="logo mid" id="lootTitle">LOOTBOX!</h2>
+    <div id="lootBox" class="lootbox" aria-hidden="true"><i></i></div>
+    <ul class="lootlist" id="lootList"></ul>
+    <button id="lootDone" class="pxbtn gold" hidden>EINSACKEN</button>
+  </div>
+</section>
+
+<section id="wheel" class="screen overlay" hidden>
+  <div class="wheelbox">
+    <h2 class="wheeltitle">GLÜCKSRAD!!!</h2>
+    <canvas id="wheelCanvas" width="360" height="360"></canvas>
+    <div id="wheelWin" class="wheelwin"></div>
+  </div>
+</section>
+<div id="confetti" aria-hidden="true"></div>
 
 <div id="banner" hidden></div>
 

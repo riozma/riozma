@@ -20,5 +20,7 @@ Manuel will, dass seine eigenen Skills mit der Zeit wachsen. Darum:
   curl -sS -X POST -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H 'Content-Type: application/json' \
     --data @/tmp/q.json https://api.supabase.com/v1/projects/lwxwcogvkhixfsfvkcvz/database/query
   ```
+- Nach neuen Funktionen/Spalten den API-Cache neu laden, sonst «function not found in schema cache»:
+  Query `notify pgrst, 'reload schema';` über denselben Endpunkt schicken.
 - Migrationen trotzdem als Datei unter `supabase/migrations/` ablegen. Danach mit dem Anon-Key über
   `https://lwxwcogvkhixfsfvkcvz.supabase.co/rest/v1/rpc/<funktion>` prüfen, ob Gäste nur das Erlaubte dürfen.

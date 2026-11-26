@@ -150,3 +150,35 @@ button.ccard:disabled{cursor:default}
 .ccard canvas{flex:none}
 .ccard.shake{animation:shake .45s steps(6)}
 .tag{font-size:8px;letter-spacing:.1em;background:var(--pink);color:#fff;padding:1px 3px}
+
+/* ---------- Lootbox, Glücksrad, Kopfgeld ---------- */
+.chip.loot{background:#b48cff;color:#1d1040}
+.screen.overlay{justify-content:center;background:rgba(3,12,26,.82);z-index:8}
+.lootbox{width:96px;height:72px;position:relative;background:#6b2fa3;box-shadow:0 0 0 4px #3a1d0c,inset 0 -10px 0 #4a1a7a;margin:12px}
+.lootbox::before{content:'';position:absolute;left:-6px;right:-6px;top:-22px;height:24px;background:#7d3fbf;box-shadow:0 0 0 4px #3a1d0c;transform-origin:left bottom;transition:transform .25s steps(3)}
+.lootbox i{position:absolute;left:50%;top:-4px;width:14px;height:20px;margin-left:-7px;background:#ffcf3a;box-shadow:0 0 0 3px #3a1d0c}
+.lootbox.shaking{animation:shake .35s steps(4) infinite}
+.lootbox.open::before{transform:rotate(-28deg) translate(-2px,-4px)}
+.lootbox.open{box-shadow:0 0 0 4px #3a1d0c,inset 0 -10px 0 #4a1a7a,0 0 40px 10px rgba(255,210,90,.6)}
+.lootlist{list-style:none;margin:0;padding:0;display:grid;gap:6px;justify-items:center;font-size:clamp(12px,2.4vw,16px);letter-spacing:.08em;color:#ffe98a;text-shadow:2px 2px 0 var(--edge)}
+.lootlist li{animation:pop .3s steps(4)}
+.lootlist li.big{color:var(--pink);font-size:clamp(16px,3.4vw,24px);animation:pop .3s steps(4),blink .5s steps(1) 4}
+.wheelbox{display:grid;gap:10px;justify-items:center}
+.wheeltitle{margin:0;font-family:var(--f-display);font-weight:400;font-size:clamp(22px,6vw,56px);color:#fff;
+  text-shadow:-.07em .05em 0 var(--pink),.06em -.035em 0 var(--cyan),0 0 24px rgba(255,210,90,.9);animation:wheelpulse .5s steps(2) infinite,glitch 1.2s steps(1) infinite}
+@keyframes wheelpulse{0%{transform:scale(1) rotate(-2deg);color:#fff6c0}50%{transform:scale(1.08) rotate(2deg);color:#ff9ad5}100%{transform:scale(1) rotate(-2deg)}}
+#wheelCanvas{width:min(78vw,60vh,420px);height:min(78vw,60vh,420px);filter:drop-shadow(0 0 22px rgba(255,79,139,.8)) drop-shadow(0 0 50px rgba(79,216,240,.6));animation:wheelglow 1s steps(2) infinite}
+@keyframes wheelglow{50%{filter:drop-shadow(0 0 32px rgba(255,210,90,.95)) drop-shadow(0 0 60px rgba(255,79,139,.7))}}
+.wheelwin{min-height:3.2em;font-size:clamp(14px,3vw,22px);letter-spacing:.14em;color:#fff;text-align:center;text-shadow:3px 3px 0 var(--edge);opacity:0}
+.wheelwin.show{opacity:1;animation:pop .4s steps(4)}
+.wheelwin b{color:var(--gold);font-size:1.4em}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:9;overflow:hidden}
+#confetti i{position:absolute;top:-12px;width:8px;height:12px;animation:fall linear forwards}
+@keyframes fall{to{transform:translate(var(--dx),110vh) rotate(var(--rot))}}
+.bountybox{display:grid;gap:8px;justify-items:center;margin-top:10px;width:min(420px,100%)}
+#bountyList{display:grid;gap:6px;width:100%}
+.brow{display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:12px;letter-spacing:.06em;background:rgba(12,39,71,.7);padding:6px 8px}
+.brow span{flex:1;text-align:left}
+.brow b{color:var(--gold)}
+.tag .bt{color:#3a2400;background:var(--gold);font-size:9px;padding:0 3px}
+@media (prefers-reduced-motion:reduce){.wheeltitle,#wheelCanvas,.lootbox.shaking{animation:none}}

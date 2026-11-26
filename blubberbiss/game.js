@@ -50,6 +50,7 @@ const PALS = {
   geist:   {body:'#d8e4ff',belly:'#ffffff',fin:'#a9b8e8',line:'#5a6a9a',acc:'#ffffff'},
   nacht:   {body:'#1b1f4a',belly:'#3a3f8a',fin:'#0b0d24',line:'#000000',acc:'#ffe14d'},
   sardine: {body:'#a9b9c9',belly:'#eef4fa',fin:'#7f93a8',line:'#2a3846',acc:'#5d7a99'},
+  mystery: {body:'#6b2fa3',belly:'#c9a3f0',fin:'#3d1366',line:'#14052a',acc:'#ffd25a'},
 };
 const hsl2rgb = (h, s, l) => { const k = n => (n + h/30) % 12, a = s*Math.min(l, 1 - l), f = n => l - a*Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1)); return [f(0)*255|0, f(8)*255|0, f(4)*255|0]; };
 const PLAYER_PALS = ['puffer', 'pcoral', 'pmint', 'plila', 'pblau', 'prosa'];
@@ -183,6 +184,7 @@ function buildFish(rIn, pal, kind, sleepy) {
       if (pal === 'rainbow' && c !== P.acc) c = hsl2rgb((x / w)*320 % 360, 0.85, c === P.belly ? 0.8 : 0.58); // Regenbogen
       if (pal === 'kristall' && ((x*3 + y*5) % 7 === 0)) c = [255, 255, 255];
       if (pal === 'lava' && ((x*7 + y*3) % 9 === 0)) c = [255, 236, 140];
+      if (pal === 'mystery' && ((x*5 + y*7) % 11 === 0)) c = P.acc;
     }
     put(x, y, c);
   }
@@ -518,6 +520,7 @@ function eat(e) {
   combo = comboT > 0 ? Math.min(combo + 1, 8) : 1; comboT = 1.8;
   const pts = Math.round((10 + e.r*e.r*1.2) / 5) * 5 * combo * (1 + (level - 1)*0.5) * (frenzy() ? 2 : 1) * (e.pal === 'sardine' ? 3 : e.rare ? 5 : 1) | 0;
   const first = !(stats.eaten[statKey(e)] > 1);
+  if (e.my) { setTimeout(startWheel, 250); }
   if (e.gold) addCoins(50, e.x, e.y - e.r - 8);
   else if (e.rare) { addCoins(100, e.x, e.y - e.r - 8); banner('SELTEN!', first ? 'NEUER SKIN FREIGESCHALTET' : '+100 MÜNZEN'); }
   else if (e.ll) { addCoins(300, e.x, e.y - e.r - 8); banner('MIETPREISBREMSE!', 'DU HAST DEN IMMOBILIENHAI GEFRESSEN · +300'); }
@@ -687,7 +690,7 @@ function update(dt) {
   else if (state === 'caught') updateCaught(dt);
   else if (state === 'dying') { p.y -= 18*dt; dyingT -= dt; if (dyingT <= 0) showOver(); }
   if (state === 'play' || state === 'levelup' || state === 'caught') directorTick(dt, [p]);
-  updateFeats(dt);
+  updateFeats(dt); updateLoot(dt); propIncome(dt);
 
   if (state === 'play' || state === 'levelup') {
     runT += dt;
@@ -767,7 +770,7 @@ function krakenAt(k, t) {
 }
 
 /* --- Regisseur: Solo lokal, im Multiplayer nur der Host --- */
-function resetDirector() { dirT = {ship: rnd(6, 12), bird: rnd(30, 50), kraken: rnd(55, 90), rare: rnd(35, 70), sardine: rnd(50, 90), landlord: rnd(60, 110), chest: rnd(45, 80)}; feats.length = 0; caught = null; }
+function resetDirector() { digState.clear(); dirT = {ship: rnd(6, 12), bird: rnd(30, 50), kraken: rnd(55, 90), rare: rnd(35, 70), sardine: rnd(50, 90), landlord: rnd(60, 110), chest: rnd(45, 80)}; feats.length = 0; caught = null; }
 function directorTick(dt, alive) {
   const t = ft();
   dirT.ship -= dt; dirT.bird -= dt; dirT.kraken -= dt; dirT.rare -= dt; dirT.sardine -= dt; dirT.landlord -= dt; dirT.chest -= dt;
@@ -775,6 +778,15 @@ function directorTick(dt, alive) {
   if (dirT.sardine <= 0) { dirT.sardine = rnd(80, 140); spawnSpecial('sardine'); }
   if (dirT.landlord <= 0) { dirT.landlord = rnd(90, 160); if (!ents.some(e => e.ll && !e.dead)) spawnSpecial('landlord'); }
   if (dirT.chest <= 0) { dirT.chest = rnd(70, 130); if (!ents.some(e => e.type === 'chest' && !e.dead)) spawnSpecial('chest'); }
+  dirT.mystery = (dirT.mystery ?? rnd(60, 110)) - dt; dirT.loot = (dirT.loot ?? rnd(25, 50)) - dt;
+  if (dirT.mystery <= 0) { dirT.mystery = rnd(100, 170); if (!ents.some(e => e.my && !e.dead)) spawnSpecial('mystery'); }
+  if (dirT.loot <= 0) {
+    dirT.loot = rnd(45, 80);
+    if (feats.filter(f => f.type === 'loot').length < (mp ? 3 : 2)) {
+      const x = Math.round(clamp(pick(alive).x + rnd(-120, 120), 30, W - 30));
+      emitFeat({id: fid(), type: 'loot', t0: t, x}); if (mp) mpSend('ann', {a: 'loot'}); announce('loot');
+    }
+  }
   if (dirT.ship <= 0) {
     dirT.ship = rnd(14, 26);
     if (feats.filter(f => f.type === 'ship').length < (mp ? 3 : 2)) {
@@ -1114,7 +1126,7 @@ function drawPlayer() {
   if (state === 'over' || (mp && p.dead)) return;
   if (caught && caught.scale < 0.15) return;
   drawPuffer({x: p.x, y: p.y + (p.sleep ? Math.sin(time*2) : 0), r: Math.max(2, p.r*(caught ? caught.scale : 1)), dir: p.dir, pal: mp ? mp.pal : 'puffer', sleep: p.sleep, dead: p.dead,
-    sk: state === 'title' ? 'puffer' : mySkin, ac: state === 'title' ? [] : stats.worn,
+    sk: state === 'title' ? 'puffer' : effSkin(), ac: state === 'title' ? [] : stats.worn,
     puff: p.puff, glasses: nStage >= 6, blink: p.inv > 0 && state === 'play' && Math.floor(time*12) % 2 === 0, shield: p.shield, frz: frenzy()});
 }
 function drawPuffer(o) {
@@ -1123,7 +1135,10 @@ function drawPuffer(o) {
     const sd = skinDef(o.sk), spr = buildFish(p.r, sd.kind === 'puffer' ? o.pal : sd.pal, sd.kind, o.sleep), sc = 1 + (o.puff || 0)*0.9;
     ctx.save(); ctx.translate(x, y); ctx.scale(p.dir, p.dead ? -1 : 1);
     if (sd.pal === 'geist') ctx.globalAlpha = 0.6;
-    ctx.drawImage(spr.c, -spr.cx*sc, -spr.cy*sc, spr.w*sc, spr.h*sc);
+    if (sd.disco) ctx.filter = `hue-rotate(${Math.round(time*360) % 360}deg)`;
+    if (sd.img && faceImg) { const w = p.r*3.4*sc, h = w*N_ASPECT; ctx.drawImage(faceImg, -w*0.52, -h*0.55, w, h); } // Mini-Nurija
+    else ctx.drawImage(spr.c, -spr.cx*sc, -spr.cy*sc, spr.w*sc, spr.h*sc);
+    ctx.filter = 'none';
     ctx.globalAlpha = 1;
     if (sd.ll) drawLandlord({a: spr.a*sc, b: spr.b*sc});
     drawAccLocal(o.ac, spr, sc, p.r);
@@ -1202,6 +1217,8 @@ function draw() {
   ctx.fillStyle = 'rgba(180,230,255,0.22)';
   for (const d of dust) ctx.fillRect(d.x | 0, d.y | 0, 1, 1);
   drawKelp();
+  drawBuildings();
+  for (const f of feats) if (f.type === 'loot') drawLoot(f);
   for (const f of feats) if (f.type === 'kraken') drawKraken(f);
   ctx.fillStyle = 'rgba(200,240,255,0.35)';
   for (const s of streaks) ctx.fillRect(Math.round(s.x), Math.round(s.y), Math.round(s.len), 1);
@@ -1244,9 +1261,10 @@ let hudCache = '';
 function updateHUD() {
   const p = player, g = clamp(Math.round((p.r - START_R) / (CAP_R - START_R) * 100), 0, 100);
   const evTxt = frzT > 0 ? 'RAUSCH ' + Math.ceil(frzT) : ev ? EV_LABEL[ev.type] + ' ' + Math.max(1, Math.ceil(ev.t)) : '';
-  const s = [score, lives, level, combo, g, p.shield > 0 ? 1 : 0, evTxt, mp ? mp.boardKey : '', stats.coins].join('|');
+  const s = [score, lives, level, combo, g, p.shield > 0 ? 1 : 0, evTxt, mp ? mp.boardKey : '', stats.coins, runLoot].join('|');
   if (s === hudCache) return; hudCache = s;
   $('coinChip').textContent = '● ' + fmt(stats.coins);
+  $('lootChip').hidden = !runLoot; $('lootChip').textContent = 'LOOTBOX ×' + runLoot;
   $('hearts').hidden = !!mp; $('lvlBox').hidden = !!mp; $('board').hidden = !mp;
   if (mp) $('board').innerHTML = mp.boardHtml;
   $('score').textContent = String(score).padStart(6, '0');
@@ -1279,7 +1297,7 @@ function newGame() {
   ensureAudio();
   state = 'play'; score = 0; level = 1; lives = 3; combo = 0; comboT = 0; nextLife = 15000; inputMode = 'point';
   ents.length = 0; parts.length = 0; pops.length = 0; streaks.length = 0;
-  stats.games++; saveStats(); recBeaten = false; submittedBest = 0; fetchTop();
+  stats.games++; saveStats(); recBeaten = false; submittedBest = 0; fetchTop(); runSkin = null; runLoot = 0; digState.clear();
   runT = 0; ev = null; lastEv = ''; evT = rnd(16, 24); nurija = null; nurijaDone = false; killer = ''; frzT = 0; zoneIdx = 0; resetDirector();
   nurijaAt = summon ? 10 : rnd(45, 95); summon = false; // jede Runde gleiche Chance
   const p = player; Object.assign(p, {x: W*0.5, y: (SURF + FLOOR)/2, vx: 0, vy: 0, r: START_R, dir: 1, puff: 0, inv: 1.2, shield: 0, sleep: false, dead: false, air: false, ship: null});
@@ -1296,12 +1314,13 @@ function showOver() {
   $('finalScore').textContent = score; $('finalLvl').textContent = level; $('finalHi').textContent = hi;
   $('finalAlbum').textContent = nStage + '/6';
   $('newHi').hidden = !newHi; $('hud').hidden = true; $('over').hidden = false;
-  countBest(); overLeaderboard(); submitWealth();
+  countBest(); overLeaderboard(); submitWealth(); openLoot();
   overReady = time + 0.7;
   try { $('againBtn').focus({preventScroll: true}); } catch (e) {}
 }
 function pause() {
-  if (mp) { if (!mp.joined) return; mp.menu = true; $('pause').hidden = false; return; } // Der Ozean läuft weiter
+  if (mp) { if (!mp.joined) return; mp.menu = true; $('pause').hidden = false; $('bountyBox').hidden = false; renderBountyList(); return; } // Der Ozean läuft weiter
+  $('bountyBox').hidden = true;
   if (state !== 'play' && state !== 'levelup') return; prevState = state; state = 'pause'; $('pause').hidden = false;
 }
 function resume() {
@@ -1427,6 +1446,7 @@ function mpLeave() {
   if (!mp) return;
   const m = mp;
   if (m.peak > 0) submitScore(m.peak, 'multi', m.name);
+  runSkin = null; runLoot = 0;
   mpSend('bye', {});
   mp = null;
   ents.length = 0; ev = null; nurija = null; frzT = 0; player.dead = false;
@@ -1482,12 +1502,12 @@ window.addEventListener('pagehide', () => { if (mp) mpSend('bye', {}); });
 
 /* --- Netzwerk-Fische --- */
 function netData(e) {
-  const o = {}; for (const k of ['id', 'type', 'kind', 'pal', 'r', 'gold', 'x0', 'y0', 'vx', 'vy', 't0', 'bobA', 'bobF', 'ph0', 'sp', 'rare', 'll']) if (e[k] !== undefined) o[k] = e[k];
+  const o = {}; for (const k of ['id', 'type', 'kind', 'pal', 'r', 'gold', 'x0', 'y0', 'vx', 'vy', 't0', 'bobA', 'bobF', 'ph0', 'sp', 'rare', 'll', 'my']) if (e[k] !== undefined) o[k] = e[k];
   return o;
 }
 function addNetEnt(d) {
   if (!d || !d.id || ents.some(e => e.id === d.id)) return;
-  const e = Object.assign({}, d, {net: true, x: d.x0, y: d.y0, ph: 0});
+  const e = Object.assign({}, d, {net: true, x: d.x0, y: d.y0, ph: 0}); if (e.my) e.rare = 1;
   if (e.type === 'fish') { e.spr = buildFish(e.r, e.pal, e.kind, false); e.margin = e.spr.w + 4; e.dir = e.vx > 0 ? 1 : -1; }
   else if (e.type === 'jelly') e.spr = buildJelly(e.r);
   else e.margin = 14;
@@ -1586,6 +1606,13 @@ function mpRecv(m) {
     case 'eaten': onEaten(m); break;
     case 'blubb': { const o = mp.peers.get(m.f); if (o) { o.emote = 1.8; for (let i = 0; i < 6; i++) bubbles.push({x: o.x + rnd(-o.r, o.r), y: o.y - rnd(0, o.r), s: 1 + (i % 2), vy: rnd(20, 34), ph: rnd(0, 6)}); } break; }
     case 'bye': mp.peers.delete(m.f); break;
+    case 'fx': { const i = feats.findIndex(f => f.id === m.id); if (i >= 0) { feats.splice(i, 1); feedPush(`<b>${esc(peerName(m.f))}</b> gräbt eine Lootbox aus`); } break; }
+    case 'ann': if (m.a === 'loot') announce('loot'); break;
+    case 'bounty': { mp.bounty = mp.bounty || {}; const a = clamp(Math.floor(+m.a || 0), 0, 1e6); mp.bounty[m.on] = (mp.bounty[m.on] || 0) + a;
+      if (m.on === myId) banner('KOPFGELD AUF DICH!', '● ' + fmt(mp.bounty[m.on]) + ' · VON ' + peerName(m.f).toUpperCase());
+      else feedPush(`<b>${esc(peerName(m.f))}</b> setzt ● ${fmt(a)} auf <b>${esc(peerName(m.on))}</b>`);
+      if (!$('pause').hidden) renderBountyList(); break; }
+    case 'rent': if (m.to === myId) { const a = clamp(Math.floor(+m.a || 0), 0, 50); if (a) { addCoins(a); popup(player.x, player.y - player.r - 10, 'MIETE VON ' + peerName(m.f).toUpperCase() + ' +' + a, '#ffd25a', 7); } } break;
   }
 }
 function applyEv(m, announce) {
@@ -1649,6 +1676,7 @@ function peerState(m) {
   o.score = Math.max(0, +m.sc || 0); o.shield = m.sh ? 9 : 0; o.frz = !!m.fz; o.inv = !!m.i; o.dead = !!m.dd; o.glasses = !!m.g;
   o.name = cleanName(m.n) || '???'; o.pal = PLAYER_PALS.includes(m.p) ? m.p : 'puffer'; o.last = performance.now();
   o.sk = skinDef(String(m.sk || '')).k; o.ac = String(m.ac || '').split(',').filter(id => ACC[id]).slice(0, 9);
+  o.prop = PROPS[m.pr] ? m.pr : ''; o.parcel = clamp(Math.floor(+m.pc || 0), 0, 6);
 }
 function updatePeers(dt) {
   const now = performance.now(), k = Math.min(1, dt*10);
@@ -1695,6 +1723,7 @@ function mpDie(src) {
   feedPush(`<b>${esc(label || src.name)}</b> ${src.label === 'Fischer' ? 'isst' : 'frisst'} <b>dich</b>`);
   caught = null;
   state = 'mpdead'; mp.deadT = 2.4; p.dead = true; if (nurija) nurija.survive = false;
+  runSkin = null; if (mp.bounty) mp.bounty[myId] = 0; if (runLoot > 0) { mp.deadT = 5; setTimeout(() => openLoot(), 700); }
   const lost = score; score = 0; mp.peak = 0; combo = 0; comboT = 0; frzT = 0; // Tod = Punkte weg, Neustart bei 0
   shake = 5; flash = 1; flashCol = '255,60,90'; sfx.over(); burst(p.x, p.y, '#f2c14e', 16, 60);
   const by = src.isFeat ? ({Fischer: 'VOM FISCHER', 'Möwe': 'VON DER MÖWE', Krake: 'VOM KRAKEN', Hai: 'VOM HAI', Fisch: 'VON EINEM GRÖSSEREN FISCH'}[src.label] || '')
@@ -1706,6 +1735,8 @@ function mpDie(src) {
 }
 function onEaten(m) {
   const victim = cleanName(m.n) || '???', o = mp.peers.get(m.f);
+  const bounty = bountyOn(m.f); if (mp.bounty) mp.bounty[m.f] = 0;
+  if (bounty && m.by === myId) { addCoins(bounty); setTimeout(() => banner('KOPFGELD KASSIERT!', '● ' + fmt(bounty)), 1200); }
   if (o) { o.dead = true; burst(o.x, o.y, PALS[o.pal].body, 14, 55); }
   if (m.nur || m.w) { const w = m.nur ? 'Nurija' : cleanName(m.w); feedPush(`<b>${esc(w)}</b> ${w === 'Fischer' ? 'isst' : 'frisst'} <b>${esc(victim)}</b>`); return; }
   if (m.by === myId && state === 'play') {
@@ -1757,7 +1788,7 @@ function mpUpdate(dt) {
     if (p.shield > 0) p.shield = Math.max(0, p.shield - dt);
   } else if (state === 'caught') updateCaught(dt);
   else if (state === 'mpdead') { p.y -= 14*dt; mp.deadT -= dt; if (mp.deadT <= 0) mpSpawnPlayer(); }
-  updateFeats(dt);
+  updateFeats(dt); updateLoot(dt); propIncome(dt); visitorRent(dt);
   updateNurija(dt);
   p.inv = Math.max(0, p.inv - dt); p.puff = Math.max(0, p.puff - dt); frzT = Math.max(0, frzT - dt);
   mp.blubbCd = Math.max(0, mp.blubbCd - dt); mp.emote = Math.max(0, mp.emote - dt);
@@ -1768,7 +1799,7 @@ function mpUpdate(dt) {
     mp.sendT = SEND_EVERY;
     const msg = {x: Math.round(p.x*10)/10, y: Math.round(p.y*10)/10, vx: Math.round(p.vx), vy: Math.round(p.vy), r: Math.round(p.r*10)/10, d: p.dir,
       sc: score, sh: p.shield > 0 ? 1 : 0, fz: frenzy() ? 1 : 0, i: p.inv > 0 ? 1 : 0, dd: state === 'mpdead' ? 1 : 0, n: mp.name, p: mp.pal, g: nStage >= 6 ? 1 : 0,
-      sk: mySkin, ac: stats.worn.join(',')};
+      sk: effSkin(), ac: stats.worn.join(','), pr: bestProp(stats.owned), pc: myParcel()};
     const key = JSON.stringify(msg);
     if (key !== mp.lastSent || mp.idleT <= 0) { mp.lastSent = key; mp.idleT = 1; mpSend('s', msg); }
   }
@@ -1796,7 +1827,8 @@ function syncTags() {
     seen.add(id);
     let el = tagEls.get(id);
     if (!el) { el = document.createElement('div'); el.className = 'tag'; box.appendChild(el); tagEls.set(id, el); }
-    const html = (emote > 0 ? '<span class="em">BLUBB!</span>' : '') + (king ? '<span class="crown">♛</span>' : '') + `<span class="nm">${esc(name)}</span>`;
+    const bt = bountyOn(id);
+    const html = (emote > 0 ? '<span class="em">BLUBB!</span>' : '') + (bt ? `<span class="bt">KOPFGELD ● ${fmt(bt)}</span>` : '') + (king ? '<span class="crown">♛</span>' : '') + `<span class="nm">${esc(name)}</span>`;
     if (el._h !== html) { el._h = html; el.innerHTML = html; }
     el.classList.toggle('me', me);
     el.style.transform = `translate(${Math.round((x - camX)*PS)}px,${Math.round((y - r*0.95 - 2 - camY)*PS)}px) translate(-50%,-100%)`;
@@ -1846,7 +1878,7 @@ let stats = {eaten: {}, games: 0, mpGames: 0, bestSolo: 0, bestMulti: 0, caughtB
 try { const s = JSON.parse(localStorage.getItem('blubberbiss-stats') || 'null'); if (s && typeof s === 'object') stats = Object.assign(stats, s, {eaten: Object.assign({}, s.eaten), caughtBy: Object.assign({}, s.caughtBy)}); } catch (e) {}
 let statsSaveT = 0;
 function saveStats() { clearTimeout(statsSaveT); statsSaveT = setTimeout(() => { try { localStorage.setItem('blubberbiss-stats', JSON.stringify(stats)); } catch (e) {} }, 400); }
-const statKey = e => e.type === 'jelly' ? 'jelly' : e.gold ? 'gold' : e.ll ? 'landlord' : e.rare ? 'rare-' + e.pal : e.pal === 'sardine' ? 'sardine' : e.kind === 'shark' ? 'shark' : e.kind === 'stripe' ? 'stripe' : 'fish-' + e.pal;
+const statKey = e => e.type === 'jelly' ? 'jelly' : e.my ? 'mystery' : e.gold ? 'gold' : e.ll ? 'landlord' : e.rare ? 'rare-' + e.pal : e.pal === 'sardine' ? 'sardine' : e.kind === 'shark' ? 'shark' : e.kind === 'stripe' ? 'stripe' : 'fish-' + e.pal;
 function countEat(k) { stats.eaten[k] = (stats.eaten[k] || 0) + 1; saveStats(); }
 function countCaught(label) { stats.caughtBy[label] = (stats.caughtBy[label] || 0) + 1; saveStats(); }
 function countBest() {
@@ -2063,14 +2095,16 @@ if (!Array.isArray(stats.worn)) stats.worn = [];
 stats.worn = stats.worn.filter(id => ACC[id] && stats.owned[id]);
 let mySkin = 'puffer';
 try { mySkin = localStorage.getItem('blubberbiss-skin') || 'puffer'; } catch (e) {}
-const netWorth = () => stats.coins + Object.keys(stats.owned).reduce((s, id) => s + (ACC[id] ? ACC[id].p : 0), 0);
+const netWorth = () => stats.coins + Object.keys(stats.owned).reduce((s, id) => s + (ACC[id] ? ACC[id].p : PROPS[id] ? PROPS[id].p : 0), 0);
 
 function skinDef(k) {
   if (!k || k === 'puffer') return {k: 'puffer', n: 'Kugelfisch', kind: 'puffer'};
+  if (k === 'nurija') return NURIJA_SKIN;
+  if (k === 'disco') return DISCO_SKIN;
   const s = SPECIES.find(x => x.k === k);
   return s && !s.jelly && s.k !== 'player' ? s : {k: 'puffer', n: 'Kugelfisch', kind: 'puffer'};
 }
-const skinOk = k => k === 'puffer' || ((stats.eaten[k] || 0) > 0 && skinDef(k).k === k);
+const skinOk = k => k === 'puffer' || (((stats.eaten[k] || 0) > 0 || (stats.unlocked && stats.unlocked[k])) && skinDef(k).k === k && k !== 'nurija' && k !== 'disco');
 if (!skinOk(mySkin)) mySkin = 'puffer';
 function setSkin(k) { if (!skinOk(k)) return; mySkin = k; try { localStorage.setItem('blubberbiss-skin', k); } catch (e) {} }
 
@@ -2123,6 +2157,8 @@ function announce(kind, nm) {
   else if (kind === 'sardine') { banner('SARDINENSCHWARM!', 'BÜFFET IST ERÖFFNET'); [523, 659, 784, 659, 784, 1047].forEach((f, i) => tone(f, f, 0.08, 'square', 0.05, i*0.07)); }
   else if (kind === 'landlord') { banner('DER IMMOBILIENHAI!', 'MIETE FÄLLIG · HALT DEINE MÜNZEN FEST'); tone(220, 110, 0.6, 'sawtooth', 0.07); }
   else if (kind === 'chest') { banner('SCHATZ IN SICHT!', 'EINE TRUHE SINKT ZU BODEN'); sfx.pearl(); }
+  else if (kind === 'mystery') { banner('MYSTERY-FISCH!', 'WER IHN FRISST, DREHT AM GLÜCKSRAD'); [392, 523, 392, 659, 392, 784].forEach((f, i) => tone(f, f, 0.1, 'triangle', 0.06, i*0.1)); }
+  else if (kind === 'loot') { banner('LOOTBOX VERGRABEN!', 'SUCH AM MEERESBODEN · DRÜBER REIBEN ZUM AUSGRABEN'); tone(300, 600, 0.3, 'triangle', 0.06); }
 }
 function spawnSpecial(type) {
   const t = ft(), wy = () => rnd(WTOP() + 20, FLOOR - 30);
@@ -2141,6 +2177,10 @@ function spawnSpecial(type) {
     const o = {r: +rnd(18, 23).toFixed(1), pal: 'shark', kind: 'shark', sp: 30, ll: 1, bobA: 0, bobF: 1};
     if (mp) hostEmit({k: 'sp', ann: 'landlord', e: [mkNetFish(Object.assign({y: wy()}, o))]});
     else { const e = spawnFish(o); Object.assign(e, {ll: 1, bobA: 0, huntCd: 0}); announce('landlord'); }
+  } else if (type === 'mystery') {
+    const o = {r: 6, pal: 'mystery', kind: 'fish', sp: 52, my: 1, bobA: 30, bobF: 3.5};
+    if (mp) { const d = mkNetFish(Object.assign({y: wy()}, o)); d.my = 1; hostEmit({k: 'sp', ann: 'mystery', e: [d]}); }
+    else { const e = spawnFish(o); Object.assign(e, {my: 1, rare: 1, bobA: 30, bobF: 3.5}); announce('mystery'); }
   } else if (type === 'chest') {
     const d = {id: mp ? nid() : 'c' + t, type: 'chest', r: 6, x0: Math.round(rnd(40, W - 40)), y0: SURF - 4, vy: 18, t0: t};
     if (mp) hostEmit({k: 'sp', ann: 'chest', e: [d]});
@@ -2246,7 +2286,7 @@ function renderShop() {
     });
     ag.appendChild(b);
   }
-  renderWealth();
+  renderWealth(); renderEstate();
 }
 $('shopBtn').addEventListener('click', e => { e.stopPropagation(); showShop('title'); });
 $('overShopBtn').addEventListener('click', () => showShop('over'));
@@ -2276,16 +2316,292 @@ function renderRichRec() {
 }
 async function submitWealth() {
   const c = sb(); if (!c || !wealthDirty || Date.now() - wealthSentAt < 20000) return;
-  const w = netWorth(); if (w <= 0) return;
+  const w = netWorth(); if (w <= 0 && !stats.donated) return;
   if (!mpName) { mpName = randName(); try { localStorage.setItem('blubberbiss-name', mpName); } catch (e) {} }
   wealthDirty = false; wealthSentAt = Date.now();
-  try { await c.rpc('blubberbiss_wealth_submit', {p_name: mpName, p_wealth: w, p_acc: stats.worn.join(','), p_token: scoreToken}); fetchWealth(); } catch (e) { wealthDirty = true; }
+  try { await c.rpc('blubberbiss_wealth_submit', {p_name: mpName, p_wealth: w, p_acc: stats.worn.join(','), p_token: scoreToken, p_donated: stats.donated || 0}); fetchWealth(); fetchDonors(); } catch (e) { wealthDirty = true; }
 }
 setInterval(() => { if (!document.hidden) submitWealth(); }, 30000);
 fetchWealth();
 
+/* ---------- Lootboxen: im Meeresboden vergraben, durch Reiben freilegen, beim Tod öffnen ---------- */
+if (!stats.unlocked || typeof stats.unlocked !== 'object') stats.unlocked = {};
+let runLoot = 0;              // in diesem Leben ausgegrabene Lootboxen
+const digState = new Map();   // Fortschritt pro Lootbox (nur lokal)
+function updateLoot(dt) {
+  const p = player, sp = Math.hypot(p.vx, p.vy);
+  for (let i = feats.length - 1; i >= 0; i--) {
+    const f = feats[i]; if (f.type !== 'loot') continue;
+    if (ft() - f.t0 > 240) { feats.splice(i, 1); continue; }
+    if (state !== 'play' || p.air || p.ship) continue;
+    const fy = floorAt(f.x);
+    if (Math.abs(p.x - f.x) < 10 + p.r*0.8 && p.y > fy - p.r - 12) {
+      const d = (digState.get(f.id) || 0) + Math.min(1, sp / 60)*dt*0.38; // reiben = sich bewegen
+      digState.set(f.id, d);
+      if (sp > 15 && Math.random() < 0.6) parts.push({x: f.x + rnd(-6, 6), y: fy - 1, vx: rnd(-25, 25), vy: -rnd(15, 45), life: rnd(0.3, 0.6), c: '#c9b07a', s: 1});
+      if (sp > 15 && Math.random() < dt*6) tone(90 + d*200, 60, 0.05, 'square', 0.025);
+      if (d >= 1) {
+        feats.splice(i, 1); digState.delete(f.id);
+        if (mp) mpSend('fx', {id: f.id});
+        runLoot++; sfx.level(); burst(f.x, fy - 4, '#ffd25a', 16, 50);
+        banner('LOOTBOX!', runLoot === 1 ? 'WIRD BEIM TOD GEÖFFNET' : runLoot + ' STÜCK · WERDEN BEIM TOD GEÖFFNET');
+      }
+    }
+  }
+}
+function drawLoot(f) {
+  const x = Math.round(f.x), fy = Math.round(floorAt(f.x)), d = clamp(digState.get(f.id) || 0, 0, 1);
+  const rise = Math.round(d*8); // Truhe kommt Stück für Stück aus dem Sand
+  ctx.fillStyle = '#3a1d0c'; ctx.fillRect(x - 7, fy - rise - 1, 14, 10);
+  ctx.fillStyle = '#6b2fa3'; ctx.fillRect(x - 6, fy - rise, 12, 8);
+  ctx.fillStyle = '#ffcf3a'; ctx.fillRect(x - 7, fy - rise + 2, 14, 1); ctx.fillRect(x - 1, fy - rise + 1, 2, 3);
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(x + 3, fy - rise + 4, 1, 1);
+  const mound = Math.round((1 - d)*9); // Sandhügel darüber
+  for (let y = 0; y < mound; y++) { const w = Math.round((mound - y)*1.6 + 3); ctx.fillStyle = y % 3 === 0 ? '#b89a62' : '#a88a55'; ctx.fillRect(x - w, fy - y + 1, w*2, 1); }
+  if (Math.floor(time*4 + f.x) % 4 === 0) { ctx.fillStyle = '#ffe98a'; ctx.fillRect(x + 6, fy - mound - rise - 3, 1, 2); }
+  if (d > 0 && d < 1) { ctx.fillStyle = '#04101f'; ctx.fillRect(x - 9, fy - 22, 18, 3); ctx.fillStyle = '#ffd25a'; ctx.fillRect(x - 8, fy - 21, Math.round(16*d), 1); }
+}
+// Was in einer Lootbox steckt
+function rollLoot() {
+  const q = Math.random();
+  if (q < 0.02) return {t: 'coins', n: 10000, label: 'JACKPOT!', big: true};
+  if (q < 0.08) {
+    const sp = pick(RARE); stats.unlocked[sp.k] = true;
+    return {t: 'skin', label: 'SELTENER SKIN: ' + sp.n.toUpperCase(), big: true};
+  }
+  if (q < 0.24) {
+    const ids = Object.keys(ACC), w = ids.map(id => 1 / Math.sqrt(ACC[id].p)), sum = w.reduce((a, b) => a + b, 0);
+    let r = Math.random()*sum, id = ids[0];
+    for (let i = 0; i < ids.length; i++) { r -= w[i]; if (r <= 0) { id = ids[i]; break; } }
+    if (stats.owned[id]) { const n = Math.round(ACC[id].p*0.25); return {t: 'coins', n, label: ACC[id].n.toUpperCase() + ' (DOPPELT) → ● ' + fmt(n)}; }
+    stats.owned[id] = true; return {t: 'acc', label: ACC[id].n.toUpperCase() + '!', big: ACC[id].p >= 40000};
+  }
+  if (q < 0.46) { const n = Math.round(rnd(800, 2500)); return {t: 'coins', n, label: 'GOLDHAUFEN · ● ' + fmt(n)}; }
+  const n = Math.round(rnd(80, 400)); return {t: 'coins', n, label: '● ' + fmt(n)};
+}
+function openLoot(after) {
+  if (runLoot <= 0) { if (after) after(); return; }
+  const n = runLoot; runLoot = 0;
+  const el = $('loot'), list = $('lootList'); list.innerHTML = ''; el.hidden = false;
+  $('lootTitle').textContent = n === 1 ? 'LOOTBOX!' : n + ' LOOTBOXEN!';
+  let i = 0;
+  const next = () => {
+    if (i >= n) { saveStats(); wealthDirty = true; submitWealth(); $('lootDone').hidden = false; $('lootDone').onclick = () => { el.hidden = true; if (after) after(); }; return; }
+    i++;
+    const box = $('lootBox'); box.classList.remove('open'); void box.offsetWidth; box.classList.add('shaking');
+    [300, 340, 380, 420].forEach((f, k) => tone(f, f*1.2, 0.07, 'square', 0.05, k*0.12));
+    setTimeout(() => {
+      const r = rollLoot(); if (r.t === 'coins') addCoins(r.n);
+      box.classList.remove('shaking'); box.classList.add('open');
+      if (r.big) { sfx.level(); flash = 1; flashCol = '255,210,90'; } else sfx.pearl();
+      const li = document.createElement('li'); li.className = r.big ? 'big' : ''; li.textContent = r.label; list.appendChild(li);
+      setTimeout(next, 650);
+    }, 700);
+  };
+  $('lootDone').hidden = true;
+  next();
+}
+
+/* ---------- Mystery-Fisch & Glücksrad: Skin für den Rest des Laufs ---------- */
+let runSkin = null;
+const effSkin = () => runSkin || mySkin;
+const NURIJA_SKIN = {k: 'nurija', n: 'Mini-Nurija', kind: 'fish', img: true};
+const DISCO_SKIN = {k: 'disco', n: 'Discofisch', pal: 'rainbow', kind: 'fish', disco: true};
+const WHEEL = [NURIJA_SKIN, {k: 'gold', w: 1}, {k: 'rare-rainbow'}, {k: 'landlord'}, DISCO_SKIN, {k: 'rare-geist'}, {k: 'shark'}, {k: 'rare-lava'}, {k: 'rare-kristall'}, {k: 'rare-nacht'}]
+  .map(s => s.n ? s : SPECIES.find(x => x.k === s.k));
+let wheel = null;
+function startWheel() {
+  const won = Math.random() < 0.12 ? 0 : 1 + Math.floor(Math.random()*(WHEEL.length - 1));
+  const segs = WHEEL.length, seg = 360 / segs;
+  const target = 360*7 + (360 - (won*seg + seg/2)); // Zeiger oben
+  wheel = {won, t: 0, dur: 4.6, target, last: -1, prevState: state};
+  if (!mp && state === 'play') state = 'wheel'; else player.inv = Math.max(player.inv, 6.5);
+  $('wheel').hidden = false; $('wheelWin').textContent = ''; $('wheelWin').classList.remove('show');
+  drawWheel(0);
+  banner('MYSTERY-FISCH!', 'DAS GLÜCKSRAD DREHT SICH');
+  [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, f, 0.09, 'square', 0.06, i*0.06));
+  confetti(60);
+}
+function wheelIcon(sd, size) {
+  const c = document.createElement('canvas'); c.width = size; c.height = size*0.7;
+  const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+  if (sd.img) { if (faceImg) { const k = Math.min(c.width / faceImg.width, c.height / faceImg.height); g.drawImage(faceImg, (c.width - faceImg.width*k)/2, (c.height - faceImg.height*k)/2, faceImg.width*k, faceImg.height*k); } return c; }
+  const spr = buildFish(9, sd.pal, sd.kind, false), k = Math.min(c.width*0.9 / spr.w, c.height*0.9 / spr.h);
+  g.drawImage(spr.c, (c.width - spr.w*k)/2, (c.height - spr.h*k)/2, spr.w*k, spr.h*k);
+  return c;
+}
+const wheelIcons = new Map();
+function drawWheel(rot) {
+  const c = $('wheelCanvas'), g = c.getContext('2d'), R = c.width/2, n = WHEEL.length, seg = 2*Math.PI / n;
+  g.clearRect(0, 0, c.width, c.height);
+  g.save(); g.translate(R, R); g.rotate(rot*Math.PI/180);
+  for (let i = 0; i < n; i++) {
+    g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, R - 14, -Math.PI/2 + i*seg, -Math.PI/2 + (i + 1)*seg); g.closePath();
+    g.fillStyle = WHEEL[i].img ? '#ff4f8b' : `hsl(${(i*360/n + time*40) % 360},85%,${i % 2 ? 55 : 45}%)`; g.fill();
+    g.strokeStyle = '#03101f'; g.lineWidth = 4; g.stroke();
+    g.save(); g.rotate(-Math.PI/2 + (i + 0.5)*seg); g.translate(R*0.62, 0); g.rotate(Math.PI/2);
+    let ic = wheelIcons.get(WHEEL[i].k); if (!ic) { ic = wheelIcon(WHEEL[i], 64); wheelIcons.set(WHEEL[i].k, ic); }
+    g.imageSmoothingEnabled = !!WHEEL[i].img; g.drawImage(ic, -32, -22, 64, 44);
+    g.restore();
+  }
+  g.restore();
+  // Lichterkette rundherum
+  for (let i = 0; i < 28; i++) {
+    const a = i / 28 * 2*Math.PI, on = (Math.floor(time*12) + i) % 2;
+    g.beginPath(); g.arc(R + Math.cos(a)*(R - 7), R + Math.sin(a)*(R - 7), 5, 0, 7);
+    g.fillStyle = on ? '#fff6c0' : '#ffb03a'; g.fill();
+  }
+  g.beginPath(); g.arc(R, R, 22, 0, 7); g.fillStyle = '#ffd25a'; g.fill(); g.strokeStyle = '#03101f'; g.lineWidth = 4; g.stroke();
+  g.fillStyle = '#03101f'; g.font = '700 18px Silkscreen, monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('?', R, R + 1);
+  g.beginPath(); g.moveTo(R - 16, 2); g.lineTo(R + 16, 2); g.lineTo(R, 34); g.closePath(); g.fillStyle = '#ff3b5c'; g.fill(); g.strokeStyle = '#ffffff'; g.lineWidth = 3; g.stroke();
+}
+function updateWheel(dt) {
+  const w = wheel; if (!w) return;
+  w.t += dt;
+  const u = Math.min(1, w.t / w.dur), ease = 1 - Math.pow(1 - u, 4), rot = w.target*ease;
+  drawWheel(rot);
+  const segIdx = Math.floor(((rot % 360) + 360) % 360 / (360 / WHEEL.length));
+  if (segIdx !== w.last) { w.last = segIdx; tone(1200, 900, 0.03, 'square', 0.04); }
+  if (u >= 1 && !w.done) {
+    w.done = true; const sd = WHEEL[w.won]; runSkin = sd.k;
+    $('wheelWin').innerHTML = `DU BIST JETZT<br><b>${esc(sd.n.toUpperCase())}</b>`; $('wheelWin').classList.add('show');
+    [784, 988, 1175, 1568, 1976, 2349].forEach((f, i) => tone(f, f, 0.14, 'square', 0.07, i*0.09));
+    confetti(140); flash = 1; flashCol = '255,255,255';
+  }
+  if (w.done && w.t > w.dur + 1.8) {
+    $('wheel').hidden = true; wheel = null;
+    if (state === 'wheel') { state = 'play'; last = performance.now(); }
+    banner('NEUER LOOK!', 'BIS ZUM NÄCHSTEN TOD');
+  }
+}
+function confetti(n) {
+  const box = $('confetti');
+  for (let i = 0; i < n; i++) {
+    const d = document.createElement('i');
+    d.style.left = rnd(0, 100) + 'vw'; d.style.background = `hsl(${rnd(0, 360)},90%,60%)`;
+    d.style.animationDuration = rnd(1.2, 2.6) + 's'; d.style.animationDelay = rnd(0, 0.4) + 's';
+    d.style.setProperty('--dx', rnd(-30, 30) + 'vw'); d.style.setProperty('--rot', rnd(-720, 720) + 'deg');
+    box.appendChild(d); setTimeout(() => d.remove(), 3200);
+  }
+}
+
+/* ---------- Immobilien: passives Einkommen, im Multiplayer Miete von Besuchern ---------- */
+const PROPS = {
+  parzelle: {n: 'Riff-Parzelle',             p: 25000,  inc: 3},
+  villa:    {n: 'Korallen-Villa',            p: 150000, inc: 15},
+  turm:     {n: 'Unterwasser-Wolkenkratzer', p: 750000, inc: 60},
+};
+const bestProp = owned => ['turm', 'villa', 'parzelle'].find(id => owned[id]) || '';
+const myParcel = () => { let h = 0; for (const ch of scoreToken) h = (h*31 + ch.charCodeAt(0)) >>> 0; return h % 7; };
+const parcelX = i => Math.round((i + 0.5) * W / 7);
+let incomeT = 10, rentStay = new Map();
+function propIncome(dt) {
+  if (state !== 'play') return;
+  const inc = Object.keys(PROPS).reduce((s, id) => s + (stats.owned[id] ? PROPS[id].inc : 0), 0);
+  if (!inc) return;
+  incomeT -= dt;
+  if (incomeT <= 0) { incomeT = 10; addCoins(inc); popup(player.x, player.y - player.r - 10, 'MIETEINNAHMEN +' + inc, '#ffd25a'); }
+}
+// Wer im Multiplayer bei einem fremden Gebäude herumschwimmt, zahlt dem Besitzer Miete
+function visitorRent(dt) {
+  if (!mp || state !== 'play') return;
+  const p = player;
+  for (const o of mp.peers.values()) {
+    if (!o.prop) continue;
+    const bx = parcelX(o.parcel), fy = floorAt(bx), inside = Math.abs(p.x - bx) < 26 && p.y > fy - 50;
+    const t = inside ? (rentStay.get(o.id) || 0) + dt : 0; rentStay.set(o.id, t);
+    if (t > 3 && stats.coins >= 5) {
+      rentStay.set(o.id, 0); stats.coins -= 5; saveStats(); wealthDirty = true;
+      mpSend('rent', {to: o.id, a: 5}); popup(p.x, p.y - p.r - 8, 'MIETE -5 → ' + o.name.toUpperCase(), '#ff7ab0', 7);
+    }
+  }
+}
+function drawBuilding(prop, bx, owner, mine) {
+  const fy = Math.round(floorAt(bx)), x = Math.round(bx);
+  if (prop === 'parzelle') {
+    ctx.fillStyle = '#5a3418'; ctx.fillRect(x - 1, fy - 18, 2, 18);
+    ctx.fillStyle = '#e9e2cf'; ctx.fillRect(x - 10, fy - 18, 20, 7); ctx.fillStyle = '#3a1d0c'; ctx.fillRect(x - 10, fy - 11, 20, 1);
+    ctx.fillStyle = '#c4862a'; ctx.fillRect(x - 12, fy - 6, 24, 6); ctx.fillStyle = '#ffd25a'; ctx.fillRect(x - 3, fy - 4, 6, 4);
+  } else if (prop === 'villa') {
+    ctx.fillStyle = '#d65a86'; ctx.fillRect(x - 18, fy - 20, 36, 20);
+    ctx.fillStyle = '#9b2c5c'; for (let i = 0; i < 9; i++) ctx.fillRect(x - 20 + i*1, fy - 21 - i, 40 - i*2, 1);
+    ctx.fillStyle = '#ffd25a'; ctx.fillRect(x - 13, fy - 15, 5, 5); ctx.fillRect(x + 8, fy - 15, 5, 5); ctx.fillRect(x - 3, fy - 9, 6, 9);
+    ctx.fillStyle = '#f2b6c8'; ctx.fillRect(x - 18, fy - 20, 36, 1);
+  } else if (prop === 'turm') {
+    ctx.fillStyle = '#1c2a44'; ctx.fillRect(x - 9, fy - 70, 18, 70); ctx.fillRect(x - 5, fy - 82, 10, 12); ctx.fillRect(x - 1, fy - 92, 2, 10);
+    for (let yy = fy - 66; yy < fy - 4; yy += 6) for (let xx = -6; xx <= 4; xx += 5) { ctx.fillStyle = ((xx + yy + Math.floor(time*2)) % 3) ? '#ffd25a' : '#3a4d70'; ctx.fillRect(x + xx, yy, 2, 3); }
+    ctx.fillStyle = Math.floor(time*3) % 2 ? '#ff3b5c' : '#5a0a1c'; ctx.fillRect(x - 1, fy - 94, 2, 2);
+  }
+  // Schild mit Besitzername (Status!)
+  ctx.font = '8px Silkscreen, monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const label = (mine ? 'DEIN ' : '') + PROPS[prop].n.split(' ')[0].toUpperCase() + (owner ? ' · ' + owner : '');
+  ctx.fillStyle = '#04101f'; ctx.fillText(label, x + 1, fy + 5); ctx.fillStyle = mine ? '#ffd25a' : '#eef8ff'; ctx.fillText(label, x, fy + 4);
+}
+function drawBuildings() {
+  const mine = bestProp(stats.owned);
+  if (mine && state !== 'title') drawBuilding(mine, parcelX(myParcel()), '', true);
+  if (mp) for (const o of mp.peers.values()) if (o.prop && PROPS[o.prop]) drawBuilding(o.prop, parcelX(o.parcel), o.name, false);
+}
+
+/* ---------- Kopfgeld (Multiplayer) ---------- */
+function bountyOn(id) { return (mp && mp.bounty && mp.bounty[id]) || 0; }
+function placeBounty(id, a) {
+  if (!mp || stats.coins < a) { tone(200, 150, 0.12, 'square', 0.05); return; }
+  stats.coins -= a; saveStats(); wealthDirty = true;
+  mp.bounty = mp.bounty || {}; mp.bounty[id] = (mp.bounty[id] || 0) + a;
+  mpSend('bounty', {on: id, a});
+  const o = mp.peers.get(id); banner('KOPFGELD!', (o ? o.name.toUpperCase() : '???') + ' · ● ' + fmt(mp.bounty[id]));
+  renderBountyList();
+}
+function renderBountyList() {
+  const el = $('bountyList'); if (!el) return;
+  if (!mp || !mp.peers.size) { el.innerHTML = '<p class="hint">Niemand sonst im Ozean.</p>'; return; }
+  el.innerHTML = '';
+  for (const o of mp.peers.values()) {
+    const row = document.createElement('div'); row.className = 'brow';
+    row.innerHTML = `<span>${esc(o.name)}${bountyOn(o.id) ? ` <b>● ${fmt(bountyOn(o.id))}</b>` : ''}</span>`;
+    for (const a of [100, 1000]) { const b = document.createElement('button'); b.className = 'pxbtn small'; b.textContent = '+' + fmt(a); b.disabled = stats.coins < a; b.onclick = () => placeBounty(o.id, a); row.appendChild(b); }
+    el.appendChild(row);
+  }
+}
+
+/* ---------- Nurija-Stiftung: Spenden (sinnlos, aber öffentlich) ---------- */
+const DONATE_JOKES = ['NURIJA KAUFT SICH DAVON NEUE BRILLEN', 'STEUERLICH ABSETZBAR (NICHT WIRKLICH)', 'DEIN NAME STEHT JETZT AUF EINER BANK IM RIFF',
+  'DAS GELD FLIESST IN «PROJEKTE»', 'NURIJA BEDANKT SICH MIT EINEM SCHREI', 'EFFEKTIVER ALTRUISMUS, ABER FÜR FISCHE'];
+function donate(a) {
+  if (stats.coins < a) { tone(200, 150, 0.12, 'square', 0.05); return; }
+  stats.coins -= a; stats.donated = (stats.donated || 0) + a; saveStats(); wealthDirty = true; wealthSentAt = 0; submitWealth();
+  banner('DANKE!', pick(DONATE_JOKES)); sfx.life(); renderShop();
+}
+let donorList = null;
+async function fetchDonors() {
+  const c = sb(); if (!c) return;
+  try { const {data, error} = await c.rpc('blubberbiss_donors_top', {p_limit: 10}); if (error) throw error; donorList = Array.isArray(data) ? data : []; } catch (e) { donorList = donorList || null; }
+  const el = $('donorList'); if (!el) return;
+  if (!donorList) { el.innerHTML = '<li><span></span><span>Liste nicht erreichbar</span><span></span></li>'; return; }
+  el.innerHTML = donorList.length ? donorList.map(r => `<li><span>${esc(r.name)}</span><span>● ${fmt(r.donated)}</span></li>`).join('') : '<li><span></span><span>Noch keine Spenden. Nurija weint.</span><span></span></li>';
+}
+function renderEstate() {
+  const pg = $('propGrid'); if (!pg) return; pg.innerHTML = '';
+  for (const [id, pr] of Object.entries(PROPS)) {
+    const own = !!stats.owned[id], afford = stats.coins >= pr.p;
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'ccard' + (own ? ' on' : '') + (!own && !afford ? ' none' : '');
+    b.innerHTML = `<div style="grid-column:1/-1"><div class="cn">${esc(pr.n)}</div><div class="cc small">${own ? 'GEHÖRT DIR · +' + pr.inc + ' ● / 10 S' : '● ' + fmt(pr.p) + ' · +' + pr.inc + ' ● / 10 S'}</div></div>`;
+    b.addEventListener('click', () => {
+      if (own) return;
+      if (!afford) { tone(200, 150, 0.12, 'square', 0.05); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); return; }
+      stats.coins -= pr.p; stats.owned[id] = true; saveStats(); wealthDirty = true; submitWealth(); sfx.level();
+      banner('GEKAUFT!', pr.n.toUpperCase() + ' · DU BIST JETZT VERMIETER'); renderShop();
+    });
+    pg.appendChild(b);
+  }
+  $('donateRow').querySelectorAll('button').forEach(b => { b.disabled = stats.coins < +b.dataset.a; b.onclick = () => donate(+b.dataset.a); });
+  $('donatedMine').textContent = stats.donated ? 'DU HAST ● ' + fmt(stats.donated) + ' GESPENDET' : '';
+  fetchDonors();
+}
+
 // Testzugang nur mit ?debug in der Adresse
-if (/[?&]debug\b/.test(location.search)) window.__bb = {player, ents, feats, get mp() { return mp; }, get state() { return state; }, get score() { return score; }, get lives() { return lives; }, get SURF() { return SURF; }, get W() { return W; }, hostEmit, nowS, emitFeat, mkBird, ft, fid, keys, spawnFish, spawnSpecial, spawnJelly, startNurija, stats};
+if (/[?&]debug\b/.test(location.search)) window.__bb = {player, ents, feats, get mp() { return mp; }, get state() { return state; }, get score() { return score; }, get lives() { return lives; }, get SURF() { return SURF; }, get W() { return W; }, hostEmit, nowS, emitFeat, mkBird, ft, fid, keys, spawnFish, spawnSpecial, spawnJelly, startNurija, stats, startWheel, get runLoot() { return runLoot; }, digState};
 
 /* ---------- Easter Eggs ---------- */
 let pokes = 0, pokeT = 0, typed = '';
@@ -2367,7 +2683,8 @@ window.addEventListener('resize', resize);
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  if (state !== 'pause') update(dt);
+  if (state !== 'pause' && state !== 'wheel') update(dt);
+  updateWheel(dt);
   draw();
   requestAnimationFrame(frame);
 }

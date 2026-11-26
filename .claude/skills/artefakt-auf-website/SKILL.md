@@ -51,6 +51,8 @@ also ohne Login**, ohne Tabelle und ohne Server-Code.
   mit Prüfungen und Mengenbegrenzung pro Browser-Token (Muster: `supabase/migrations/20261119000000_blubberbiss_scores.sql`).
   Anwenden über `SUPABASE_ACCESS_TOKEN` + Management-API (siehe CLAUDE.md), nicht über den Supabase-Connector.
   Das Spiel muss auch ohne Tabelle laufen (Fehler abfangen, Anzeige ausblenden).
+- **Multiplayer-Tests nie im Live-Raum:** Echte Spieler sehen Testfiguren. Beim Browsertest Supabase-REST mit
+  `page.route(/supabase\.co\/rest/, …)` abfangen, damit keine Testwerte in Bestenlisten landen.
 - Für Tests einen Zugang nur mit `?debug` einbauen (`window.__bb = {…}`), damit man Zustände setzen kann.
 
 ## 5. Pixel-Grafik: Fallstricke
