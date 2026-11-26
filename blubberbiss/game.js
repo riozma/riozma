@@ -122,7 +122,7 @@ function drawAlbum() {
 /* ---------- Pixel-Art-Sprites (ChatGPT-Spritesheets, Magenta entfernt; siehe sprites/) ----------
    Jede Datei ist ein Streifen gleich grosser Bilder. Ist ein Bild noch nicht geladen, wird die
    alte, gezeichnete Version verwendet. */
-const SPRITE_META = {"lootbox": {"n": 8, "w": 132, "h": 137}, "landlord": {"n": 4, "w": 184, "h": 148}, "fisher": {"n": 6, "w": 208, "h": 244}, "gull": {"n": 4, "w": 116, "h": 96}, "kraken_head": {"n": 1, "w": 324, "h": 300}, "kraken_arm": {"n": 8, "w": 52, "h": 58}, "sub": {"n": 3, "w": 204, "h": 148}, "mystery": {"n": 4, "w": 148, "h": 96}, "wheel": {"n": 1, "w": 512, "h": 512, "cx": 258.0, "cy": 270.0, "r": 142.0}, "acc": {"n": 9, "w": 56, "h": 40}, "rare": {"n": 10, "w": 148, "h": 104}};
+const SPRITE_META = {"lootbox": {"n": 8, "w": 132, "h": 137}, "landlord": {"n": 4, "w": 184, "h": 148}, "fisher": {"n": 6, "w": 208, "h": 244}, "gull": {"n": 4, "w": 116, "h": 96}, "kraken_head": {"n": 1, "w": 324, "h": 300}, "kraken_arm": {"n": 8, "w": 52, "h": 58}, "sub": {"n": 3, "w": 204, "h": 148}, "mystery": {"n": 4, "w": 148, "h": 96}, "wheel": {"n": 1, "w": 512, "h": 512, "cx": 258.0, "cy": 270.0, "r": 142.0}, "acc": {"n": 9, "w": 56, "h": 40}, "rare": {"n": 10, "w": 148, "h": 104}, "kfx": {"n": 8, "w": 117, "h": 120}, "kgrab": {"n": 4, "w": 120, "h": 90}, "ktip": {"n": 4, "w": 54, "h": 45}, "kseg": {"n": 8, "w": 58, "h": 42, "parts": [[4, 59, 12, 51], [4, 59, 14, 48], [4, 59, 17, 46], [4, 59, 19, 44], [4, 59, 21, 42], [4, 59, 23, 40], [4, 59, 25, 38], [4, 59, 27, 36]]}, "keyes": {"n": 6, "w": 139, "h": 88}};
 const SPR = {};
 for (const [name, m] of Object.entries(SPRITE_META)) { const img = new Image(); img.src = 'sprites/' + name + '.png'; SPR[name] = Object.assign({img, cache: new Map()}, m); }
 const sprReady = name => { const s = SPR[name]; return s && s.img.complete && s.img.naturalWidth > 0 ? s : null; };
@@ -1152,12 +1152,50 @@ function drawBird(f) {
   // Warnung: Möwe ausserhalb des Bildes oder im Anflug
   if (b.dive && b.u < 0.8 && Math.floor(time*6) % 2 === 0) drawWarn(clamp(x, camX + 4, camX + VW - 6), clamp(y - 10, camY + 22, camY + VH - 10));
 }
+// Ein Sprite um seinen Mittelpunkt gedreht zeichnen
+function drawSprRot(name, i, x, y, w, ang, flipY) {
+  const c = sprFrame(name, i, w); if (!c) return false;
+  ctx.save(); ctx.translate(Math.round(x), Math.round(y)); ctx.rotate(ang); if (flipY) ctx.scale(1, -1);
+  ctx.drawImage(c, -Math.round(c.width/2), -Math.round(c.height/2)); ctx.restore();
+  return true;
+}
+const KSEG_TH = [40, 35, 30, 26, 22, 18, 14, 10]; // Dicke der Arm-Stücke im Bild
+function drawKrakenSprites(f, k) {
+  if (!sprReady('kseg') || !sprReady('kraken_head')) return false;
+  const ks = k.ks, tau = k.tau, hx = Math.round(k.hx), hy = Math.round(k.hy), segW = SPR.kseg.w;
+  // Sandwolke beim Auftauchen, Tinte beim Abtauchen, Schockwelle beim Angriff
+  if (tau > 1.6 && tau < 3.4) drawSpr('kfx', Math.min(2, Math.floor((tau - 1.6)/0.5)), f.x, floorAt(f.x) + 4, 60*ks, false, 0.5, 1);
+  if (tau > 10.4 && tau < 12.2) drawSpr('kfx', 3 + Math.min(2, Math.floor((tau - 10.4)/0.5)), hx, hy, 70*ks, false);
+  // Arme: gerade Stücke entlang der Armpunkte, gedreht und von dünn nach dick gezeichnet
+  for (const arm of k.arms) {
+    if (arm.length < 3) continue;
+    const base = {x: arm[0].x - (arm[1].x - arm[0].x), y: arm[0].y - (arm[1].y - arm[0].y)};
+    const pts = [base].concat(arm), n = pts.length - 1, flipY = arm[arm.length - 1].x < hx; // Saugnäpfe nach innen
+    for (let j = n - 1; j >= 1; j -= 2) {
+      const a = pts[j - 1], b = pts[Math.min(n, j + 1)], ang = Math.atan2(b.y - a.y, b.x - a.x);
+      const fr = Math.min(7, Math.floor((j / n) * 8)), th = pts[j].r * 3.1;
+      drawSprRot('kseg', fr, pts[j].x, pts[j].y, segW * th / KSEG_TH[fr], ang, flipY);
+    }
+    const t1 = pts[n], t0 = pts[n - 2], ang = Math.atan2(t1.y - t0.y, t1.x - t0.x);
+    drawSprRot('ktip', Math.floor(time*4 + arm[0].x) % 4, t1.x + Math.cos(ang)*2, t1.y + Math.sin(ang)*2, 14*ks, ang, flipY);
+  }
+  // Kopf, darüber die Augen: blinzeln, umherschauen, beim Angriff wütend
+  drawSpr('kraken_head', 0, hx, hy + 4*ks, 50*ks, false, 0.5, 0.62);
+  if (sprReady('keyes')) {
+    const cyc = (time + f.x*0.01) % 5;
+    const eyeFr = k.ext > 0.6 && k.rise > 0.9 ? (Math.floor(time*6) % 8 === 0 ? 4 : 5) : cyc < 0.12 ? 4 : cyc < 0.22 ? 3 : cyc < 1.6 ? 0 : cyc < 2.6 ? 1 : cyc < 3.6 ? 2 : 0;
+    drawSpr('keyes', eyeFr, hx, hy + 4*ks + 50*ks*0.27, 50*ks*0.74, false);
+  }
+  if (tau > 4 && tau < 4.5) drawSpr('kfx', 7, hx, hy, (40 + (tau - 4)*160)*ks, false);
+  return true;
+}
 function drawKraken(f) {
   const k = f._k || krakenAt(f, ft()), ks = k.ks;
   if (k.tau < 2.2) { // Warnung am Boden
     if (Math.floor(time*5) % 2 === 0) { ctx.save(); ctx.translate(Math.round(clamp(f.x, camX + 6, camX + VW - 9)), Math.round(Math.min(FLOOR - 14, camY + VH - 22))); ctx.scale(2, 2); drawWarn(1, 0); ctx.restore(); }
     return;
   }
+  if (drawKrakenSprites(f, k)) return;
   const dark = '#3b0f2e', body = '#9b2c5c', light = '#d65a86', spot = '#f2b6c8';
   for (const arm of k.arms) {
     for (let j = 0; j < arm.length; j++) {
@@ -1261,6 +1299,9 @@ function drawPlayer() {
   if (state === 'over' || (mp && p.dead)) return;
   if (caught && caught.scale < 0.15) return;
   if (caught && caught.by === 'ship' && sprReady('fisher')) return; // steckt in der Fischer-Animation
+  if (caught && caught.by === 'kraken' && sprReady('kgrab')) { // der Arm wickelt dich ein
+    const ct = caught.t; drawSpr('kgrab', ct < 0.25 ? 0 : ct < 0.55 ? 1 : ct < 0.95 ? 2 : 3, p.x, p.y, Math.max(30, p.r*5), p.x > caught.f.x); return;
+  }
   drawPuffer({x: p.x, y: p.y + (p.sleep ? Math.sin(time*2) : 0), r: Math.max(2, p.r*(caught ? caught.scale : 1)), dir: p.dir, pal: mp ? mp.pal : 'puffer', sleep: p.sleep, dead: p.dead,
     sk: state === 'title' ? 'puffer' : effSkin(), ac: state === 'title' ? [] : stats.worn,
     puff: p.puff, glasses: nStage >= 6, blink: p.inv > 0 && state === 'play' && Math.floor(time*12) % 2 === 0, shield: p.shield, frz: frenzy()});
