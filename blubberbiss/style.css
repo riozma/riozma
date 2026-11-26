@@ -226,3 +226,9 @@ button.ccard:disabled{cursor:default}
   .tag.sign{font-size:12px}
 }
 @media (max-width:600px){.infobox .rec.big{white-space:normal;text-align:center}}
+
+/* Lootbox mit Sprite */
+.lootbox.spr{width:auto;height:auto;background:none;box-shadow:none;margin:4px}
+.lootbox.spr::before,.lootbox.spr i{display:none}
+#lootCanvas{display:block;width:198px;height:205px;image-rendering:pixelated}
+.lootbox.spr.open{box-shadow:none;filter:drop-shadow(0 0 26px rgba(255,210,90,.85))}

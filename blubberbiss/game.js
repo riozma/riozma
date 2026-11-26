@@ -119,6 +119,42 @@ function drawAlbum() {
   }
 }
 
+/* ---------- Pixel-Art-Sprites (ChatGPT-Spritesheets, Magenta entfernt; siehe sprites/) ----------
+   Jede Datei ist ein Streifen gleich grosser Bilder. Ist ein Bild noch nicht geladen, wird die
+   alte, gezeichnete Version verwendet. */
+const SPRITE_META = {"lootbox": {"n": 8, "w": 132, "h": 137}, "landlord": {"n": 4, "w": 184, "h": 148}, "fisher": {"n": 6, "w": 208, "h": 244}, "gull": {"n": 4, "w": 116, "h": 96}, "kraken_head": {"n": 1, "w": 324, "h": 300}, "kraken_arm": {"n": 8, "w": 52, "h": 58}, "sub": {"n": 3, "w": 204, "h": 148}, "mystery": {"n": 4, "w": 148, "h": 96}, "wheel": {"n": 1, "w": 512, "h": 512, "cx": 258.0, "cy": 270.0, "r": 142.0}, "acc": {"n": 9, "w": 56, "h": 40}, "rare": {"n": 10, "w": 148, "h": 104}};
+const SPR = {};
+for (const [name, m] of Object.entries(SPRITE_META)) { const img = new Image(); img.src = 'sprites/' + name + '.png'; SPR[name] = Object.assign({img, cache: new Map()}, m); }
+const sprReady = name => { const s = SPR[name]; return s && s.img.complete && s.img.naturalWidth > 0 ? s : null; };
+// Ein Bild in Zielbreite w, sauber verkleinert und mit harter Kante (passt zum Pixel-Look)
+function sprFrame(name, i, w) {
+  const s = sprReady(name); if (!s) return null;
+  w = Math.max(2, Math.round(w)); const key = i + '|' + w; let c = s.cache.get(key); if (c) return c;
+  const h = Math.max(2, Math.round(w * s.h / s.w));
+  c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+  g.drawImage(s.img, i*s.w, 0, s.w, s.h, 0, 0, w, h);
+  try { const id = g.getImageData(0, 0, w, h), d = id.data; for (let k = 3; k < d.length; k += 4) d[k] = d[k] > 110 ? 255 : 0; g.putImageData(id, 0, 0); } catch (e) {}
+  if (s.cache.size > 240) s.cache.clear();
+  s.cache.set(key, c); return c;
+}
+// Zeichnet Bild i so, dass (cx, cy) am Ankerpunkt (ax, ay) liegt; flip spiegelt nach links
+function drawSpr(name, i, cx, cy, w, flip, ax = 0.5, ay = 0.5) {
+  const c = sprFrame(name, i, w); if (!c) return false;
+  const y = Math.round(cy - c.height*ay);
+  if (flip) { ctx.save(); ctx.translate(Math.round(cx), 0); ctx.scale(-1, 1); ctx.drawImage(c, Math.round(-c.width*ax), y); ctx.restore(); }
+  else ctx.drawImage(c, Math.round(cx - c.width*ax), y);
+  return true;
+}
+const RARE_FRAME = {rainbow: 0, kristall: 2, lava: 4, geist: 6, nacht: 8};
+// Spritebasierte Fische (selten, Mystery, Immobilienhai): Breite passend zum gezeichneten Fisch
+function drawFishSprite(e, x, y, w, dir, ph) {
+  if (e.my) return drawSpr('mystery', Math.floor(ph*6) % 4, x, y, w*1.2, dir < 0);
+  if (e.ll) return drawSpr('landlord', Math.floor(ph*6) % 4, x, y - w*0.12, w*1.3, dir < 0);
+  if (e.rare && RARE_FRAME[e.pal] !== undefined) return drawSpr('rare', RARE_FRAME[e.pal] + (Math.floor(ph*5) % 2), x, y, w*1.15, dir < 0);
+  return false;
+}
+
 /* ---------- Sprites ---------- */
 const cache = new Map();
 function buildFish(rIn, pal, kind, sleepy) {
@@ -862,6 +898,7 @@ function drawSub(f) {
   ctx.beginPath(); ctx.moveTo(x + d*15, y + 1); ctx.lineTo(x + d*95, y + 38); ctx.lineTo(x + d*70, y + 62); ctx.closePath(); ctx.fill();
   ctx.fillStyle = 'rgba(255,250,200,0.08)';
   ctx.beginPath(); ctx.moveTo(x + d*15, y + 1); ctx.lineTo(x + d*88, y + 44); ctx.lineTo(x + d*76, y + 54); ctx.closePath(); ctx.fill();
+  if (drawSpr('sub', Math.floor(time*12) % 3, x, y - 3, 46, d < 0)) return;
   ctx.save(); ctx.translate(x, y); ctx.scale(d, 1);
   ctx.fillStyle = '#3a2a00';
   for (let yy = -6; yy <= 6; yy++) { const w = Math.round(16*Math.sqrt(1 - (yy*yy)/49)); ctx.fillRect(-w - 1, yy, w*2 + 2, 1); }
@@ -1038,6 +1075,12 @@ function drawShip(s) {
 }
 function drawShipBody(s, wreck) {
   const t = ft(), sx = Math.round(shipX(s, t)), dy = deckY(s, t), L = s.L, sd = s.vx > 0 ? 1 : -1, x0 = sx - L/2;
+  if (!wreck && caught && caught.f === s && caught.by === 'ship' && sprReady('fisher')) { // Nahaufnahme: der Fischer isst dich
+    const ct = caught.t, fr = ct < 0.45 ? 1 : ct < 0.8 ? 2 : ct < 1.2 ? 3 : ct < 1.65 ? 4 : 5;
+    const fh = Math.min(SURF + 8, L*1.1*SPR.fisher.h/SPR.fisher.w); // passt in den Himmel
+    drawSpr('fisher', fr, sx, SURF + 10, fh*SPR.fisher.w/SPR.fisher.h, sd < 0, 0.5, 1);
+    return;
+  }
   // Rumpf
   for (let y = 0; y < 9; y++) {
     const inset = Math.round(y*0.9) + (y > 6 ? 2 : 0);
@@ -1090,6 +1133,10 @@ function drawFisher(x, dy, sd, alert, ct) {
 function drawBird(f) {
   const b = birdPos(f, ft()), x = Math.round(b.x), y = Math.round(b.y), dir = f.ex > f.sx ? 1 : -1;
   const folded = b.dive && b.u > 0.55, flap = Math.floor(time*10) % 2;
+  if (drawSpr('gull', f.carry ? 3 : folded ? 2 : flap, x, y, f.carry ? 26 : 22, dir < 0)) {
+    if (b.dive && b.u < 0.8 && Math.floor(time*6) % 2 === 0) drawWarn(clamp(x, camX + 4, camX + VW - 6), clamp(y - 12, camY + 22, camY + VH - 10));
+    return;
+  }
   ctx.save(); ctx.translate(x, y); ctx.scale(dir, 1);
   ctx.fillStyle = '#f4f6fa'; ctx.fillRect(-4, -1, 8, 3);                  // Körper
   ctx.fillStyle = '#c9d2de'; ctx.fillRect(-4, 1, 6, 1);
@@ -1124,6 +1171,7 @@ function drawKraken(f) {
     }
   }
   const hx = Math.round(k.hx), hy = Math.round(k.hy), rx = 20*ks, ry = 16*ks;
+  if (drawSpr('kraken_head', 0, hx, hy + 4*ks, 50*ks, false, 0.5, 0.62)) return;
   for (let y = -Math.ceil(ry*1.4); y <= Math.ceil(ry); y++) {
     const yy = y < 0 ? y / 1.4 : y, w = Math.floor(rx*Math.sqrt(Math.max(0, 1 - (yy*yy)/(ry*ry))));
     ctx.fillStyle = dark; ctx.fillRect(hx - w - 1, hy + y, w*2 + 3, 1);
@@ -1161,10 +1209,12 @@ function drawEnt(e) {
     const scared = frenzy() && e.r >= player.r*EAT_RATIO;
     if (scared && Math.floor(time*8) % 2) ctx.globalAlpha = 0.45;
     if (e.pal === 'geist') ctx.globalAlpha = 0.5 + Math.sin(time*3)*0.15;
-    ctx.save(); ctx.translate(x, y + bob); if (e.dir < 0) ctx.scale(-1, 1);
-    ctx.drawImage(s.c, -Math.round(s.cx), -Math.round(s.cy));
-    if (e.ll) drawLandlord(s);
-    ctx.restore();
+    if (!((e.my || e.ll || e.rare) && drawFishSprite(e, x, y + bob, s.w, e.dir, e.ph))) {
+      ctx.save(); ctx.translate(x, y + bob); if (e.dir < 0) ctx.scale(-1, 1);
+      ctx.drawImage(s.c, -Math.round(s.cx), -Math.round(s.cy));
+      if (e.ll) drawLandlord(s);
+      ctx.restore();
+    }
     ctx.globalAlpha = 1;
     if (e.rare) drawRareSparkle(x, y, s);
     if (e.gold) { ctx.fillStyle = '#fff6c0'; ctx.fillRect(x + Math.round(Math.sin(time*9)*s.a), y - Math.round(s.b) - 2, 1, 1); ctx.fillRect(x + Math.round(Math.cos(time*7)*s.a), y + Math.round(s.b) + 1, 1, 1); }
@@ -1210,6 +1260,7 @@ function drawPlayer() {
   const p = player;
   if (state === 'over' || (mp && p.dead)) return;
   if (caught && caught.scale < 0.15) return;
+  if (caught && caught.by === 'ship' && sprReady('fisher')) return; // steckt in der Fischer-Animation
   drawPuffer({x: p.x, y: p.y + (p.sleep ? Math.sin(time*2) : 0), r: Math.max(2, p.r*(caught ? caught.scale : 1)), dir: p.dir, pal: mp ? mp.pal : 'puffer', sleep: p.sleep, dead: p.dead,
     sk: state === 'title' ? 'puffer' : effSkin(), ac: state === 'title' ? [] : stats.worn,
     puff: p.puff, glasses: nStage >= 6, blink: p.inv > 0 && state === 'play' && Math.floor(time*12) % 2 === 0, shield: p.shield, frz: frenzy()});
@@ -1221,11 +1272,16 @@ function drawPuffer(o) {
     ctx.save(); ctx.translate(x, y); ctx.scale(p.dir, p.dead ? -1 : 1);
     if (sd.pal === 'geist') ctx.globalAlpha = 0.6;
     if (sd.disco) ctx.filter = `hue-rotate(${Math.round(time*360) % 360}deg)`;
+    let usedSpr = false;
     if (sd.img && faceImg) { const w = p.r*3.4*sc, h = w*N_ASPECT; ctx.drawImage(faceImg, -w*0.52, -h*0.55, w, h); } // Mini-Nurija
+    else if ((sd.rare || sd.ll) && !p.dead) { // Sprite-Skins: in Weltkoordinaten zeichnen
+      ctx.restore(); usedSpr = drawFishSprite(sd, x, y, spr.w*sc, p.dir, time); ctx.save(); ctx.translate(x, y); ctx.scale(p.dir, 1);
+      if (!usedSpr) ctx.drawImage(spr.c, -spr.cx*sc, -spr.cy*sc, spr.w*sc, spr.h*sc);
+    }
     else ctx.drawImage(spr.c, -spr.cx*sc, -spr.cy*sc, spr.w*sc, spr.h*sc);
     ctx.filter = 'none';
     ctx.globalAlpha = 1;
-    if (sd.ll) drawLandlord({a: spr.a*sc, b: spr.b*sc});
+    if (sd.ll && !usedSpr) drawLandlord({a: spr.a*sc, b: spr.b*sc});
     drawAccLocal(o.ac, spr, sc, p.r);
     if (sd.rare) { ctx.restore(); drawRareSparkle(x, y, {a: spr.a, b: spr.b}); ctx.save(); ctx.translate(x, y); ctx.scale(p.dir, 1); }
     if (o.glasses) { // Belohnung für das volle Album: Nurijas Brille (nur Optik)
@@ -1998,8 +2054,16 @@ function countBest() {
   if (score > (stats[key] || 0)) { stats[key] = score; saveStats(); }
 }
 
+function spriteIcon(sd, c, unlocked) { // seltene Fische & Immobilienhai als Bild-Icon
+  const g = c.getContext('2d'), saved = ctx; ctx = g;
+  let ok = false;
+  try { ok = drawFishSprite(sd, c.width/2, c.height/2, c.width*0.78, 1, 0); } finally { ctx = saved; }
+  if (ok && !unlocked) { g.globalCompositeOperation = 'source-in'; g.fillStyle = '#234a73'; g.fillRect(0, 0, c.width, c.height); g.globalCompositeOperation = 'source-over'; }
+  return ok;
+}
 function speciesIcon(sp) {
   const c = document.createElement('canvas'); c.width = 44; c.height = 30;
+  if ((sp.rare || sp.ll) && spriteIcon(sp, c, stats.eaten[sp.k] > 0)) return c;
   const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
   const spr = sp.jelly ? buildJelly(9) : buildFish(9, sp.pal, sp.kind, false);
   const k = Math.min(40 / spr.w, 26 / spr.h);
@@ -2355,6 +2419,7 @@ function renderPreview() {
 }
 function skinIcon(sd, unlocked) {
   const c = document.createElement('canvas'); c.width = 44; c.height = 30;
+  if ((sd.rare || sd.ll) && spriteIcon(sd, c, unlocked)) return c;
   const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
   const spr = buildFish(9, sd.kind === 'puffer' ? (mpPal || 'puffer') : sd.pal, sd.kind, false);
   const k = Math.min(40 / spr.w, 26 / spr.h);
@@ -2366,7 +2431,10 @@ function accIcon(id) {
   const c = document.createElement('canvas'); c.width = 44; c.height = 30;
   const g = c.getContext('2d'), saved = ctx; g.imageSmoothingEnabled = false;
   ctx = g;
-  try { drawPuffer({x: 22, y: 18, r: 8, dir: 1, pal: 'puffer', sk: 'puffer', ac: [id]}); drawAccWorld([id], 22, 18, 8); } finally { ctx = saved; }
+  try {
+    const i = Object.keys(ACC).indexOf(id);
+    if (!drawSpr('acc', i, 22, 15, 38)) { drawPuffer({x: 22, y: 18, r: 8, dir: 1, pal: 'puffer', sk: 'puffer', ac: [id]}); drawAccWorld([id], 22, 18, 8); }
+  } finally { ctx = saved; }
   return c;
 }
 function renderShop() {
@@ -2456,6 +2524,7 @@ function drawLootPops(dt) {
     for (let k = 0; k < 8; k++) { ctx.rotate(Math.PI/4); ctx.fillStyle = `rgba(255,220,120,${(0.5*(1 - u)).toFixed(3)})`; ctx.fillRect(0, -1, 14 + u*26, 3); }
     ctx.restore();
     const s = 1 + Math.sin(lp.t*18)*0.12*(1 - u);
+    if (drawSpr('lootbox', u < 0.5 ? 3 : 4 + Math.floor(lp.t*10) % 2, x, y, 30*s, false)) { if (Math.random() < 0.4) parts.push({x: x + rnd(-6, 6), y: y - 4, vx: rnd(-40, 40), vy: -rnd(20, 60), life: rnd(0.4, 0.8), c: '#ffd25a', s: 1}); continue; }
     ctx.fillStyle = '#3a1d0c'; ctx.fillRect(x - Math.round(7*s), y - Math.round(5*s), Math.round(14*s), Math.round(10*s));
     ctx.fillStyle = '#7d3fbf'; ctx.fillRect(x - Math.round(6*s), y - Math.round(4*s), Math.round(12*s), Math.round(8*s));
     ctx.fillStyle = '#ffcf3a'; ctx.fillRect(x - Math.round(7*s), y - 1, Math.round(14*s), 1); ctx.fillRect(x - 1, y - 2, 2, 3);
@@ -2500,6 +2569,10 @@ function drawLoot(f) {
     const t = (time*0.8 + i/3) % 1; ctx.fillStyle = i % 2 ? '#fff6c0' : '#ffd25a';
     ctx.fillRect(Math.round(x + Math.sin(t*9 + i)*5), Math.round(fy - 4 - t*40), 1, 1);
   }
+  if (drawSpr('lootbox', d < 0.33 ? 0 : d < 0.66 ? 1 : d < 1 ? 2 : 3, x, fy + 3, 30, false, 0.5, 1)) {
+    if (d > 0 && d < 1) { ctx.fillStyle = '#04101f'; ctx.fillRect(x - 9, fy - 26, 18, 3); ctx.fillStyle = '#ffd25a'; ctx.fillRect(x - 8, fy - 25, Math.round(16*d), 1); }
+    return;
+  }
   const rise = Math.round(d*8); // Truhe kommt Stück für Stück aus dem Sand
   ctx.fillStyle = '#3a1d0c'; ctx.fillRect(x - 7, fy - rise - 1, 14, 10);
   ctx.fillStyle = '#6b2fa3'; ctx.fillRect(x - 6, fy - rise, 12, 8);
@@ -2533,6 +2606,9 @@ function openLoot(after) {
   let left = runLoot; runLoot = 0;
   const el = $('loot'), list = $('lootList'), box = $('lootBox'), hint = $('lootHint'), done = $('lootDone');
   list.innerHTML = ''; el.hidden = false; done.hidden = true; box.classList.remove('open', 'shaking');
+  const useSpr = !!sprReady('lootbox'), lc = $('lootCanvas');
+  const lootShow = i => { const s = SPR.lootbox, g = lc.getContext('2d'); g.clearRect(0, 0, lc.width, lc.height); g.imageSmoothingEnabled = false; g.drawImage(s.img, i*s.w, 0, s.w, s.h, 0, 0, lc.width, lc.height); };
+  box.classList.toggle('spr', useSpr); lc.hidden = !useSpr; if (useSpr) lootShow(3);
   $('lootTitle').textContent = left === 1 ? 'LOOTBOX!' : left + ' LOOTBOXEN!';
   let busy = false;
   const showHint = () => { hint.textContent = left > 0 ? 'KLICK AUF DIE TRUHE ZUM ÖFFNEN' + (left > 1 ? ' · NOCH ' + left : '') : ''; };
@@ -2543,13 +2619,15 @@ function openLoot(after) {
     busy = true; left--; hint.textContent = '';
     box.classList.remove('open'); void box.offsetWidth; box.classList.add('shaking');
     [300, 340, 380, 420].forEach((f, k) => tone(f, f*1.2, 0.07, 'square', 0.05, k*0.12));
+    if (useSpr) { let k = 0; const iv = setInterval(() => lootShow(4 + (k++ % 2)), 90); setTimeout(() => { clearInterval(iv); lootShow(6); }, 560); }
     setTimeout(() => {
+      if (useSpr) lootShow(7);
       const r = rollLoot(); if (r.t === 'coins') addCoins(r.n);
       box.classList.remove('shaking'); box.classList.add('open');
       if (r.big) { sfx.level(); flash = 1; flashCol = '255,210,90'; confetti(60); } else sfx.pearl();
       const li = document.createElement('li'); li.className = r.big ? 'big' : ''; li.textContent = r.label; list.appendChild(li);
       busy = false;
-      if (left > 0) setTimeout(() => { box.classList.remove('open'); showHint(); }, 500); else finish();
+      if (left > 0) setTimeout(() => { box.classList.remove('open'); if (useSpr) lootShow(3); showHint(); }, 900); else finish();
     }, 700);
   };
   box.onclick = openOne;
@@ -2585,12 +2663,15 @@ function wheelIcon(sd, size) {
   const c = document.createElement('canvas'); c.width = size; c.height = size*0.7;
   const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
   if (sd.img) { if (faceImg) { const k = Math.min(c.width / faceImg.width, c.height / faceImg.height); g.drawImage(faceImg, (c.width - faceImg.width*k)/2, (c.height - faceImg.height*k)/2, faceImg.width*k, faceImg.height*k); } return c; }
+  if (wheelIconSprite(sd, c)) return c;
   const spr = buildFish(9, sd.pal, sd.kind, false), k = Math.min(c.width*0.9 / spr.w, c.height*0.9 / spr.h);
   g.drawImage(spr.c, (c.width - spr.w*k)/2, (c.height - spr.h*k)/2, spr.w*k, spr.h*k);
   return c;
 }
 const wheelIcons = new Map();
 function drawWheel(rot) {
+  const ring = sprReady('wheel');
+  if (ring) { drawWheelSprite(rot, ring); return; }
   const c = $('wheelCanvas'), g = c.getContext('2d'), R = c.width/2, n = WHEEL.length, seg = 2*Math.PI / n;
   g.clearRect(0, 0, c.width, c.height);
   g.save(); g.translate(R, R); g.rotate(rot*Math.PI/180);
@@ -2614,6 +2695,28 @@ function drawWheel(rot) {
   g.fillStyle = '#03101f'; g.font = '700 18px Silkscreen, monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('?', R, R + 1);
   g.beginPath(); g.moveTo(R - 16, 2); g.lineTo(R + 16, 2); g.lineTo(R, 34); g.closePath(); g.fillStyle = '#ff3b5c'; g.fill(); g.strokeStyle = '#ffffff'; g.lineWidth = 3; g.stroke();
 }
+function drawWheelSprite(rot, ring) {
+  const c = $('wheelCanvas'), g = c.getContext('2d'), k = c.width / ring.w, cx = ring.cx*k, cy = ring.cy*k, R = (ring.r + 10)*k, n = WHEEL.length, seg = 2*Math.PI / n;
+  g.clearRect(0, 0, c.width, c.height);
+  g.save(); g.translate(cx, cy); g.rotate(rot*Math.PI/180);
+  for (let i = 0; i < n; i++) {
+    g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, R, -Math.PI/2 + i*seg, -Math.PI/2 + (i + 1)*seg); g.closePath();
+    g.fillStyle = WHEEL[i].img ? '#ff4f8b' : `hsl(${(i*360/n + time*40) % 360},85%,${i % 2 ? 55 : 45}%)`; g.fill();
+    g.strokeStyle = '#03101f'; g.lineWidth = 3; g.stroke();
+    g.save(); g.rotate(-Math.PI/2 + (i + 0.5)*seg); g.translate(R*0.6, 0); g.rotate(Math.PI/2);
+    let ic = wheelIcons.get(WHEEL[i].k); if (!ic) { ic = wheelIcon(WHEEL[i], 64); wheelIcons.set(WHEEL[i].k, ic); }
+    g.imageSmoothingEnabled = !!WHEEL[i].img; g.drawImage(ic, -27, -19, 54, 38);
+    g.restore();
+  }
+  g.restore();
+  g.beginPath(); g.arc(cx, cy, 20*k*1.6, 0, 7); g.fillStyle = '#ffd25a'; g.fill(); g.strokeStyle = '#03101f'; g.lineWidth = 4; g.stroke();
+  g.fillStyle = '#03101f'; g.font = '700 ' + Math.round(26*k) + 'px Silkscreen, monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('?', cx, cy + 1);
+  g.imageSmoothingEnabled = false;
+  // Lichter blinken: Ring abwechselnd normal und heller zeichnen
+  g.drawImage(ring.img, 0, 0, c.width, c.height);
+  if (Math.floor(time*8) % 2) { g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.25; g.drawImage(ring.img, 0, 0, c.width, c.height); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; }
+}
+function wheelIconSprite(sd, c) { if (!(sd.rare || sd.ll)) return false; return spriteIcon(sd, c, true); }
 function updateWheel(dt) {
   const w = wheel; if (!w) return;
   w.t += dt;
