@@ -57,19 +57,21 @@
       </div>
     </div>
   </div>
-  <div class="stack">
-    <div class="modes">
-      <button id="soloBtn" class="pxbtn">SOLO</button>
-      <button id="mpBtn" class="pxbtn gold">MULTIPLAYER</button>
+  <div class="menu">
+    <div class="playrow">
+      <button id="soloBtn" class="modecard"><span class="mt">SOLO</span><span class="md">Allein · Level, 3 Leben, Highscore</span></button>
+      <button id="mpBtn" class="modecard gold"><span class="mt">MULTIPLAYER</span><span class="md">Mit allen im Ozean · <span id="onlineHint">…</span></span></button>
     </div>
-    <div class="modes">
-      <button id="shopBtn" class="pxbtn small">GARDEROBE</button>
-      <button id="statsBtn" class="pxbtn small">STATISTIK</button>
+    <div class="subrow">
+      <button id="shopBtn" class="subcard"><span class="mt">GARDEROBE</span><span class="md">Skins · Accessoires · Immobilien</span></button>
+      <button id="statsBtn" class="subcard"><span class="mt">STATISTIK</span><span class="md">Deine Fänge · Bestenlisten</span></button>
     </div>
-    <p class="rec big" id="richTitle" hidden></p>
-    <p class="rec big" id="recTitle" hidden></p>
-    <p class="hint">Drücken und ziehen (Joystick) oder Pfeiltasten. Friss kleinere Fische, spring aus dem Wasser, klau Gold auf Schiffen. Aber nicht zu lange bleiben. Und wenn die Sirene heult: weg da.</p>
-    <p class="hint">HI-SCORE <span id="hiTitle">0</span> · <span id="onlineHint">OZEAN WIRD GESUCHT …</span></p>
+    <div class="infobox">
+      <div><span class="k">DEINE MÜNZEN</span> <b>● <span id="menuCoins">0</span></b><span class="sep">·</span><span class="k">DEIN HI-SCORE</span> <b id="hiTitle">0</b></div>
+      <div class="rec big" id="recTitle" hidden></div>
+      <div class="rec big" id="richTitle" hidden></div>
+    </div>
+    <p class="hint">Drücken und ziehen (Joystick) oder Pfeiltasten · B = Blubb · P = Pause</p>
   </div>
 </section>
 

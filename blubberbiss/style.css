@@ -149,7 +149,7 @@ button.ccard:disabled{cursor:default}
 .ccard .cc.small{font-size:10px;letter-spacing:.08em}
 .ccard canvas{flex:none}
 .ccard.shake{animation:shake .45s steps(6)}
-.tag{font-size:8px;letter-spacing:.1em;background:var(--pink);color:#fff;padding:1px 3px}
+.rtag{font-size:8px;letter-spacing:.1em;background:var(--pink);color:#fff;padding:1px 3px}
 
 /* ---------- Lootbox, Glücksrad, Kopfgeld ---------- */
 .chip.loot{background:#b48cff;color:#1d1040}
@@ -185,3 +185,44 @@ button.ccard:disabled{cursor:default}
 .lootbox{cursor:pointer}
 .lootbox:focus-visible{outline:3px solid var(--cyan);outline-offset:8px}
 #loot{background:rgba(3,12,26,.95)}
+
+/* ---------- Gebäudeschilder (wie Namensschilder) ---------- */
+.tag.sign{font-size:10px;opacity:.85;transform-origin:center}
+/* ---------- Titelmenü ---------- */
+.menu{display:grid;gap:12px;justify-items:center;width:min(560px,100%)}
+.playrow,.subrow{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
+.modecard,.subcard{font-family:var(--f-pixel);color:var(--ink);border:0;cursor:pointer;display:grid;gap:6px;justify-items:center;text-align:center;
+  padding:14px 10px;background:var(--panel);box-shadow:0 0 0 3px var(--edge),inset -3px -3px 0 #071a33,inset 3px 3px 0 #2c5f92}
+.modecard .mt{font-size:clamp(16px,2.6vw,22px);font-weight:700;letter-spacing:.1em}
+.subcard{padding:9px 8px;background:#0f2440}
+.subcard .mt{font-size:clamp(12px,1.8vw,15px);font-weight:700;letter-spacing:.1em}
+.modecard .md,.subcard .md{font-size:10px;letter-spacing:.04em;color:#a9c6e6;line-height:1.4}
+.modecard.gold{background:#5a3f00;color:var(--gold);box-shadow:0 0 0 3px var(--edge),inset -3px -3px 0 #3a2800,inset 3px 3px 0 #9c7410}
+.modecard.gold .md{color:#f3dc9a}
+.modecard:active,.subcard:active{transform:translateY(2px)}
+.modecard:focus-visible,.subcard:focus-visible{outline:3px solid var(--cyan);outline-offset:4px}
+.infobox{display:grid;gap:4px;justify-items:center;font-size:clamp(10px,1.6vw,13px);letter-spacing:.1em;text-shadow:2px 2px 0 var(--edge)}
+.infobox .k{color:var(--cyan)}
+.infobox b{color:var(--gold)}
+.infobox .sep{margin:0 8px;color:#56759a}
+@media (max-width:420px){.playrow,.subrow{gap:8px}.modecard .md,.subcard .md{font-size:9px}}
+/* ---------- HUD auf grossen Bildschirmen grösser ---------- */
+@media (min-width:900px) and (min-height:560px){
+  .label{font-size:12px}
+  #score{font-size:32px}
+  .grow{width:240px;height:10px}
+  #combo{font-size:16px}
+  .rec{font-size:12px;max-width:340px}
+  .lvl{font-size:15px}
+  .chip{font-size:13px;padding:5px 9px}
+  #hearts svg{width:28px;height:24px}
+  #board{font-size:14px;gap:4px}
+  #board .row{max-width:320px}
+  #board .dot{width:10px;height:10px}
+  #board .cnt{font-size:12px}
+  #feed{font-size:14px}
+  .iconbtn{width:54px;height:54px}
+  .tag{font-size:13px}
+  .tag.sign{font-size:12px}
+}
+@media (max-width:600px){.infobox .rec.big{white-space:normal;text-align:center}}

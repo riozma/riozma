@@ -740,8 +740,22 @@ function addFeat(d) {
 function emitFeat(d) { if (mp) { addFeat(d); mpSend('ft', {d}); } else addFeat(d); }
 
 /* --- Formeln --- */
-const shipX = (s, t) => s.x0 + s.vx*(t - s.t0);
-const deckY = (s, t) => SURF - 6 + Math.round(Math.sin((t - s.t0)*1.6));
+const shipX = (s, t) => s.x0 + s.vx*((s.sunk ? Math.min(t, s.sunk) : t) - s.t0);
+// Versenkte Schiffe sinken bis auf den Grund
+const deckY = (s, t) => s.sunk ? Math.round(Math.min(SURF - 6 + (t - s.sunk)*16, floorAt(shipX(s, t)) - 4)) : SURF - 6 + Math.round(Math.sin((t - s.t0)*1.6));
+const SHIP_MAX_R = 16; // grössere Fische sind zu schwer für ein Boot
+const SINK_JOKES = ['ZU SCHWER FÜR DIESEN KAHN', 'DIE VERSICHERUNG ZAHLT NICHT', 'DER FISCHER SCHWIMMT JETZT AUCH', 'TITANIC, ABER MIT FISCH', 'DIÄT WÄRE EINE OPTION'];
+function sinkShip(s, remote) {
+  if (s.sunk) return;
+  s.sunk = remote ? +remote : ft();
+  splash(shipX(s, s.sunk), 8); shake = Math.max(shake, 5);
+  tone(160, 50, 0.9, 'sawtooth', 0.08); tone(90, 40, 1.2, 'square', 0.05, 0.2);
+  if (player.ship === s) { player.ship = null; player.air = true; player.vy = -30; }
+  if (!remote) {
+    banner('SCHIFF VERSENKT!', pick(SINK_JOKES)); score += 300; addCoins(20, shipX(s, s.sunk), SURF - 14);
+    if (mp) mpSend('sink', {id: s.id, t: s.sunk});
+  } else feedPush(`<b>${esc(peerName(remote.f || ''))}</b> versenkt ein Schiff`);
+}
 function birdPos(b, t) {
   const tau = t - b.t0, sky = SKY();
   if (tau < b.d) { const u = Math.max(0, tau / b.d); return {x: b.sx + (b.tx - b.sx)*u, y: sky + (b.ty - sky)*u*u, dive: true, u}; }
@@ -778,18 +792,18 @@ function directorTick(dt, alive) {
   if (dirT.sardine <= 0) { dirT.sardine = rnd(80, 140); spawnSpecial('sardine'); }
   if (dirT.landlord <= 0) { dirT.landlord = rnd(90, 160); if (!ents.some(e => e.ll && !e.dead)) spawnSpecial('landlord'); }
   if (dirT.chest <= 0) { dirT.chest = rnd(70, 130); if (!ents.some(e => e.type === 'chest' && !e.dead)) spawnSpecial('chest'); }
-  dirT.mystery = (dirT.mystery ?? rnd(60, 110)) - dt; dirT.loot = (dirT.loot ?? rnd(25, 50)) - dt;
+  dirT.mystery = (dirT.mystery ?? rnd(60, 110)) - dt; dirT.loot = (dirT.loot ?? rnd(70, 120)) - dt;
   if (dirT.mystery <= 0) { dirT.mystery = rnd(100, 170); if (!ents.some(e => e.my && !e.dead)) spawnSpecial('mystery'); }
   if (dirT.loot <= 0) {
-    dirT.loot = rnd(45, 80);
-    if (feats.filter(f => f.type === 'loot').length < (mp ? 3 : 2)) {
+    dirT.loot = rnd(130, 210);
+    if (!feats.some(f => f.type === 'loot')) {
       const x = Math.round(clamp(pick(alive).x + rnd(-120, 120), 30, W - 30));
       emitFeat({id: fid(), type: 'loot', t0: t, x}); if (mp) mpSend('ann', {a: 'loot'}); announce('loot');
     }
   }
   if (dirT.ship <= 0) {
-    dirT.ship = rnd(14, 26);
-    if (feats.filter(f => f.type === 'ship').length < (mp ? 3 : 2)) {
+    dirT.ship = rnd(38, 65);
+    if (feats.filter(f => f.type === 'ship' && !f.sunk).length < (mp ? 2 : 1)) {
       const fl = Math.random() < 0.5, L = Math.round(rnd(40, 56));
       emitFeat({id: fid(), type: 'ship', t0: t, L, x0: fl ? -L : W + L, vx: Math.round((fl ? 1 : -1)*rnd(8, 14)*10)/10});
     }
@@ -801,10 +815,63 @@ function directorTick(dt, alive) {
       emitFeat(mkBird(tx, SURF + rnd(16, 36), rnd(1.3, 1.7)));
     }
   }
+  dirT.sub = (dirT.sub ?? rnd(40, 80)) - dt;
+  if (dirT.sub <= 0) {
+    dirT.sub = rnd(90, 160);
+    if (!feats.some(f => f.type === 'sub')) {
+      const fl = Math.random() < 0.5;
+      emitFeat({id: fid(), type: 'sub', t0: t, x0: fl ? -40 : W + 40, vx: fl ? 9 : -9, y: Math.round(rnd(SURF + (FLOOR - SURF)*0.35, FLOOR - 40))});
+      if (mp) mpSend('ann', {a: 'sub'}); announce('sub');
+    }
+  }
+  subTick(t);
   if (dirT.kraken <= 0 && !nurija) {
     dirT.kraken = rnd(85, 140);
     if (!feats.some(f => f.type === 'kraken')) emitFeat({id: fid(), type: 'kraken', t0: t, x: Math.round(clamp(pick(alive).x + rnd(-50, 50), 50, W - 50))});
   }
+}
+// Forschungs-U-Boot: fährt langsam durch, Scheinwerfer an, wirft ab und zu eine Überraschung ab
+const subPos = (f, t) => ({x: f.x0 + f.vx*(t - f.t0), y: f.y + Math.sin((t - f.t0)*0.8)*4});
+function subTick(t) {
+  for (const f of feats) {
+    if (f.type !== 'sub') continue;
+    if (f.nd === undefined) f.nd = t + rnd(5, 9);
+    if (t < f.nd) continue;
+    f.nd = t + rnd(11, 18);
+    const sp = subPos(f, t); if (sp.x < 10 || sp.x > W - 10) continue;
+    const q = Math.random(), x = Math.round(sp.x), y = Math.round(sp.y + 8);
+    const type = q < 0.45 ? 'pearl' : q < 0.7 ? 'shield' : q < 0.88 ? 'chest' : 'mystery';
+    if (mp) {
+      let d;
+      if (type === 'chest') d = {id: nid(), type: 'chest', r: 6, x0: x, y0: y, vy: 18, t0: t};
+      else if (type === 'mystery') { d = mkNetFish({r: 6, pal: 'mystery', kind: 'fish', sp: 40, bobA: 20, bobF: 3, y, fromLeft: f.vx > 0}); Object.assign(d, {my: 1, x0: x, t0: t}); }
+      else d = {id: nid(), type, r: type === 'pearl' ? 3 : 6, x0: x, y0: y, vx: Math.round(f.vx*0.5), t0: t, bobA: 4, bobF: 2, ph0: 0};
+      hostEmit({k: 'sp', ann: type === 'mystery' ? 'mystery' : 'subdrop', e: [d]});
+    } else {
+      if (type === 'chest') ents.push({id: 'c' + t, type: 'chest', r: 6, x0: x, y0: y, vy: 18, t0: t, x, y, ph: 0, local: 1});
+      else if (type === 'mystery') { const e = spawnFish({r: 6, pal: 'mystery', kind: 'fish', sp: 40, y, fromLeft: f.vx > 0}); Object.assign(e, {x, my: 1, rare: 1, bobA: 20, bobF: 3}); announce('mystery'); }
+      else ents.push({type, r: type === 'pearl' ? 3 : 6, x, y, vx: f.vx*0.5, bobA: 4, bobF: 2, ph: 0, margin: 14});
+      if (type !== 'mystery') announce('subdrop', '', x, y);
+    }
+  }
+}
+function drawSub(f) {
+  const t = ft(), sp = subPos(f, t), x = Math.round(sp.x), y = Math.round(sp.y), d = f.vx > 0 ? 1 : -1;
+  // Scheinwerfer-Kegel nach vorne unten
+  ctx.fillStyle = 'rgba(255,250,200,0.10)';
+  ctx.beginPath(); ctx.moveTo(x + d*15, y + 1); ctx.lineTo(x + d*95, y + 38); ctx.lineTo(x + d*70, y + 62); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(255,250,200,0.08)';
+  ctx.beginPath(); ctx.moveTo(x + d*15, y + 1); ctx.lineTo(x + d*88, y + 44); ctx.lineTo(x + d*76, y + 54); ctx.closePath(); ctx.fill();
+  ctx.save(); ctx.translate(x, y); ctx.scale(d, 1);
+  ctx.fillStyle = '#3a2a00';
+  for (let yy = -6; yy <= 6; yy++) { const w = Math.round(16*Math.sqrt(1 - (yy*yy)/49)); ctx.fillRect(-w - 1, yy, w*2 + 2, 1); }
+  for (let yy = -5; yy <= 5; yy++) { const w = Math.round(15*Math.sqrt(1 - (yy*yy)/36)); ctx.fillStyle = yy < -2 ? '#ffe27a' : yy > 3 ? '#c4962b' : '#f2c14e'; ctx.fillRect(-w, yy, w*2, 1); }
+  ctx.fillStyle = '#3a2a00'; ctx.fillRect(-5, -11, 9, 6); ctx.fillStyle = '#f2c14e'; ctx.fillRect(-4, -10, 7, 5);
+  ctx.fillStyle = '#3a2a00'; ctx.fillRect(1, -15, 1, 5); ctx.fillRect(1, -15, 3, 1); // Periskop
+  for (const px of [-8, -1, 6]) { ctx.fillStyle = '#04101f'; ctx.fillRect(px - 2, -2, 5, 5); ctx.fillStyle = '#8ff4ff'; ctx.fillRect(px - 1, -1, 3, 3); ctx.fillStyle = '#ffffff'; ctx.fillRect(px - 1, -1, 1, 1); }
+  ctx.fillStyle = '#fff6c0'; ctx.fillRect(14, -1, 3, 3); // Scheinwerfer
+  ctx.fillStyle = '#5a4a20'; const pr = Math.floor(time*12) % 2; ctx.fillRect(-19, pr ? -4 : -1, 2, pr ? 3 : 5); ctx.fillRect(-19, pr ? 1 : -1, 2, pr ? 3 : 2); // Propeller
+  ctx.restore();
 }
 function mkBird(tx, ty, d) {
   const fl = Math.random() < 0.5;
@@ -828,7 +895,9 @@ function landOnShip() {
   for (const s of feats) {
     if (s.type !== 'ship') continue;
     const sx = shipX(s, t), dy = deckY(s, t), foot = p.y + p.r*0.55;
+    if (s.sunk) continue;
     if (Math.abs(p.x - sx) < s.L/2 - 2 && foot >= dy - 1 && foot <= dy + 7) {
+      if (p.r > SHIP_MAX_R) { sinkShip(s); p.vy = -40; return; } // zu schwer: Boot bricht
       Object.assign(p, {ship: s, air: false, vx: 0, vy: 0, shipOff: p.x - sx, shipT: 0, goldT: 0.35, warned: false});
       tone(180, 120, 0.08, 'square', 0.05); popup(p.x, dy - p.r - 8, 'AN BORD!', '#ffd25a');
       return;
@@ -919,7 +988,12 @@ function updateFeats(dt) {
     const f = feats[i];
     if (f.type === 'ship') {
       const x = shipX(f, t);
-      if (((f.vx > 0 && x > W + f.L + 10) || (f.vx < 0 && x < -f.L - 10)) && !(caught && caught.f === f)) { feats.splice(i, 1); continue; }
+      if (((f.vx > 0 && x > W + f.L + 10) || (f.vx < 0 && x < -f.L - 10) || (f.sunk && t - f.sunk > 35)) && !(caught && caught.f === f)) { feats.splice(i, 1); continue; }
+      if (f.sunk && t - f.sunk < 6 && Math.random() < 0.3) bubbles.push({x: x + rnd(-f.L/2, f.L/2), y: deckY(f, t), s: 1 + (Math.random() < 0.5), vy: rnd(18, 34), ph: rnd(0, 6)});
+    } else if (f.type === 'sub') {
+      const sp = subPos(f, t);
+      if ((f.vx > 0 && sp.x > W + 60) || (f.vx < 0 && sp.x < -60)) { feats.splice(i, 1); continue; }
+      if (Math.random() < 0.08) bubbles.push({x: sp.x - Math.sign(f.vx)*18, y: sp.y, s: 1, vy: rnd(10, 20), ph: rnd(0, 6)});
     } else if (f.type === 'bird') {
       const b = birdPos(f, t);
       if (b.done && !(caught && caught.f === f)) { feats.splice(i, 1); continue; }
@@ -953,6 +1027,16 @@ function drawSurface() {
   }
 }
 function drawShip(s) {
+  const t0 = ft();
+  if (s.sunk) { // schräg absinken
+    const a = Math.min(0.45, (t0 - s.sunk)*0.25) * (s.vx > 0 ? 1 : -1), cx = shipX(s, t0), cy = deckY(s, t0);
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(a); ctx.translate(-cx, -cy);
+    drawShipBody(s, true);
+    ctx.restore(); return;
+  }
+  drawShipBody(s, false);
+}
+function drawShipBody(s, wreck) {
   const t = ft(), sx = Math.round(shipX(s, t)), dy = deckY(s, t), L = s.L, sd = s.vx > 0 ? 1 : -1, x0 = sx - L/2;
   // Rumpf
   for (let y = 0; y < 9; y++) {
@@ -977,6 +1061,7 @@ function drawShip(s) {
   ctx.fillStyle = '#ffcf3a'; ctx.fillRect(gx - 3, dy - 6, 6, 2); ctx.fillRect(gx - 1, dy - 4, 2, 2);
   if (Math.floor(time*4 + s.x0) % 3 === 0) { ctx.fillStyle = '#fff6c0'; ctx.fillRect(gx + 2, dy - 9, 1, 2); ctx.fillRect(gx + 1, dy - 8, 3, 1); }
   // Fischer
+  if (wreck) { ctx.fillStyle = '#04101f'; ctx.fillRect(sx - 3, dy + 2, 6, 4); ctx.fillRect(sx + 8, dy + 1, 3, 3); return; } // Leck, kein Fischer mehr
   const mine = player.ship === s || (caught && caught.f === s);
   const alert = mine && (caught || player.shipT >= SHIP_WARN);
   drawFisher(sx - sd*(L/2 - 4), dy, sd, alert, caught && caught.f === s ? caught.t : 0);
@@ -1219,6 +1304,7 @@ function draw() {
   drawKelp();
   drawBuildings();
   for (const f of feats) if (f.type === 'loot') drawLoot(f);
+  drawLootPops(1/60);
   for (const f of feats) if (f.type === 'kraken') drawKraken(f);
   ctx.fillStyle = 'rgba(200,240,255,0.35)';
   for (const s of streaks) ctx.fillRect(Math.round(s.x), Math.round(s.y), Math.round(s.len), 1);
@@ -1226,6 +1312,7 @@ function draw() {
   for (const e of ents) drawEnt(e);
   drawSurface();
   for (const f of feats) if (f.type === 'ship') drawShip(f);
+  for (const f of feats) if (f.type === 'sub') drawSub(f);
   if (mp) drawPeers();
   drawNurija();
   drawPlayer();
@@ -1290,7 +1377,7 @@ function setTitle() {
   resize(); bg = makeBG(); ents.length = 0;
   $('join').hidden = true; $('over').hidden = true; $('pause').hidden = true; $('blubbBtn').hidden = true; $('feed').innerHTML = '';
   for (let i = 0; i < 5; i++) { const e = spawnFish(); e.x = rnd(W*0.1, W*0.9); }
-  $('title').hidden = false; $('hud').hidden = true; $('hiTitle').textContent = String(hi).padStart(6, '0');
+  $('title').hidden = false; $('hud').hidden = true; $('hiTitle').textContent = String(hi); $('menuCoins').textContent = fmt(stats.coins || 0);
   drawAlbum();
 }
 function newGame() {
@@ -1361,10 +1448,10 @@ function mpPeek() {
     lobby.on('presence', {event: 'sync'}, () => {
       if (!lobby) return;
       const n = Object.keys(lobby.presenceState()).length;
-      $('onlineHint').textContent = n === 0 ? 'OZEAN IST LEER' : n === 1 ? '1 IM OZEAN' : n + ' IM OZEAN';
+      $('onlineHint').textContent = n === 0 ? 'gerade leer' : n === 1 ? '1 online' : n + ' online';
     });
-    lobby.subscribe(st => { if (st === 'CHANNEL_ERROR' || st === 'TIMED_OUT') $('onlineHint').textContent = 'OZEAN OFFLINE'; });
-  } catch (e) { $('onlineHint').textContent = 'OZEAN OFFLINE'; }
+    lobby.subscribe(st => { if (st === 'CHANNEL_ERROR' || st === 'TIMED_OUT') $('onlineHint').textContent = 'offline'; });
+  } catch (e) { $('onlineHint').textContent = 'offline'; }
 }
 
 /* --- Beitrittsbildschirm --- */
@@ -1595,7 +1682,8 @@ function mpRecv(m) {
       if (m.ev && !ev) applyEv(m.ev, false);
       if (m.nur && !nurija) applyNur(m.nur, false);
       break;
-    case 'sp': for (const d of m.e || []) addNetEnt(d); if (m.ann) announce(m.ann, cleanName(m.nm)); break;
+    case 'sp': for (const d of m.e || []) addNetEnt(d);
+      if (m.ann === 'subdrop' && m.e && m.e[0]) announce('subdrop', '', +m.e[0].x0, +m.e[0].y0); else if (m.ann) announce(m.ann, cleanName(m.nm)); break;
     case 'tr': if (!mp.host) applyTr(m); break;
     case 'ft': if (m.d && typeof m.d.type === 'string') addFeat(m.d); break;
     case 'eat': {
@@ -1610,7 +1698,8 @@ function mpRecv(m) {
     case 'blubb': { const o = mp.peers.get(m.f); if (o) { o.emote = 1.8; for (let i = 0; i < 6; i++) bubbles.push({x: o.x + rnd(-o.r, o.r), y: o.y - rnd(0, o.r), s: 1 + (i % 2), vy: rnd(20, 34), ph: rnd(0, 6)}); } break; }
     case 'bye': mp.peers.delete(m.f); break;
     case 'fx': { const i = feats.findIndex(f => f.id === m.id); if (i >= 0) { feats.splice(i, 1); feedPush(`<b>${esc(peerName(m.f))}</b> gräbt eine Lootbox aus`); } break; }
-    case 'ann': if (m.a === 'loot') announce('loot'); break;
+    case 'ann': if (m.a === 'loot' || m.a === 'sub') announce(m.a); break;
+    case 'sink': { const sh = feats.find(f => f.id === m.id); if (sh) sinkShip(sh, Object.assign(new Number(+m.t || nowS()), {f: m.f})); break; }
     case 'bounty': { mp.bounty = mp.bounty || {}; const a = clamp(Math.floor(+m.a || 0), 0, 1e6); mp.bounty[m.on] = (mp.bounty[m.on] || 0) + a;
       if (m.on === myId) banner('KOPFGELD AUF DICH!', '● ' + fmt(mp.bounty[m.on]) + ' · VON ' + peerName(m.f).toUpperCase());
       else feedPush(`<b>${esc(peerName(m.f))}</b> setzt ● ${fmt(a)} auf <b>${esc(peerName(m.on))}</b>`);
@@ -1855,6 +1944,7 @@ function syncTags() {
     el.classList.toggle('me', me);
     el.style.transform = `translate(${Math.round((x - camX)*PS)}px,${Math.round((y - r*0.95 - 2 - camY)*PS)}px) translate(-50%,-100%)`;
   };
+  for (const sg of signs) { put(sg.id, sg.x, sg.y, 0, sg.name, sg.me, false, 0); tagEls.get(sg.id).classList.add('sign'); }
   if (mp && show) {
     for (const o of mp.peers.values()) if (!o.dead) put(o.id, o.x, o.y, o.r, o.name, false, o.id === mp.kingId, o.emote);
     if (state === 'play') put(myId, player.x, player.y, player.r, mp.name, true, mp.kingId === myId, mp.emote);
@@ -1963,7 +2053,7 @@ async function fetchTop() {
 const record = () => topList && topList[0] ? topList[0] : null;
 function renderRec() {
   const r = record();
-  const txt = r ? `ALLZEIT-REKORD ${r.score} · ${r.name}` : '';
+  const txt = r ? `ALLZEIT-REKORD ${fmt(r.score)} · ${r.name}` : '';
   $('recTitle').hidden = !r; $('recTitle').textContent = txt;
   updateRecHud(true);
 }
@@ -2126,7 +2216,12 @@ function skinDef(k) {
   const s = SPECIES.find(x => x.k === k);
   return s && !s.jelly && s.k !== 'player' ? s : {k: 'puffer', n: 'Kugelfisch', kind: 'puffer'};
 }
-const skinOk = k => k === 'puffer' || (((stats.eaten[k] || 0) > 0 || (stats.unlocked && stats.unlocked[k])) && skinDef(k).k === k && k !== 'nurija' && k !== 'disco');
+const isSpecialSkin = sd => !!(sd.rare || sd.ll || sd.k === 'gold');
+const skinOk = k => { // normale Fische sind immer frei, Spezialfische muss man erst fressen
+  if (k === 'puffer') return true;
+  const sd = skinDef(k); if (sd.k !== k || k === 'nurija' || k === 'disco') return false;
+  return !isSpecialSkin(sd) || (stats.eaten[k] || 0) > 0 || !!(stats.unlocked && stats.unlocked[k]);
+};
 if (!skinOk(mySkin)) mySkin = 'puffer';
 function setSkin(k) { if (!skinOk(k)) return; mySkin = k; try { localStorage.setItem('blubberbiss-skin', k); } catch (e) {} }
 
@@ -2180,7 +2275,9 @@ function announce(kind, nm) {
   else if (kind === 'landlord') { banner('DER IMMOBILIENHAI!', 'MIETE FÄLLIG · HALT DEINE MÜNZEN FEST'); tone(220, 110, 0.6, 'sawtooth', 0.07); }
   else if (kind === 'chest') { banner('SCHATZ IN SICHT!', 'EINE TRUHE SINKT ZU BODEN'); sfx.pearl(); }
   else if (kind === 'mystery') { banner('MYSTERY-FISCH!', 'WER IHN FRISST, DREHT AM GLÜCKSRAD'); [392, 523, 392, 659, 392, 784].forEach((f, i) => tone(f, f, 0.1, 'triangle', 0.06, i*0.1)); }
-  else if (kind === 'loot') { banner('LOOTBOX VERGRABEN!', 'SUCH AM MEERESBODEN · DRÜBER REIBEN ZUM AUSGRABEN'); tone(300, 600, 0.3, 'triangle', 0.06); }
+  else if (kind === 'sub') { banner('FORSCHUNGS-U-BOOT', 'ES WIRFT AB UND ZU WAS RAUS'); tone(440, 440, 0.08, 'sine', 0.06); tone(660, 660, 0.08, 'sine', 0.06, 0.12); }
+  else if (kind === 'subdrop') { if (nm !== undefined && arguments.length > 2) popup(arguments[2], arguments[3] - 8, 'ÜBERRASCHUNG!', '#fff6c0', 8); tone(880, 1320, 0.1, 'triangle', 0.05); }
+  else if (kind === 'loot') { banner('LOOTBOX VERGRABEN!', 'FOLG DEM LICHT · AM BODEN DRÜBER REIBEN'); [262, 330, 392, 523, 659, 784].forEach((f, i) => tone(f, f, 0.12, 'triangle', 0.06, i*0.08)); }
 }
 function spawnSpecial(type) {
   const t = ft(), wy = () => rnd(WTOP() + 20, FLOOR - 30);
@@ -2282,7 +2379,7 @@ function renderShop() {
     b.className = 'ccard' + (ok ? '' : ' none') + (on ? ' on' : '') + (sd.rare ? ' rare' : ''); b.disabled = !ok;
     b.appendChild(skinIcon(sd, ok));
     const t = document.createElement('div');
-    t.innerHTML = `<div class="cn">${ok ? esc(sd.n) : '???'}${sd.rare ? ' <span class="tag">SELTEN</span>' : ''}</div><div class="cc small">${on ? 'GEWÄHLT' : ok ? 'WÄHLEN' : 'ERST FRESSEN'}</div>`;
+    t.innerHTML = `<div class="cn">${ok ? esc(sd.n) : '???'}${sd.rare ? ' <span class="rtag">SELTEN</span>' : ''}</div><div class="cc small">${on ? 'GEWÄHLT' : ok ? 'WÄHLEN' : 'ERST FRESSEN'}</div>`;
     b.appendChild(t);
     b.addEventListener('click', () => { setSkin(sd.k); tone(700, 1000, 0.06, 'square', 0.04); renderShop(); });
     sg.appendChild(b);
@@ -2349,6 +2446,22 @@ fetchWealth();
 /* ---------- Lootboxen: im Meeresboden vergraben, durch Reiben freilegen, beim Tod öffnen ---------- */
 if (!stats.unlocked || typeof stats.unlocked !== 'object') stats.unlocked = {};
 let runLoot = 0;              // in diesem Leben ausgegrabene Lootboxen
+const lootPops = [];          // Ausbruch-Animation beim Ausgraben
+function drawLootPops(dt) {
+  for (let i = lootPops.length - 1; i >= 0; i--) {
+    const lp = lootPops[i]; lp.t += dt;
+    if (lp.t > 1.6) { lootPops.splice(i, 1); continue; }
+    const u = lp.t / 1.6, x = Math.round(lp.x), y = Math.round(lp.y - 10 - Math.sin(Math.min(1, u*1.6)*Math.PI*0.5)*40);
+    ctx.save(); ctx.translate(x, y); ctx.rotate(lp.t*3);
+    for (let k = 0; k < 8; k++) { ctx.rotate(Math.PI/4); ctx.fillStyle = `rgba(255,220,120,${(0.5*(1 - u)).toFixed(3)})`; ctx.fillRect(0, -1, 14 + u*26, 3); }
+    ctx.restore();
+    const s = 1 + Math.sin(lp.t*18)*0.12*(1 - u);
+    ctx.fillStyle = '#3a1d0c'; ctx.fillRect(x - Math.round(7*s), y - Math.round(5*s), Math.round(14*s), Math.round(10*s));
+    ctx.fillStyle = '#7d3fbf'; ctx.fillRect(x - Math.round(6*s), y - Math.round(4*s), Math.round(12*s), Math.round(8*s));
+    ctx.fillStyle = '#ffcf3a'; ctx.fillRect(x - Math.round(7*s), y - 1, Math.round(14*s), 1); ctx.fillRect(x - 1, y - 2, 2, 3);
+    if (Math.random() < 0.4) parts.push({x: x + rnd(-6, 6), y: y - 4, vx: rnd(-40, 40), vy: -rnd(20, 60), life: rnd(0.4, 0.8), c: '#ffd25a', s: Math.random() < 0.3 ? 2 : 1});
+  }
+}
 const digState = new Map();   // Fortschritt pro Lootbox (nur lokal)
 function updateLoot(dt) {
   const p = player, sp = Math.hypot(p.vx, p.vy);
@@ -2365,14 +2478,28 @@ function updateLoot(dt) {
       if (d >= 1) {
         feats.splice(i, 1); digState.delete(f.id);
         if (mp) mpSend('fx', {id: f.id});
-        runLoot++; sfx.level(); burst(f.x, fy - 4, '#ffd25a', 16, 50);
+        runLoot++; sfx.level(); burst(f.x, fy - 4, '#ffd25a', 24, 70); flash = 0.7; flashCol = '255,220,120';
+        lootPops.push({x: f.x, y: fy, t: 0});
         banner('LOOTBOX!', runLoot === 1 ? 'WIRD BEIM TOD GEÖFFNET' : runLoot + ' STÜCK · WERDEN BEIM TOD GEÖFFNET');
       }
     }
   }
 }
 function drawLoot(f) {
-  const x = Math.round(f.x), fy = Math.round(floorAt(f.x)), d = clamp(digState.get(f.id) || 0, 0, 1);
+  const x = Math.round(f.x), fy = Math.round(floorAt(f.x)), d = clamp(digState.get(f.id) || 0, 0, 1), age = ft() - f.t0;
+  // Lichtsäule von der Oberfläche: kurz nach dem Vergraben hell, danach pulsierend als Wegweiser
+  const beam = age < 4 ? 1 - age/4*0.6 : 0.25 + Math.sin(time*2.5)*0.15;
+  for (let y = SURF; y < fy; y += 2) {
+    const w = 3 + Math.round((y - SURF) / (fy - SURF) * 6), a = beam * (0.12 + 0.18*((y + Math.floor(time*20)) % 6 === 0));
+    ctx.fillStyle = `rgba(255,220,120,${a.toFixed(3)})`; ctx.fillRect(x - w, y, w*2, 2);
+  }
+  if (age < 1.2) { // Aufprall der Truhe
+    ctx.fillStyle = `rgba(255,236,170,${(1.2 - age)*0.6})`; disc(x, fy - 2, 6 + age*16);
+  }
+  for (let i = 0; i < 3; i++) { // aufsteigende Funken
+    const t = (time*0.8 + i/3) % 1; ctx.fillStyle = i % 2 ? '#fff6c0' : '#ffd25a';
+    ctx.fillRect(Math.round(x + Math.sin(t*9 + i)*5), Math.round(fy - 4 - t*40), 1, 1);
+  }
   const rise = Math.round(d*8); // Truhe kommt Stück für Stück aus dem Sand
   ctx.fillStyle = '#3a1d0c'; ctx.fillRect(x - 7, fy - rise - 1, 14, 10);
   ctx.fillStyle = '#6b2fa3'; ctx.fillRect(x - 6, fy - rise, 12, 8);
@@ -2564,12 +2691,12 @@ function drawBuilding(prop, bx, owner, mine) {
     for (let yy = fy - 66; yy < fy - 4; yy += 6) for (let xx = -6; xx <= 4; xx += 5) { ctx.fillStyle = ((xx + yy + Math.floor(time*2)) % 3) ? '#ffd25a' : '#3a4d70'; ctx.fillRect(x + xx, yy, 2, 3); }
     ctx.fillStyle = Math.floor(time*3) % 2 ? '#ff3b5c' : '#5a0a1c'; ctx.fillRect(x - 1, fy - 94, 2, 2);
   }
-  // Schild mit Besitzername (Status!)
-  ctx.font = '8px Silkscreen, monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  const label = (mine ? 'DEIN ' : '') + PROPS[prop].n.split(' ')[0].toUpperCase() + (owner ? ' · ' + owner : '');
-  ctx.fillStyle = '#04101f'; ctx.fillText(label, x + 1, fy + 5); ctx.fillStyle = mine ? '#ffd25a' : '#eef8ff'; ctx.fillText(label, x, fy + 4);
+  // Schild mit Besitzername (Status!) – als HTML-Schild, siehe syncTags
+  signs.push({id: 'b' + (owner || 'me') + bx, x, y: fy + 14, name: mine ? 'Deine ' + PROPS[prop].n : PROPS[prop].n + ' · ' + owner, me: mine});
 }
+const signs = [];
 function drawBuildings() {
+  signs.length = 0;
   const mine = bestProp(stats.owned);
   if (mine && state !== 'title') drawBuilding(mine, parcelX(myParcel()), '', true);
   if (mp) for (const o of mp.peers.values()) if (o.prop && PROPS[o.prop]) drawBuilding(o.prop, parcelX(o.parcel), o.name, false);
